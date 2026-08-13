@@ -23,11 +23,12 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
         <p>Signed in as {{ auth.user()?.name }} ({{ auth.user()?.email }}).</p>
       </mat-card-content>
       <mat-card-actions>
-        @if (auth.hasRole('connector', 'super_admin')) {
-          <a mat-stroked-button routerLink="/dashboard/connector">
+        @if (auth.hasRole('connector')) {
+          <a mat-stroked-button routerLink="/connector/dashboard">
             Connector dashboard
           </a>
         }
+
         <button mat-flat-button type="button" (click)="logout()">Sign out</button>
       </mat-card-actions>
     </mat-card>
