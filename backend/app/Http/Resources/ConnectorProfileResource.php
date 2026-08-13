@@ -18,7 +18,7 @@ class ConnectorProfileResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => (new UserResource($this->whenLoaded('user')))->resolve($request),
+            'user' => (new UserResource($this->user))->resolve($request),
             'company_name' => $this->company_name,
             'contact_person' => $this->contact_person,
             'alternate_phone' => $this->alternate_phone,
