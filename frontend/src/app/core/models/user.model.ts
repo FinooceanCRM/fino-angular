@@ -29,7 +29,9 @@ export interface AuthenticatedUser {
   email: string;
   role: UserRole;
   role_label: string;
-  parent_id: number | null;
+  manager_id: number | null;
+  relationship_manager_id: number | null;
+  employee_id: number | null;
   phone: string | null;
   is_active: boolean;
   created_at: string | null;
