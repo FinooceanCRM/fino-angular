@@ -107,3 +107,27 @@ Sanctum token storage (Phase 2).
   - employee1@finoocean.test
   - banker@finoocean.test, connector@finoocean.test
 - Four sample `bank_criteria` rows
+
+## relationship_managers (Phase 7)
+
+Relationship Manager profile data, 1:1 with `users`. Identity and the
+reporting link to a Manager stay in `users`.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| id | bigint PK | |
+| user_id | bigint FK → users.id | unique, cascade on delete |
+| rm_code | string(50) | nullable, unique |
+| designation | string(150) | nullable |
+| branch | string(150) | nullable, indexed |
+| region | string(150) | nullable, indexed |
+| date_of_joining | date | nullable |
+| alternate_phone | string(20) | nullable |
+| address_line1 / address_line2 | string | nullable |
+| city / state | string(100) | nullable |
+| pincode | string(10) | nullable |
+| timestamps | | |
+
+`connectors.relationship_manager_id` (nullable FK → `users.id`) records the
+Relationship Manager acting as point of contact for a connector. Connectors
+remain outside the reporting hierarchy in `users`.
