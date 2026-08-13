@@ -1,29 +1,53 @@
-# Development Setup
+# Development Setup (Windows 10 + XAMPP)
 
 ## Requirements
 
-- PHP 8.4 with `pdo_mysql`, `mbstring`, `openssl`, `bcmath`, `intl`
+- PHP 8.2.x (bundled with XAMPP) with `pdo_mysql`, `mbstring`, `openssl`, `fileinfo`, `curl`
 - Composer 2.7+
-- Node.js 22 LTS + npm 10
-- MySQL 8.0
-- Docker + Docker Compose (optional but recommended)
+- Node.js 20/22 LTS + npm
+- MySQL via XAMPP
+- No Docker required
 
-## 1. Backend (Laravel 12)
+Make sure `php` and `composer` are on your PATH (`C:\xampp\php`).
+
+## 1. Database (MySQL / XAMPP)
+
+Start MySQL in the XAMPP control panel, then create the schema in phpMyAdmin or:
+
+```sh
+mysql -u root -e "CREATE DATABASE finoocean CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+Default XAMPP credentials are user `root` with an empty password — already set in
+`backend/.env.example`.
+
+## 2. Backend (Laravel 12)
 
 ```sh
 cd backend
-cp .env.example .env
+copy .env.example .env
 composer install
 php artisan key:generate
-php artisan serve --host=0.0.0.0 --port=8000
+php artisan migrate
+php artisan db:seed
+php artisan route:list
+php artisan serve --host=127.0.0.1 --port=8000
 ```
 
 Health check: `GET http://localhost:8000/api/v1/health`
 
-Sanctum SPA authentication expects the frontend origin to be listed in
-`SANCTUM_STATEFUL_DOMAINS` and `FRONTEND_URL` in `.env`.
+Seeded accounts (password `Password123!`):
 
-## 2. Frontend (Angular 20)
+| Role | Email |
+| --- | --- |
+| Super Admin | superadmin@finoocean.test |
+| Manager | manager@finoocean.test |
+| Relationship Manager | rm@finoocean.test |
+| Employee | employee@finoocean.test |
+| Banker | banker@finoocean.test |
+| Connector | connector@finoocean.test |
+
+## 3. Frontend (Angular 20)
 
 ```sh
 cd frontend
@@ -33,37 +57,23 @@ npm run build      # production build into dist/
 npm test           # unit tests
 ```
 
-API base URL is configured in `src/environments/environment.ts`
+API base URL lives in `src/environments/environment.ts`
 (and `environment.production.ts` for builds).
 
-## 3. Database (MySQL)
-
-```sh
-mysql -u root -p -e "CREATE DATABASE finoocean CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-```
-
-No migrations are defined in Phase 1. `database/schema/` holds SQL placeholders
-for the upcoming schema work.
-
-## 4. Docker
-
-```sh
-docker compose up -d --build
-docker compose exec backend php artisan key:generate
-docker compose logs -f
-docker compose down -v
-```
-
-Services: `mysql` (3306), `backend` (8000), `frontend` (4200).
-
-## 5. Continuous integration
+## 4. Continuous integration
 
 `.github/workflows/ci.yml` runs on push and pull request:
 
-- Backend: PHP 8.4 setup, `composer validate`, `composer install`, Pest/PHPUnit
-- Frontend: Node 22, `npm ci`, lint, unit tests, production build
+- Backend: PHP 8.2 setup, `composer validate`, `composer install`, PHPUnit
+- Frontend: Node 22, `npm install`, unit tests, production build
 
-## 6. Postman
+## 5. Postman
 
 Import `postman/finoocean.postman_collection.json` and
 `postman/finoocean.postman_environment.json`.
+
+## Troubleshooting
+
+- `could not find driver` — enable `extension=pdo_mysql` in `C:\xampp\php\php.ini`.
+- `Please provide a valid cache path` — the `backend/storage/framework/*` folders must exist (they are committed with `.gitkeep`).
+- CORS errors — check `FRONTEND_URL` in `backend/.env` matches the Angular dev-server origin.
