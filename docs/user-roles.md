@@ -140,6 +140,38 @@ The Relationship Manager sits between the Manager and the Employee:
 | `GET /relationship-managers/employees` | yes (assigned only) | no | no | no | no |
 | `GET /relationship-managers/connectors` | yes (assigned only) | no | no | no | no |
 
+## Manager role (Phase 8)
+
+The Manager sits directly below the Super Admin and owns one branch of the
+reporting tree:
+
+- Reports to the Super Admin (`manager_id` is null; the Super Admin is the
+  implicit root).
+- Owns the Relationship Managers whose `manager_id` points at them, and
+  transitively the Employees assigned to those RMs.
+- May create Relationship Managers; the new RM is always attached to the
+  acting Manager.
+- May edit, activate and deactivate their own Relationship Managers.
+- Sees employees in their subtree read-only.
+- Can read and update **only their own** profile; role, status, manager code
+  and the reporting link are never editable by the Manager.
+- Cannot access another Manager's subtree, Super Admin functionality, or the
+  Connector module.
+- Manager-specific data lives in the `managers` table (1:1 with `users`).
+- Frontend area: `/manager/dashboard`, `/manager/profile`,
+  `/manager/relationship-managers`, `/manager/employees`, protected by
+  `authGuard` + `roleGuard` with `data: { roles: ['manager'] }`.
+
+| Action | Manager | Super Admin | RM | Employee | Connector |
+| --- | --- | --- | --- | --- | --- |
+| `GET /managers/dashboard` | yes (own) | no | no | no | no |
+| `GET /managers/profile` | yes (own) | no | no | no | no |
+| `PUT /managers/profile` | yes (own, active) | no | no | no | no |
+| `GET /managers/relationship-managers` | yes (own subtree) | no | no | no | no |
+| `POST /managers/relationship-managers` | yes (auto-assigned) | no | no | no | no |
+| `PUT /managers/relationship-managers/{id}` | yes (own subtree) | no | no | no | no |
+| `GET /managers/employees` | yes (own subtree) | no | no | no | no |
+
 ## Seeded test users
 
 Password for every account: `12345678`
@@ -154,8 +186,12 @@ Password for every account: `12345678`
 | rm3@finoocean.test | Relationship Manager | Manager 2 |
 | rm4@finoocean.test | Relationship Manager | Manager 2 |
 | employee1@finoocean.test | Employee | RM 1 |
-| employee2@finoocean.test | Employee | RM 2 |
-| employee3@finoocean.test | Employee | RM 3 |
-| employee4@finoocean.test | Employee | RM 4 |
+| employee2@finoocean.test | Employee | RM 1 |
+| employee3@finoocean.test | Employee | RM 2 |
+| employee4@finoocean.test | Employee | RM 2 |
+| employee5@finoocean.test | Employee | RM 3 |
+| employee6@finoocean.test | Employee | RM 3 |
+| employee7@finoocean.test | Employee | RM 4 |
+| employee8@finoocean.test | Employee | RM 4 |
 | connector1@finoocean.test | Connector | — |
 | connector2@finoocean.test | Connector | — |
