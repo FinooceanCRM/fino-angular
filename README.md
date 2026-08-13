@@ -1,24 +1,56 @@
-# fino-angular
+# FINOOCEAN — Loan Management Platform (Rebuild)
 
-hi
+Phase 1: scaffold only. No business logic, no database tables, no dashboards.
 
-This project was built with [Lovable](https://lovable.dev).
+## Stack
 
-## Build with Lovable
+| Layer | Technology |
+| --- | --- |
+| Frontend | Angular 20, Standalone Components, Angular Material, Reactive Forms, Signals |
+| Backend | Laravel 12, PHP 8.4, REST API, Laravel Sanctum, Service + Repository layers |
+| Database | MySQL 8 |
+| Tooling | Docker Compose, GitHub Actions |
 
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/91f9e2cb-1fb4-42a7-bc27-aaa9c771f97c).
+## Repository structure
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
+```text
+/
+├── backend/     Laravel 12 API (versioned under /api/v1)
+├── frontend/    Angular 20 application
+├── database/    SQL schema and seed placeholders
+├── docs/        Architecture and setup documentation
+├── tests/       Cross-cutting / integration test placeholders
+├── postman/     Postman collection and environment
+├── docker/      Container build files
+└── .github/     CI workflows
+```
 
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Quick start
 
 ```sh
 git clone <this-repository-url>
 cd <repository-name>
-npm i
-npm run dev
+cp backend/.env.example backend/.env
+docker compose up -d --build
 ```
+
+- API: http://localhost:8000/api/v1/health
+- Frontend: http://localhost:4200
+
+Full instructions: [docs/SETUP.md](docs/SETUP.md).
+
+## Local (without Docker)
+
+```sh
+# backend
+cd backend && composer install && php artisan key:generate && php artisan serve
+
+# frontend
+cd frontend && npm install && npm start
+```
+
+## Status
+
+Phase 1 complete: folder structure, Angular scaffold, Laravel scaffold, environment
+configuration, Docker configuration, GitHub Actions workflow, documentation.
+Awaiting approval before Phase 2.
