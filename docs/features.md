@@ -56,10 +56,44 @@ Status legend: **done** = implemented and tested, **planned** = not built yet.
 - Role-aware navigation menu: connectors see their own dashboard and profile
   links instead of the generic dashboard.
 
+## Employee module (Phase 6) — done
+
+### Backend
+
+- `employees` table: 1:1 with `users`, holds only employee-specific data
+  (employee code, designation, department, date of joining, alternate phone,
+  address, city, state, pincode, emergency contact). Identity and reporting
+  links are not duplicated.
+- `Employee` model, factory and `EmployeeSeeder`.
+- `EmployeeService` (business rules), `EloquentEmployeeRepository`
+  (persistence), `EmployeePolicy` (authorization),
+  `UpdateEmployeeProfileRequest` (validation).
+- Endpoints:
+  - `GET /api/v1/employees/dashboard`
+  - `GET /api/v1/employees/profile`
+  - `PUT /api/v1/employees/profile`
+  - `GET /api/v1/employees/team`
+- Guarded by `auth:sanctum` + `auth.active` + `role:employee`; every other
+  role receives `403`.
+- Employees can access only their own information: they cannot create users,
+  edit other users, or reach Manager, Super Admin or Connector routes.
+
+### Frontend
+
+- `/employee/dashboard` — welcome section, employee information, assigned
+  Relationship Manager, account status and quick actions.
+- `/employee/profile` — Reactive Forms view/edit of the employee's own
+  profile; email and employee code are read-only.
+- `/employee/team` — employee details and the reporting Relationship Manager
+  (plus the read-only reporting chain).
+- `EmployeeService` transport layer over the shared `ApiService`.
+- Route guards (`authGuard`, `roleGuard` with `roles: ['employee']`).
+- Role-aware navigation menu entries for employees.
+
 ## Not implemented
 
 - Loan leads, lead assignment, lead matching.
-- Banker, manager and employee workflows.
+- Banker, manager and Super Admin workflows.
 - Documents and notifications UI.
 - Reports and analytics.
 - Vendor role (removed permanently).

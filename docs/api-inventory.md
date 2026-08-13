@@ -104,6 +104,69 @@ field updates the `connectors` row.
 Validation: `pincode` 4–10 digits, `pan_number` exactly 10 alphanumeric
 characters (upper-cased server-side). Any non-connector role receives `403`.
 
+## Employee module (Phase 6)
+
+All routes require `auth:sanctum` + `auth.active` + `role:employee`.
+Every response is scoped to the authenticated employee only.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/v1/employees/dashboard` | Welcome, employee info, assigned RM, account status, quick actions |
+| GET | `/api/v1/employees/profile` | Own profile (auto-provisioned on first read) |
+| PUT | `/api/v1/employees/profile` | Update own profile |
+| GET | `/api/v1/employees/team` | Own details + reporting Relationship Manager |
+
+### GET /employees/dashboard
+
+```json
+{
+  "data": {
+    "welcome": { "headline": "Welcome back, Employee 1.", "message": "This is your employee workspace." },
+    "employee": {
+      "id": 8, "name": "Employee 1", "email": "employee1@finoocean.test",
+      "phone": null, "employee_code": "EMP-0001",
+      "designation": "Loan Executive", "department": "Sales",
+      "date_of_joining": "2025-08-01", "member_since": "2026-01-01T00:00:00+00:00"
+    },
+    "role": { "value": "employee", "label": "Employee", "description": "..." },
+    "relationship_manager": { "id": 4, "name": "Relationship Manager One", "email": "rm1@finoocean.test", "role_label": "Relationship Manager", "is_active": true },
+    "manager": { "id": 2, "name": "Manager One", "role_label": "Manager", "is_active": true },
+    "account_status": { "is_active": true, "status": "Active", "profile_complete": true },
+    "quick_actions": [{ "label": "View profile", "route": "/employee/profile", "icon": "badge" }]
+  }
+}
+```
+
+### PUT /employees/profile
+
+All fields optional. `name` and `phone` update the `users` row; every other
+field updates the `employees` row. Role, status, `employee_code` and the
+reporting links are **not** editable by the employee.
+
+```json
+{
+  "name": "Employee One",
+  "phone": "9810000001",
+  "designation": "Senior Loan Executive",
+  "department": "Sales",
+  "alternate_phone": "9820000001",
+  "address_line1": "10 Business Park",
+  "address_line2": null,
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "pincode": "400001",
+  "emergency_contact_name": "Emergency Contact 1",
+  "emergency_contact_phone": "9820000001"
+}
+```
+
+Validation: `pincode` 4–10 digits. Any non-employee role receives `403`.
+
+### GET /employees/team
+
+Returns `employee`, `relationship_manager`, `manager` and `reporting_chain`
+(read-only). Employees cannot see peers or other users.
+
 ## Status codes
 
 | Code | Meaning |
