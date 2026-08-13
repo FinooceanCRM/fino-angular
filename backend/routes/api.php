@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\ConnectorController;
 use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\RelationshipManagerController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -41,6 +42,17 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('profile', [EmployeeController::class, 'profile'])->name('profile.show');
                 Route::put('profile', [EmployeeController::class, 'updateProfile'])->name('profile.update');
                 Route::get('team', [EmployeeController::class, 'team'])->name('team');
+            });
+
+        // Relationship Manager module (Phase 7). Self-scoped to their own team.
+        Route::prefix('relationship-managers')->name('relationship-managers.')
+            ->middleware('role:relationship_manager')
+            ->group(function (): void {
+                Route::get('dashboard', [RelationshipManagerController::class, 'dashboard'])->name('dashboard');
+                Route::get('profile', [RelationshipManagerController::class, 'profile'])->name('profile.show');
+                Route::put('profile', [RelationshipManagerController::class, 'updateProfile'])->name('profile.update');
+                Route::get('employees', [RelationshipManagerController::class, 'employees'])->name('employees');
+                Route::get('connectors', [RelationshipManagerController::class, 'connectors'])->name('connectors');
             });
 
         Route::prefix('users')->name('users.')->group(function (): void {

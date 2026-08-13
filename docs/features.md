@@ -90,6 +90,45 @@ Status legend: **done** = implemented and tested, **planned** = not built yet.
 - Route guards (`authGuard`, `roleGuard` with `roles: ['employee']`).
 - Role-aware navigation menu entries for employees.
 
+## Relationship Manager module (Phase 7)
+
+### Backend
+
+- `relationship_managers` table: 1:1 with `users`, holds only RM-specific data
+  (RM code, designation, branch, region, date of joining, alternate phone,
+  address, city, state, pincode). Identity and reporting links are not
+  duplicated.
+- `connectors.relationship_manager_id` (nullable): the RM acting as point of
+  contact for a connector. The reporting hierarchy in `users` is untouched.
+- `RelationshipManager` model, factory and `RelationshipManagerSeeder`.
+- `RelationshipManagerService` (business rules),
+  `EloquentRelationshipManagerRepository` (persistence),
+  `RelationshipManagerPolicy` (authorization),
+  `UpdateRelationshipManagerProfileRequest` (validation).
+- Endpoints:
+  - `GET /api/v1/relationship-managers/dashboard`
+  - `GET /api/v1/relationship-managers/profile`
+  - `PUT /api/v1/relationship-managers/profile`
+  - `GET /api/v1/relationship-managers/employees`
+  - `GET /api/v1/relationship-managers/connectors`
+- Guarded by `auth:sanctum` + `auth.active` + `role:relationship_manager`.
+- RMs can access only their own team: only employees assigned to them and
+  connectors assigned to them. Manager and Super Admin routes stay out of
+  reach.
+
+### Frontend
+
+- `/relationship-manager/dashboard` — welcome section, team summary, employee
+  count, connector count, account status, quick actions.
+- `/relationship-manager/profile` — Reactive Forms view/edit of the RM's own
+  profile; email and RM code are read-only.
+- `/relationship-manager/employees` — read-only table of assigned employees.
+- `/relationship-manager/connectors` — read-only table of assigned connectors.
+- `RelationshipManagerService` transport layer over the shared `ApiService`.
+- Route guards (`authGuard`, `roleGuard` with
+  `roles: ['relationship_manager']`).
+- Role-aware navigation menu entries for Relationship Managers.
+
 ## Not implemented
 
 - Loan leads, lead assignment, lead matching.

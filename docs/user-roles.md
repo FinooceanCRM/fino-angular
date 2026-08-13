@@ -114,6 +114,32 @@ The Employee is the leaf of the hierarchy:
 | `GET /employees/team` | yes (own) | no | no | no | no |
 | Create / edit / delete users | no | yes | subtree | subtree | no |
 
+## Relationship Manager role (Phase 7)
+
+The Relationship Manager sits between the Manager and the Employee:
+
+- Always reports to a Manager (`manager_id`).
+- Owns the employees whose `relationship_manager_id` points at them.
+- May be the point of contact for connectors
+  (`connectors.relationship_manager_id`); connectors stay outside the
+  hierarchy and are never managed by the RM.
+- Can read and update **only their own** profile; role, status, RM code and
+  the reporting link to a Manager are never editable by the RM.
+- Cannot access Manager or Super Admin routes.
+- RM-specific data lives in the `relationship_managers` table (1:1 with
+  `users`).
+- Frontend area: `/relationship-manager/dashboard`, `/profile`, `/employees`,
+  `/connectors`, protected by `authGuard` + `roleGuard` with
+  `data: { roles: ['relationship_manager'] }`.
+
+| Action | RM | Super Admin | Manager | Employee | Connector |
+| --- | --- | --- | --- | --- | --- |
+| `GET /relationship-managers/dashboard` | yes (own) | no | no | no | no |
+| `GET /relationship-managers/profile` | yes (own) | no | no | no | no |
+| `PUT /relationship-managers/profile` | yes (own, active) | no | no | no | no |
+| `GET /relationship-managers/employees` | yes (assigned only) | no | no | no | no |
+| `GET /relationship-managers/connectors` | yes (assigned only) | no | no | no | no |
+
 ## Seeded test users
 
 Password for every account: `12345678`
