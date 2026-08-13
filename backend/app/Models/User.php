@@ -21,7 +21,9 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'parent_id',
+        'manager_id',
+        'relationship_manager_id',
+        'employee_id',
         'phone',
         'is_active',
     ];
@@ -38,14 +40,56 @@ class User extends Authenticatable
         ];
     }
 
-    public function parent(): BelongsTo
+    public function manager(): BelongsTo
     {
-        return $this->belongsTo(self::class, 'parent_id');
+        return $this->belongsTo(self::class, 'manager_id');
     }
 
-    public function children(): HasMany
+    public function relationshipManager(): BelongsTo
     {
-        return $this->hasMany(self::class, 'parent_id');
+        return $this->belongsTo(self::class, 'relationship_manager_id');
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'employee_id');
+    }
+
+    /** Direct reports where this user is the manager. */
+    public function managedUsers(): HasMany
+    {
+        return $this->hasMany(self::class, 'manager_id');
+    }
+
+    /** Direct reports where this user is the relationship manager. */
+    public function relationshipManagedUsers(): HasMany
+    {
+        return $this->hasMany(self::class, 'relationship_manager_id');
+    }
+
+    public function loanLeads(): HasMany
+    {
+        return $this->hasMany(LoanLead::class, 'created_by');
+    }
+
+    public function leadAssignments(): HasMany
+    {
+        return $this->hasMany(LeadAssignment::class, 'assigned_to');
+    }
+
+    public function bankCriteria(): HasMany
+    {
+        return $this->hasMany(BankCriteria::class, 'banker_id');
+    }
+
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class, 'uploaded_by');
+    }
+
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
     }
 
     public function hasRole(UserRole|string ...$roles): bool
