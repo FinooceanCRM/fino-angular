@@ -22,6 +22,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'unauthorized',
+    title: 'Not authorised — FINOOCEAN',
+    loadComponent: () =>
+      import('@shared/components/unauthorized.component').then(
+        (m) => m.UnauthorizedComponent,
+      ),
+  },
+  {
     path: '**',
     loadComponent: () =>
       import('@shared/components/not-found.component').then(
