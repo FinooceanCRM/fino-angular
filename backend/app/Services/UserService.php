@@ -49,10 +49,12 @@ class UserService extends BaseService
         if (array_key_exists('role', $attributes) && $attributes['role'] !== null) {
             $role = UserRole::from($attributes['role']);
             $this->assertRoleAssignable($actor, $role);
-            $attributes = $this->applyHierarchyDefaults($actor, $role, $attributes);
         } else {
             unset($attributes['role']);
+            $role = $target->roleEnum();
         }
+
+        $attributes = $this->applyHierarchyDefaults($actor, $role, $attributes);
 
         if (! empty($attributes['password'])) {
             $attributes['password'] = Hash::make($attributes['password']);
