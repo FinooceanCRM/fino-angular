@@ -13,14 +13,12 @@ class RepositoryServiceProvider extends ServiceProvider
     /**
      * @var array<class-string, class-string>
      */
-    protected array $bindings = [
+    public array $bindings = [
         // ExampleRepositoryInterface::class => EloquentExampleRepository::class,
     ];
 
     public function register(): void
     {
-        foreach ($this->bindings as $interface => $implementation) {
-            $this->app->bind($interface, $implementation);
-        }
+        //
     }
 }
