@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Repositories\Contracts\ConnectorRepositoryInterface;
+use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\EloquentConnectorRepository;
+use App\Repositories\EloquentEmployeeRepository;
 use App\Repositories\EloquentUserRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -19,6 +21,7 @@ class RepositoryServiceProvider extends ServiceProvider
     public array $bindings = [
         UserRepositoryInterface::class => EloquentUserRepository::class,
         ConnectorRepositoryInterface::class => EloquentConnectorRepository::class,
+        EmployeeRepositoryInterface::class => EloquentEmployeeRepository::class,
     ];
 
     public function register(): void

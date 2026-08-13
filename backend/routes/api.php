@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\ConnectorController;
+use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
@@ -30,6 +31,16 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('dashboard', [ConnectorController::class, 'dashboard'])->name('dashboard');
                 Route::get('profile', [ConnectorController::class, 'profile'])->name('profile.show');
                 Route::put('profile', [ConnectorController::class, 'updateProfile'])->name('profile.update');
+            });
+
+        // Employee module (Phase 6). Self-scoped; leaf of the reporting hierarchy.
+        Route::prefix('employees')->name('employees.')
+            ->middleware('role:employee')
+            ->group(function (): void {
+                Route::get('dashboard', [EmployeeController::class, 'dashboard'])->name('dashboard');
+                Route::get('profile', [EmployeeController::class, 'profile'])->name('profile.show');
+                Route::put('profile', [EmployeeController::class, 'updateProfile'])->name('profile.update');
+                Route::get('team', [EmployeeController::class, 'team'])->name('team');
             });
 
         Route::prefix('users')->name('users.')->group(function (): void {
