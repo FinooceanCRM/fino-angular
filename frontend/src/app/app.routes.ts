@@ -39,6 +39,14 @@ export const routes: Routes = [
       ),
   },
   {
+    // Relationship Manager module (Phase 7). Between Manager and Employee.
+    path: 'relationship-manager',
+    loadChildren: () =>
+      import(
+        '@features/relationship-manager/relationship-manager.routes'
+      ).then((m) => m.relationshipManagerRoutes),
+  },
+  {
     // Permission-protected area. Screens land here in a later phase; the
     // access-control wiring is complete already.
     path: 'users',

@@ -167,6 +167,55 @@ Validation: `pincode` 4–10 digits. Any non-employee role receives `403`.
 Returns `employee`, `relationship_manager`, `manager` and `reporting_chain`
 (read-only). Employees cannot see peers or other users.
 
+### Relationship Manager module (Phase 7)
+
+All routes below require `auth:sanctum` + `auth.active` + `role:relationship_manager`.
+Every other role receives `403`.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/api/v1/relationship-managers/dashboard` | Welcome, team summary, employee count, connector count, account status |
+| GET | `/api/v1/relationship-managers/profile` | Own RM profile (auto-provisioned on first read) |
+| PUT | `/api/v1/relationship-managers/profile` | Update own profile |
+| GET | `/api/v1/relationship-managers/employees` | Employees assigned to the authenticated RM |
+| GET | `/api/v1/relationship-managers/connectors` | Connectors assigned to the authenticated RM |
+
+### PUT /relationship-managers/profile
+
+All fields optional. `name` and `phone` update the `users` row; every other
+field updates the `relationship_managers` row. Role, status, `rm_code` and the
+reporting link to a Manager are **not** editable by the RM.
+
+```json
+{
+  "name": "Relationship Manager One",
+  "phone": "9830000001",
+  "designation": "Relationship Manager",
+  "branch": "Andheri Branch",
+  "region": "West",
+  "alternate_phone": "9830000011",
+  "address_line1": "20 Finance Street",
+  "address_line2": null,
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "pincode": "400001"
+}
+```
+
+Validation: `pincode` 4–10 digits.
+
+### GET /relationship-managers/employees
+
+Returns `{ "total": n, "employees": [...] }` containing only users with the
+`employee` role whose `relationship_manager_id` matches the authenticated RM.
+
+### GET /relationship-managers/connectors
+
+Returns `{ "total": n, "connectors": [...] }` containing only connector
+profiles whose `relationship_manager_id` matches the authenticated RM.
+Connectors remain outside the reporting hierarchy; the RM is only their point
+of contact.
+
 ## Status codes
 
 | Code | Meaning |

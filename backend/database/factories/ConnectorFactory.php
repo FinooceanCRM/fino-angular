@@ -21,6 +21,7 @@ class ConnectorFactory extends Factory
     {
         return [
             'user_id' => User::factory()->role(UserRole::Connector),
+            'relationship_manager_id' => null,
             'company_name' => $this->faker->company(),
             'contact_person' => $this->faker->name(),
             'alternate_phone' => $this->faker->numerify('9#########'),

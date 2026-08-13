@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             ConnectorSeeder::class,
             EmployeeSeeder::class,
+            RelationshipManagerSeeder::class,
             BankCriteriaSeeder::class,
         ]);
     }

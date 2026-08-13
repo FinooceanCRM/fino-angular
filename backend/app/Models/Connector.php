@@ -18,6 +18,7 @@ class Connector extends Model
 
     protected $fillable = [
         'user_id',
+        'relationship_manager_id',
         'company_name',
         'contact_person',
         'alternate_phone',
@@ -33,5 +34,11 @@ class Connector extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /** Optional point of contact. Connectors stay outside the hierarchy. */
+    public function relationshipManager(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'relationship_manager_id');
     }
 }

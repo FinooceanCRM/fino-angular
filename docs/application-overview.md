@@ -82,6 +82,23 @@ Relationship Manager:
 - Employees cannot create or edit users, and cannot reach Manager, Super Admin
   or Connector routes.
 
+## Relationship Manager module (Phase 7)
+
+The Relationship Manager sits between the Manager and the Employee:
+
+- `GET /api/v1/relationship-managers/dashboard` — welcome, team summary,
+  employee count, connector count and account status.
+- `GET|PUT /api/v1/relationship-managers/profile` — view and update the RM's
+  own profile only.
+- `GET /api/v1/relationship-managers/employees` — employees assigned to the RM.
+- `GET /api/v1/relationship-managers/connectors` — connectors assigned to the
+  RM (connectors remain outside the hierarchy).
+- Angular routes `/relationship-manager/dashboard`, `/profile`, `/employees`
+  and `/connectors`, guarded by `authGuard` + `roleGuard`.
+- RM-only data lives in the `relationship_managers` table, joined 1:1 to
+  `users`.
+- RMs cannot reach Manager or Super Admin routes.
+
 ## Local development
 
 See `docs/SETUP.md`. Summary:
