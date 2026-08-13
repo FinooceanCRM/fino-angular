@@ -2,17 +2,13 @@
 
 namespace Database\Seeders;
 
-use App\Enums\UserRole;
 use App\Models\BankCriteria;
-use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class BankCriteriaSeeder extends Seeder
 {
     public function run(): void
     {
-        $bankerId = User::query()->where('role', UserRole::Banker->value)->value('id');
-
         $rows = [
             ['HDFC Bank', 'Home Loan Prime', 'home', 500000, 20000000, 40000, 720, 8.6],
             ['ICICI Bank', 'Personal Loan Express', 'personal', 100000, 2500000, 30000, 700, 11.5],
@@ -34,7 +30,7 @@ class BankCriteriaSeeder extends Seeder
                     'employment_type' => 'salaried',
                     'interest_rate' => $rate,
                     'is_active' => true,
-                    'banker_id' => $bankerId,
+                    'banker_id' => null,
                 ],
             );
         }

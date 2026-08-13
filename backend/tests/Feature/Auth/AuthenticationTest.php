@@ -23,7 +23,7 @@ class AuthenticationTest extends TestCase
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'manager@example.test',
-            'password' => 'Password123!',
+            'password' => '12345678',
         ])
             ->assertOk()
             ->assertJsonPath('success', true)
@@ -50,11 +50,11 @@ class AuthenticationTest extends TestCase
 
     public function test_inactive_user_cannot_login(): void
     {
-        $this->user(UserRole::Banker, ['email' => 'banker@example.test', 'is_active' => false]);
+        $this->user(UserRole::Connector, ['email' => 'connector@example.test', 'is_active' => false]);
 
         $this->postJson('/api/v1/auth/login', [
-            'email' => 'banker@example.test',
-            'password' => 'Password123!',
+            'email' => 'connector@example.test',
+            'password' => '12345678',
         ])->assertStatus(403);
     }
 
@@ -80,7 +80,7 @@ class AuthenticationTest extends TestCase
 
         $token = $this->postJson('/api/v1/auth/login', [
             'email' => 'logout@example.test',
-            'password' => 'Password123!',
+            'password' => '12345678',
         ])->json('data.token');
 
         $this->withHeader('Authorization', "Bearer {$token}")

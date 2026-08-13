@@ -69,4 +69,12 @@ class UserHierarchyServiceTest extends TestCase
         $this->assertFalse($this->hierarchy->canManage($connector, $target));
         $this->assertSame([], $this->hierarchy->assignableRoles($connector));
     }
+
+    public function test_users_can_access_but_cannot_manage_themselves(): void
+    {
+        $manager = User::factory()->create(['role' => UserRole::Manager]);
+
+        $this->assertTrue($this->hierarchy->canAccess($manager, $manager));
+        $this->assertFalse($this->hierarchy->canManage($manager, $manager));
+    }
 }

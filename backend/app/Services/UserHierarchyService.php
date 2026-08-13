@@ -66,12 +66,23 @@ class UserHierarchyService
     }
 
     /**
-     * True when $actor may manage (view/update/delete) $target.
+     * True when the actor may view the target. A permitted actor may always
+     * view their own account, while management remains restricted below them.
      */
-    public function canManage(User $actor, User $target): bool
+    public function canAccess(User $actor, User $target): bool
     {
         if ($actor->id === $target->id) {
             return true;
+        }
+
+        return $this->canManage($actor, $target);
+    }
+
+    /** True when the actor may modify the target. */
+    public function canManage(User $actor, User $target): bool
+    {
+        if ($actor->id === $target->id) {
+            return false;
         }
 
         return match ($actor->roleEnum()) {
@@ -81,6 +92,28 @@ class UserHierarchyService
                 && (int) $target->relationship_manager_id === $actor->id,
             default => false,
         };
+    }
+
+    public function managerOwnsRelationshipManager(User $manager, int $relationshipManagerId): bool
+    {
+        return User::query()
+            ->whereKey($relationshipManagerId)
+            ->where('role', UserRole::RelationshipManager->value)
+            ->where('manager_id', $manager->id)
+            ->exists();
+    }
+
+    public function relationshipIsValid(?int $managerId, ?int $relationshipManagerId): bool
+    {
+        if ($managerId === null || $relationshipManagerId === null) {
+            return false;
+        }
+
+        return User::query()
+            ->whereKey($relationshipManagerId)
+            ->where('role', UserRole::RelationshipManager->value)
+            ->where('manager_id', $managerId)
+            ->exists();
     }
 
     private function managerOwns(User $manager, User $target): bool

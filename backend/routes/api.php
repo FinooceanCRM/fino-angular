@@ -22,20 +22,17 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
-        /*
-        | User management (hierarchy + access control).
-        | Middleware performs the coarse permission check; the UserPolicy
-        | performs the per-record hierarchy check.
-        */
-        Route::get('users', [UserController::class, 'index'])
-            ->middleware('permission:users.view')->name('users.index');
-        Route::post('users', [UserController::class, 'store'])
-            ->middleware('permission:users.create')->name('users.store');
-        Route::get('users/{user}', [UserController::class, 'show'])
-            ->middleware('permission:users.view')->name('users.show');
-        Route::put('users/{user}', [UserController::class, 'update'])
-            ->middleware('permission:users.update')->name('users.update');
-        Route::delete('users/{user}', [UserController::class, 'destroy'])
-            ->middleware('permission:users.delete')->name('users.destroy');
+        Route::prefix('users')->name('users.')->group(function (): void {
+            Route::get('/', [UserController::class, 'index'])
+                ->middleware('permission:users.view')->name('index');
+            Route::get('{user}', [UserController::class, 'show'])
+                ->middleware('permission:users.view')->name('show');
+            Route::post('/', [UserController::class, 'store'])
+                ->middleware('permission:users.create')->name('store');
+            Route::put('{user}', [UserController::class, 'update'])
+                ->middleware('permission:users.update')->name('update');
+            Route::delete('{user}', [UserController::class, 'destroy'])
+                ->middleware('permission:users.delete')->name('destroy');
+        });
     });
 });
