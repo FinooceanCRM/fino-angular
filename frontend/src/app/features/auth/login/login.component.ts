@@ -132,9 +132,11 @@ export class LoginComponent {
             this.route.snapshot.queryParamMap.get('redirectTo') ?? '/dashboard';
           void this.router.navigateByUrl(redirectTo);
         },
-        error: (err: { error?: { message?: string } }) => {
+        error: (err: { message?: string; error?: { message?: string } }) => {
           this.error.set(
-            err?.error?.message ?? 'Unable to sign in. Please try again.',
+            err?.message ??
+              err?.error?.message ??
+              'Unable to sign in. Please try again.',
           );
         },
       });
