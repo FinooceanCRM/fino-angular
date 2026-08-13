@@ -8,21 +8,26 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Test users (Phase 4 hierarchy).
+ * Test users (Phase 8 hierarchy).
  *
  * Super Admin
- * ├── Manager 1
- * │   ├── RM 1 ── Employee 1
- * │   └── RM 2 ── Employee 2
- * └── Manager 2
- *     ├── RM 3 ── Employee 3
- *     └── RM 4 ── Employee 4
+ * ├── Manager One
+ * │   ├── RM One   ── Employee One, Employee Two
+ * │   └── RM Two   ── Employee Three, Employee Four
+ * └── Manager Two
+ *     ├── RM Three ── Employee Five, Employee Six
+ *     └── RM Four  ── Employee Seven, Employee Eight
  *
  * Connectors sit completely outside the reporting hierarchy.
  */
 class UserSeeder extends Seeder
 {
     public const DEFAULT_PASSWORD = '12345678';
+
+    /** @var array<int, string> */
+    private const EMPLOYEE_WORDS = [
+        'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight',
+    ];
 
     public function run(): void
     {
@@ -36,24 +41,29 @@ class UserSeeder extends Seeder
         ]);
 
         $relationshipManagers = [
-            ['Relationship Manager One', 'rm1@finoocean.test', $manager1],
-            ['Relationship Manager Two', 'rm2@finoocean.test', $manager1],
-            ['Relationship Manager Three', 'rm3@finoocean.test', $manager2],
-            ['Relationship Manager Four', 'rm4@finoocean.test', $manager2],
+            ['RM One', 'rm1@finoocean.test', $manager1],
+            ['RM Two', 'rm2@finoocean.test', $manager1],
+            ['RM Three', 'rm3@finoocean.test', $manager2],
+            ['RM Four', 'rm4@finoocean.test', $manager2],
         ];
 
-        $index = 1;
+        $employeeNumber = 1;
         foreach ($relationshipManagers as [$name, $email, $manager]) {
             $rm = $this->make($name, $email, UserRole::RelationshipManager, [
                 'manager_id' => $manager->id,
             ]);
 
-            $this->make("Employee {$index}", "employee{$index}@finoocean.test", UserRole::Employee, [
-                'manager_id' => $manager->id,
-                'relationship_manager_id' => $rm->id,
-            ]);
+            // Two employees per Relationship Manager.
+            for ($i = 0; $i < 2; $i++) {
+                $word = self::EMPLOYEE_WORDS[$employeeNumber - 1];
 
-            $index++;
+                $this->make("Employee {$word}", "employee{$employeeNumber}@finoocean.test", UserRole::Employee, [
+                    'manager_id' => $manager->id,
+                    'relationship_manager_id' => $rm->id,
+                ]);
+
+                $employeeNumber++;
+            }
         }
 
         // Independent roles.
