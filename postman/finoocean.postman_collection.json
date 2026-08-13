@@ -1,0 +1,36 @@
+{
+  "info": {
+    "name": "FINOOCEAN API v1",
+    "description": "Phase 1 scaffold collection.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Accept", "value": "application/json" }],
+        "url": {
+          "raw": "{{base_url}}/api/v1/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "v1", "health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Sanctum CSRF cookie",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/sanctum/csrf-cookie",
+          "host": ["{{base_url}}"],
+          "path": ["sanctum", "csrf-cookie"]
+        }
+      },
+      "response": []
+    }
+  ],
+  "variable": [{ "key": "base_url", "value": "http://localhost:8000" }]
+}
