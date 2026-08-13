@@ -53,6 +53,36 @@ export const routes: Routes = [
       import('@features/manager/manager.routes').then((m) => m.managerRoutes),
   },
   {
+    // Loan management workflow (Phase 9).
+    path: 'leads',
+    loadChildren: () =>
+      import('@features/leads/leads.routes').then((m) => m.leadsRoutes),
+  },
+  {
+    path: 'banks',
+    loadChildren: () =>
+      import('@features/banks/banks.routes').then((m) => m.banksRoutes),
+  },
+  {
+    path: 'documents',
+    loadChildren: () =>
+      import('@features/documents/documents.routes').then(
+        (m) => m.documentsRoutes,
+      ),
+  },
+  {
+    path: 'notifications',
+    loadChildren: () =>
+      import('@features/notifications/notifications.routes').then(
+        (m) => m.notificationsRoutes,
+      ),
+  },
+  {
+    path: 'reports',
+    loadChildren: () =>
+      import('@features/reports/reports.routes').then((m) => m.reportsRoutes),
+  },
+  {
     // Permission-protected area. Screens land here in a later phase; the
     // access-control wiring is complete already.
     path: 'users',

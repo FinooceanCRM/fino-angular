@@ -1,14 +1,19 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\BankCriteriaController;
 use App\Http\Controllers\Api\V1\ConnectorController;
+use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\LeadController;
 use App\Http\Controllers\Api\V1\ManagerController;
-
+use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\RelationshipManagerController;
+use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -74,6 +79,46 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('employees', [ManagerController::class, 'employees'])->name('employees');
             });
 
+        // Loan management workflow (Phase 9). Visibility is hierarchy-scoped
+        // inside the repository; policies decide what each role may do.
+        Route::prefix('leads')->name('leads.')->group(function (): void {
+            Route::get('metadata', [LeadController::class, 'metadata'])->name('metadata');
+            Route::get('assignable-users', [LeadController::class, 'assignableUsers'])->name('assignable-users');
+            Route::get('/', [LeadController::class, 'index'])->name('index');
+            Route::post('/', [LeadController::class, 'store'])->name('store');
+            Route::get('{lead}', [LeadController::class, 'show'])->whereNumber('lead')->name('show');
+            Route::put('{lead}', [LeadController::class, 'update'])->whereNumber('lead')->name('update');
+            Route::delete('{lead}', [LeadController::class, 'destroy'])->whereNumber('lead')->name('destroy');
+            Route::post('{lead}/assign', [LeadController::class, 'assign'])->whereNumber('lead')->name('assign');
+            Route::post('{lead}/status', [LeadController::class, 'updateStatus'])->whereNumber('lead')->name('status');
+            Route::post('{lead}/match', [LeadController::class, 'match'])->whereNumber('lead')->name('match');
+            Route::get('{lead}/documents', [DocumentController::class, 'index'])->whereNumber('lead')->name('documents.index');
+            Route::post('{lead}/documents', [DocumentController::class, 'store'])->whereNumber('lead')->name('documents.store');
+        });
+
+        Route::prefix('documents')->name('documents.')->group(function (): void {
+            Route::get('{document}/download', [DocumentController::class, 'download'])
+                ->whereNumber('document')->name('download');
+            Route::delete('{document}', [DocumentController::class, 'destroy'])
+                ->whereNumber('document')->name('destroy');
+        });
+
+        Route::prefix('banks')->name('banks.')->group(function (): void {
+            Route::get('/', [BankCriteriaController::class, 'index'])->name('index');
+            Route::post('/', [BankCriteriaController::class, 'store'])->name('store');
+            Route::get('{bank}', [BankCriteriaController::class, 'show'])->whereNumber('bank')->name('show');
+            Route::put('{bank}', [BankCriteriaController::class, 'update'])->whereNumber('bank')->name('update');
+            Route::delete('{bank}', [BankCriteriaController::class, 'destroy'])->whereNumber('bank')->name('destroy');
+        });
+
+        Route::prefix('notifications')->name('notifications.')->group(function (): void {
+            Route::get('/', [NotificationController::class, 'index'])->name('index');
+            Route::post('read-all', [NotificationController::class, 'markAllRead'])->name('read-all');
+            Route::post('{notification}/read', [NotificationController::class, 'markRead'])
+                ->whereNumber('notification')->name('read');
+        });
+
+        Route::get('reports/dashboard', [ReportController::class, 'dashboard'])->name('reports.dashboard');
 
 
         Route::prefix('users')->name('users.')->group(function (): void {

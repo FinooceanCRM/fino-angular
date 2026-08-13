@@ -130,3 +130,24 @@ The Manager owns a slice of the reporting tree:
   `authGuard` + `roleGuard` with `roles: ['manager']`.
 - Manager-only data lives in the `managers` table, joined 1:1 to `users`.
 - Managers cannot reach another Manager's subtree or Super Admin routes.
+
+
+## Loan workflow (Phase 9)
+
+```
+CONNECTOR -> creates lead
+   |
+RELATIONSHIP MANAGER -> assigns to employee
+   |
+EMPLOYEE -> works the lead, uploads documents
+   |
+MATCHING ENGINE -> eligible banks with score and reasons
+   |
+MANAGER -> oversees the subtree
+   |
+SUPER ADMIN -> full visibility and bank criteria ownership
+```
+
+Every read is filtered by the actor's position in the hierarchy, so the same
+endpoint returns a different (correct) slice of the pipeline for each role.
+Dashboard statistics at `/reports` are derived from that same scope.

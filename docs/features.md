@@ -170,3 +170,42 @@ Status legend: **done** = implemented and tested, **planned** = not built yet.
 - Documents and notifications UI.
 - Reports and analytics.
 - Vendor role (removed permanently).
+
+
+## Phase 9 — loan management (complete workflow)
+
+### Backend
+
+- Enums: `LeadStatus` (configurable nine-state catalogue), `LoanType`,
+  `DocumentType`.
+- Migration `extend_loan_workflow_tables` adds the full assignment chain
+  (`assigned_employee_id`, `assigned_relationship_manager_id`,
+  `assigned_manager_id`, `updated_by`) and `bank_criteria.eligibility_rules`.
+- Repositories: `EloquentLoanLeadRepository` (hierarchy-scoped reads, search,
+  filtering, pagination, status aggregates) and `EloquentBankCriteriaRepository`.
+- Services: `LeadService` (create, update, assign, status transitions),
+  `LeadMatchingService` (scoring engine), `BankCriteriaService`,
+  `DocumentService` (upload/download/delete), `NotificationService`,
+  `ReportService` (role-aware dashboard statistics).
+- Policies: `LoanLeadPolicy`, `BankCriteriaPolicy`, `DocumentPolicy`.
+- Controllers/resources for leads, banks, documents, notifications and reports.
+- Seeder `LoanLeadSeeder` distributes demo leads across the hierarchy.
+
+### Frontend
+
+- `/leads` — search, status/loan-type filters, pagination, Material table.
+- `/leads/create` and `/leads/:id/edit` — Reactive Forms lead capture.
+- `/leads/:id` — workflow tab (status change, assignment, history), bank-match
+  tab with the matching engine trigger, and a documents tab with upload,
+  download and delete.
+- `/banks` — bank criteria table; the create form is shown to Super Admin.
+- `/documents` — pick a visible lead and manage its files.
+- `/notifications` — in-app notification feed with read/read-all.
+- `/reports` — totals, per-status breakdown, team counts and recent leads.
+- Services: `LeadService`, `BankService`, `DocumentService`,
+  `NotificationService`, `ReportService` on top of the shared `ApiService`.
+
+## Not implemented
+
+- Banker workspace UI (bank criteria are managed by Super Admin).
+- Vendor role (removed permanently).

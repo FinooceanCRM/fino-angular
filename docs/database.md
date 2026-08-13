@@ -131,3 +131,33 @@ reporting link to a Manager stay in `users`.
 `connectors.relationship_manager_id` (nullable FK → `users.id`) records the
 Relationship Manager acting as point of contact for a connector. Connectors
 remain outside the reporting hierarchy in `users`.
+
+
+## Phase 9 schema additions
+
+`loan_leads`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| assigned_employee_id | FK users | nullable, set on employee assignment |
+| assigned_relationship_manager_id | FK users | nullable, back-filled on assignment |
+| assigned_manager_id | FK users | nullable, back-filled on assignment |
+| updated_by | FK users | last actor to touch the lead |
+
+`bank_criteria`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| eligibility_rules | json | array of `{ field, operator, value, label }` |
+
+Supported rule operators: `=`, `!=`, `>`, `<`, `>=`, `<=`, `in`, `not_in`.
+Supported rule fields: `loan_amount`, `monthly_income`, `credit_score`,
+`tenure_months`, `employment_type`, `city`, `state`, `pincode`, `loan_type`.
+
+```
+loan_leads 1---* lead_assignments
+loan_leads 1---* lead_status_history
+loan_leads 1---* lead_matches *---1 bank_criteria
+loan_leads 1---* documents
+users      1---* notifications
+```
