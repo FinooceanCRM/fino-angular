@@ -74,6 +74,24 @@ then decide whether the specific target record is inside the actor's subtree.
 | Relationship Manager | Employee (auto-assigned to themselves) |
 | Employee / Connector | none |
 
+## Connector role (Phase 5)
+
+A Connector never appears in the reporting tree:
+
+- `manager_id`, `relationship_manager_id` and `employee_id` are always `null`.
+- No role manages a Connector's workspace; the profile is self-owned.
+- Connectors hold none of the `users.*` permissions and cannot open `/users`.
+- Connector-specific data lives in the `connectors` table (1:1 with `users`);
+  identity fields are never duplicated.
+- Frontend area: `/connector/dashboard` and `/connector/profile`, protected by
+  `authGuard` + `roleGuard` with `data: { roles: ['connector'] }`.
+
+| Action | Connector | Super Admin | Manager | RM | Employee |
+| --- | --- | --- | --- | --- | --- |
+| `GET /connectors/dashboard` | yes (own) | no | no | no | no |
+| `GET /connectors/profile` | yes (own) | no | no | no | no |
+| `PUT /connectors/profile` | yes (own, active) | no | no | no | no |
+
 ## Seeded test users
 
 Password for every account: `12345678`
