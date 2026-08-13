@@ -41,9 +41,12 @@ Seeded accounts (password `Password123!`):
 | Role | Email |
 | --- | --- |
 | Super Admin | superadmin@finoocean.test |
-| Manager | manager@finoocean.test |
-| Relationship Manager | rm@finoocean.test |
-| Employee | employee@finoocean.test |
+| Manager 1 | manager1@finoocean.test |
+| Manager 2 | manager2@finoocean.test |
+| Relationship Manager 1 | rm1@finoocean.test |
+| Relationship Manager 2 | rm2@finoocean.test |
+| Relationship Manager 3 | rm3@finoocean.test |
+| Relationship Manager 4 | rm4@finoocean.test |
 | Banker | banker@finoocean.test |
 | Connector | connector@finoocean.test |
 

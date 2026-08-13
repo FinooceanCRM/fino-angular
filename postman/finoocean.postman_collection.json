@@ -105,19 +105,6 @@
           "response": []
         }
       ]
-    },
-    {
-      "name": "Sanctum CSRF cookie",
-      "request": {
-        "method": "GET",
-        "header": [],
-        "url": {
-          "raw": "{{base_url}}/sanctum/csrf-cookie",
-          "host": ["{{base_url}}"],
-          "path": ["sanctum", "csrf-cookie"]
-        }
-      },
-      "response": []
     }
   ],
   "variable": [{ "key": "base_url", "value": "http://localhost:8000" }]

@@ -14,8 +14,8 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Bearer-token API only: no EnsureFrontendRequestsAreStateful, no CSRF.
         $middleware->api(prepend: [
-            Laravel\Sanctum\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
             ForceJsonResponse::class,
         ]);
 

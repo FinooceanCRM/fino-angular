@@ -84,13 +84,16 @@ when unauthenticated.
 
 Password for every seeded account: `Password123!`
 
-| Email                        | Role                 |
-| ---------------------------- | -------------------- |
-| superadmin@finoocean.test    | Super Admin          |
-| manager@finoocean.test       | Manager              |
-| rm@finoocean.test            | Relationship Manager |
-| employee@finoocean.test      | Employee             |
-| banker@finoocean.test        | Banker               |
-| connector@finoocean.test     | Connector            |
+| Email                     | Role                 | Reports to |
+| ------------------------- | -------------------- | ---------- |
+| superadmin@finoocean.test | Super Admin          | —          |
+| manager1@finoocean.test   | Manager              | Super Admin |
+| manager2@finoocean.test   | Manager              | Super Admin |
+| rm1@finoocean.test        | Relationship Manager | Manager 1  |
+| rm2@finoocean.test        | Relationship Manager | Manager 1  |
+| rm3@finoocean.test        | Relationship Manager | Manager 2  |
+| rm4@finoocean.test        | Relationship Manager | Manager 2  |
+| banker@finoocean.test     | Banker               | Manager 1  |
+| connector@finoocean.test  | Connector            | Manager 1  |
 
 Run `php artisan migrate --seed` to create them.
