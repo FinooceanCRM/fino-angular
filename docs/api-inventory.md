@@ -52,6 +52,58 @@ Relationship Manager, so a user can never be created outside the actor's subtree
 Same body as `POST`, all fields optional. `password` is only re-hashed when
 present and non-empty.
 
+
+## Connectors (Phase 5)
+
+Connectors are independent of the reporting hierarchy. Every endpoint is
+scoped to the authenticated connector and is guarded by the `role:connector`
+middleware plus `ConnectorPolicy`.
+
+| Method | Endpoint | Auth | Role | Description |
+| --- | --- | --- | --- | --- |
+| GET | `/connectors/dashboard` | bearer | `connector` | Welcome card, user info, role info, account status |
+| GET | `/connectors/profile` | bearer | `connector` | Own connector profile (auto-created on first read) |
+| PUT | `/connectors/profile` | bearer | `connector` | Update own profile |
+
+### GET /connectors/dashboard
+
+```json
+{
+  "success": true,
+  "data": {
+    "welcome": { "headline": "Welcome back, Connector One.", "message": "..." },
+    "user": { "id": 12, "name": "Connector One", "email": "connector1@finoocean.test", "phone": null, "member_since": "2026-01-01T00:00:00+00:00" },
+    "role": { "value": "connector", "label": "Connector", "independent": true, "description": "..." },
+    "account_status": { "is_active": true, "status": "Active", "profile_complete": true }
+  }
+}
+```
+
+### PUT /connectors/profile
+
+All fields optional. `name` and `phone` update the `users` row; every other
+field updates the `connectors` row.
+
+```json
+{
+  "name": "Connector One",
+  "phone": "9800000001",
+  "company_name": "Ocean Referral Partners",
+  "contact_person": "Connector One",
+  "alternate_phone": "9800000002",
+  "address_line1": "12 Marine Drive",
+  "address_line2": null,
+  "city": "Mumbai",
+  "state": "Maharashtra",
+  "pincode": "400001",
+  "pan_number": "ABCDE1234F",
+  "gst_number": "27ABCDE1234F1Z5"
+}
+```
+
+Validation: `pincode` 4–10 digits, `pan_number` exactly 10 alphanumeric
+characters (upper-cased server-side). Any non-connector role receives `403`.
+
 ## Status codes
 
 | Code | Meaning |

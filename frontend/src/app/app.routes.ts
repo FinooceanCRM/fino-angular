@@ -23,6 +23,14 @@ export const routes: Routes = [
       ),
   },
   {
+    // Connector module (Phase 5). Independent of the reporting hierarchy.
+    path: 'connector',
+    loadChildren: () =>
+      import('@features/connector/connector.routes').then(
+        (m) => m.connectorRoutes,
+      ),
+  },
+  {
     // Permission-protected area. Screens land here in a later phase; the
     // access-control wiring is complete already.
     path: 'users',

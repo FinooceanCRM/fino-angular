@@ -1,0 +1,78 @@
+# FINOOCEAN — Application Overview
+
+FINOOCEAN is a loan management platform rebuilt from a legacy WordPress
+application. It is delivered as two independent applications that talk over a
+versioned REST API.
+
+| Layer | Technology |
+| --- | --- |
+| Frontend | Angular 20, standalone components, TypeScript, Angular Material, Reactive Forms, Signals |
+| Backend | Laravel 12, PHP 8.2, Laravel Sanctum, service layer, repository pattern |
+| Database | MySQL (XAMPP for local development) |
+
+## Repository layout
+
+```text
+/
+├── backend/     Laravel 12 API
+├── frontend/    Angular 20 SPA
+├── database/    schema references and SQL helpers
+├── docs/        project documentation
+├── postman/     API collection and environment
+└── tests/       cross-cutting test assets
+```
+
+## Delivered phases
+
+| Phase | Scope | Status |
+| --- | --- | --- |
+| 1 | Project scaffold, environment configuration, CI workflow | done |
+| 2 | Token-based authentication (login, logout, `/me`) | done |
+| 3 | Database schema: migrations, models, factories, seeders | done |
+| 4 | User hierarchy and access control, user CRUD APIs | done |
+| 5 | Connector module (dashboard + profile) | done |
+
+Loan leads, lead assignment, lead matching, banker/manager/employee workflows,
+reports and analytics are intentionally **not** implemented yet.
+
+## Roles
+
+```text
+SUPER ADMIN → MANAGER → RELATIONSHIP MANAGER → EMPLOYEE
+CONNECTOR (independent)
+```
+
+The legacy **Vendor** role is removed permanently.
+
+## Authentication model
+
+Bearer tokens only. No cookies, no CSRF, no SPA session state:
+
+1. `POST /api/v1/auth/login` returns a Sanctum personal access token.
+2. The Angular interceptor stores it in `localStorage` and sends
+   `Authorization: Bearer <token>` on every request.
+3. `POST /api/v1/auth/logout` revokes the current token.
+
+## Connector module (Phase 5)
+
+The Connector is a standalone role with its own workspace:
+
+- `GET /api/v1/connectors/dashboard` — welcome card, user information, role
+  information and account status.
+- `GET|PUT /api/v1/connectors/profile` — view and update the connector's own
+  profile.
+- Angular routes `/connector/dashboard` and `/connector/profile`, guarded by
+  `authGuard` + `roleGuard`.
+- Connector-only data lives in the `connectors` table, joined 1:1 to `users`.
+
+## Local development
+
+See `docs/SETUP.md`. Summary:
+
+```bash
+# backend
+cd backend && composer install && php artisan migrate --seed && php artisan serve
+
+# frontend
+cd frontend && npm install && npm start
+```

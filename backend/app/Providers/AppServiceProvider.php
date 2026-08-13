@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\Connector;
 use App\Models\User;
+use App\Policies\ConnectorPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
@@ -20,5 +22,6 @@ class AppServiceProvider extends ServiceProvider
         Model::unguard(false);
 
         Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Connector::class, ConnectorPolicy::class);
     }
 }
