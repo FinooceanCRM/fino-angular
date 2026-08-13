@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -33,6 +34,7 @@ class ApiExceptionRenderer
         [$status, $message, $errors] = match (true) {
             $e instanceof ValidationException => [422, 'The given data was invalid.', $e->errors()],
             $e instanceof AuthenticationException => [401, 'Unauthenticated.', []],
+            $e instanceof AuthorizationException => [403, $e->getMessage() ?: 'This action is unauthorized.', []],
             $e instanceof ModelNotFoundException,
             $e instanceof NotFoundHttpException => [404, 'Resource not found.', []],
             $e instanceof DomainException => [$e->getStatus(), $e->getMessage(), $e->getErrors()],

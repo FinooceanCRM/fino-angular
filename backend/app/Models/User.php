@@ -92,6 +92,14 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class);
     }
 
+    /** Role as a typed enum, regardless of how it was hydrated. */
+    public function roleEnum(): UserRole
+    {
+        return $this->role instanceof UserRole
+            ? $this->role
+            : UserRole::from((string) $this->role);
+    }
+
     public function hasRole(UserRole|string ...$roles): bool
     {
         $current = $this->role instanceof UserRole ? $this->role->value : (string) $this->role;

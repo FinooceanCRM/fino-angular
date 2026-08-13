@@ -8,18 +8,17 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 /**
- * Test users.
+ * Test users (Phase 4 hierarchy).
  *
  * Super Admin
  * ├── Manager 1
- * │   ├── RM 1
- * │   │   └── Employee 1
- * │   └── RM 2
+ * │   ├── RM 1 ── Employee 1
+ * │   └── RM 2 ── Employee 2
  * └── Manager 2
- *     ├── RM 3
- *     └── RM 4
+ *     ├── RM 3 ── Employee 3
+ *     └── RM 4 ── Employee 4
  *
- * Banker and Connector sit outside the hierarchy.
+ * Connectors sit completely outside the reporting hierarchy.
  */
 class UserSeeder extends Seeder
 {
@@ -36,30 +35,30 @@ class UserSeeder extends Seeder
             'manager_id' => $superAdmin->id,
         ]);
 
-        $rm1 = $this->make('Relationship Manager One', 'rm1@finoocean.test', UserRole::RelationshipManager, [
-            'manager_id' => $manager1->id,
-        ]);
-        $this->make('Relationship Manager Two', 'rm2@finoocean.test', UserRole::RelationshipManager, [
-            'manager_id' => $manager1->id,
-        ]);
-        $this->make('Relationship Manager Three', 'rm3@finoocean.test', UserRole::RelationshipManager, [
-            'manager_id' => $manager2->id,
-        ]);
-        $this->make('Relationship Manager Four', 'rm4@finoocean.test', UserRole::RelationshipManager, [
-            'manager_id' => $manager2->id,
-        ]);
+        $relationshipManagers = [
+            ['Relationship Manager One', 'rm1@finoocean.test', $manager1],
+            ['Relationship Manager Two', 'rm2@finoocean.test', $manager1],
+            ['Relationship Manager Three', 'rm3@finoocean.test', $manager2],
+            ['Relationship Manager Four', 'rm4@finoocean.test', $manager2],
+        ];
 
-        $this->make('Employee One', 'employee1@finoocean.test', UserRole::Employee, [
-            'manager_id' => $manager1->id,
-            'relationship_manager_id' => $rm1->id,
-        ]);
+        $index = 1;
+        foreach ($relationshipManagers as [$name, $email, $manager]) {
+            $rm = $this->make($name, $email, UserRole::RelationshipManager, [
+                'manager_id' => $manager->id,
+            ]);
 
-        $this->make('Banker One', 'banker@finoocean.test', UserRole::Banker, [
-            'manager_id' => $manager1->id,
-        ]);
-        $this->make('Connector One', 'connector@finoocean.test', UserRole::Connector, [
-            'manager_id' => $manager1->id,
-        ]);
+            $this->make("Employee {$index}", "employee{$index}@finoocean.test", UserRole::Employee, [
+                'manager_id' => $manager->id,
+                'relationship_manager_id' => $rm->id,
+            ]);
+
+            $index++;
+        }
+
+        // Independent roles.
+        $this->make('Connector One', 'connector1@finoocean.test', UserRole::Connector);
+        $this->make('Connector Two', 'connector2@finoocean.test', UserRole::Connector);
     }
 
     /**

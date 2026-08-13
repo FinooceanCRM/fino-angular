@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from '@core/guards/auth.guard';
+import { permissionGuard } from '@core/guards/permission.guard';
 
 export const routes: Routes = [
   {
@@ -19,6 +20,18 @@ export const routes: Routes = [
     loadChildren: () =>
       import('@features/dashboard/dashboard.routes').then(
         (m) => m.dashboardRoutes,
+      ),
+  },
+  {
+    // Permission-protected area. Screens land here in a later phase; the
+    // access-control wiring is complete already.
+    path: 'users',
+    canActivate: [authGuard, permissionGuard],
+    data: { permissions: ['users.view'] },
+    title: 'Users — FINOOCEAN',
+    loadComponent: () =>
+      import('@shared/components/placeholder.component').then(
+        (m) => m.PlaceholderComponent,
       ),
   },
   {
