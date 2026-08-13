@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
+use App\Http\Controllers\Api\V1\ConnectorController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
@@ -21,6 +22,15 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::middleware(['auth:sanctum', 'auth.active'])->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+
+        // Connector module (Phase 5). Independent of the reporting hierarchy.
+        Route::prefix('connectors')->name('connectors.')
+            ->middleware('role:connector')
+            ->group(function (): void {
+                Route::get('dashboard', [ConnectorController::class, 'dashboard'])->name('dashboard');
+                Route::get('profile', [ConnectorController::class, 'profile'])->name('profile.show');
+                Route::put('profile', [ConnectorController::class, 'updateProfile'])->name('profile.update');
+            });
 
         Route::prefix('users')->name('users.')->group(function (): void {
             Route::get('/', [UserController::class, 'index'])
