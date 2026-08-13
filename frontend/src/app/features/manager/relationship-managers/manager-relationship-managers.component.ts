@@ -287,7 +287,7 @@ export class ManagerRelationshipManagersComponent implements OnInit {
     const request$ = id
       ? this.managers.updateRelationshipManager(id, {
           ...value,
-          password: value.password ? value.password : undefined,
+          password: value.password ? value.password : null,
         })
       : this.managers.createRelationshipManager(value);
 
