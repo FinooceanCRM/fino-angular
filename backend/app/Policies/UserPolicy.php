@@ -20,7 +20,7 @@ class UserPolicy
 
     public function view(User $actor, User $target): bool
     {
-        return $this->viewAny($actor) && $this->hierarchy->canManage($actor, $target);
+        return $this->viewAny($actor) && $this->hierarchy->canAccess($actor, $target);
     }
 
     public function create(User $actor): bool

@@ -19,6 +19,25 @@ class UserAccessControlTest extends TestCase
         $this->getJson('/api/v1/users')->assertStatus(403);
     }
 
+    public function test_user_management_routes_are_registered(): void
+    {
+        $this->assertSame('api.v1.users.index', app('router')->getRoutes()->match(
+            \Illuminate\Http\Request::create('/api/v1/users', 'GET'),
+        )->getName());
+        $this->assertSame('api.v1.users.show', app('router')->getRoutes()->match(
+            \Illuminate\Http\Request::create('/api/v1/users/1', 'GET'),
+        )->getName());
+        $this->assertSame('api.v1.users.store', app('router')->getRoutes()->match(
+            \Illuminate\Http\Request::create('/api/v1/users', 'POST'),
+        )->getName());
+        $this->assertSame('api.v1.users.update', app('router')->getRoutes()->match(
+            \Illuminate\Http\Request::create('/api/v1/users/1', 'PUT'),
+        )->getName());
+        $this->assertSame('api.v1.users.destroy', app('router')->getRoutes()->match(
+            \Illuminate\Http\Request::create('/api/v1/users/1', 'DELETE'),
+        )->getName());
+    }
+
     public function test_super_admin_lists_all_users(): void
     {
         Sanctum::actingAs(User::factory()->create(['role' => UserRole::SuperAdmin]));
@@ -104,5 +123,24 @@ class UserAccessControlTest extends TestCase
         Sanctum::actingAs(User::factory()->create(['role' => UserRole::Connector]));
 
         $this->getJson('/api/v1/users')->assertStatus(403);
+    }
+
+    public function test_manager_cannot_assign_employee_to_foreign_relationship_manager(): void
+    {
+        $manager = User::factory()->create(['role' => UserRole::Manager]);
+        $otherManager = User::factory()->create(['role' => UserRole::Manager]);
+        $foreignRm = User::factory()->create([
+            'role' => UserRole::RelationshipManager,
+            'manager_id' => $otherManager->id,
+        ]);
+        Sanctum::actingAs($manager);
+
+        $this->postJson('/api/v1/users', [
+            'name' => 'Foreign Employee',
+            'email' => 'foreign.employee@finoocean.test',
+            'password' => 'password123',
+            'role' => UserRole::Employee->value,
+            'relationship_manager_id' => $foreignRm->id,
+        ])->assertStatus(422);
     }
 }

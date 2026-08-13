@@ -8,6 +8,11 @@ use Illuminate\Validation\Rule;
 
 class StoreUserRequest extends BaseFormRequest
 {
+    public function authorize(): bool
+    {
+        return $this->user()?->can('create', \App\Models\User::class) ?? false;
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -20,7 +25,8 @@ class StoreUserRequest extends BaseFormRequest
             'role' => ['required', Rule::in(UserRole::values())],
             'manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'relationship_manager_id' => ['nullable', 'integer', 'exists:users,id'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'employee_id' => ['prohibited'],
+            'phone' => ['nullable', 'string', 'max:32'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

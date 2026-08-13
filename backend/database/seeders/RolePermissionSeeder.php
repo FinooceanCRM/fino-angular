@@ -16,8 +16,7 @@ class RolePermissionSeeder extends Seeder
             UserRole::Manager->value => 2,
             UserRole::RelationshipManager->value => 3,
             UserRole::Employee->value => 4,
-            UserRole::Banker->value => 5,
-            UserRole::Connector->value => 6,
+            UserRole::Connector->value => 5,
         ];
 
         foreach (UserRole::cases() as $role) {

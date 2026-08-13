@@ -50,10 +50,10 @@ class AuthenticationTest extends TestCase
 
     public function test_inactive_user_cannot_login(): void
     {
-        $this->user(UserRole::Banker, ['email' => 'banker@example.test', 'is_active' => false]);
+        $this->user(UserRole::Connector, ['email' => 'connector@example.test', 'is_active' => false]);
 
         $this->postJson('/api/v1/auth/login', [
-            'email' => 'banker@example.test',
+            'email' => 'connector@example.test',
             'password' => 'Password123!',
         ])->assertStatus(403);
     }

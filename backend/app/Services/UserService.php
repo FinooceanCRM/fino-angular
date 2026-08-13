@@ -97,6 +97,7 @@ class UserService extends BaseService
     private function applyHierarchyDefaults(User $actor, UserRole $role, array $attributes): array
     {
         $attributes['role'] = $role->value;
+        $attributes['employee_id'] = null;
 
         // Connectors are independent of the reporting hierarchy.
         if ($role === UserRole::Connector) {
@@ -111,6 +112,17 @@ class UserService extends BaseService
 
         if ($actorRole === UserRole::Manager) {
             $attributes['manager_id'] = $actor->id;
+
+            if ($role === UserRole::Employee) {
+                $relationshipManagerId = isset($attributes['relationship_manager_id'])
+                    ? (int) $attributes['relationship_manager_id']
+                    : null;
+
+                if ($relationshipManagerId === null
+                    || ! $this->hierarchy->managerOwnsRelationshipManager($actor, $relationshipManagerId)) {
+                    throw new DomainException('The relationship manager must report to the authenticated manager.', 422);
+                }
+            }
         }
 
         if ($actorRole === UserRole::RelationshipManager) {
@@ -123,11 +135,33 @@ class UserService extends BaseService
         }
 
         if ($role === UserRole::Manager) {
+            if ($actorRole === UserRole::SuperAdmin) {
+                $attributes['manager_id'] = $actor->id;
+            }
             $attributes['relationship_manager_id'] = null;
         }
 
-        if ($role === UserRole::Employee && empty($attributes['relationship_manager_id'])) {
-            throw new DomainException('An employee must be assigned to a relationship manager.', 422);
+        if ($role === UserRole::RelationshipManager && $actorRole === UserRole::SuperAdmin) {
+            $managerId = isset($attributes['manager_id']) ? (int) $attributes['manager_id'] : null;
+            $managerIsValid = $managerId !== null && User::query()
+                ->whereKey($managerId)
+                ->where('role', UserRole::Manager->value)
+                ->exists();
+
+            if (! $managerIsValid) {
+                throw new DomainException('A relationship manager must be assigned to a manager.', 422);
+            }
+        }
+
+        if ($role === UserRole::Employee) {
+            $managerId = isset($attributes['manager_id']) ? (int) $attributes['manager_id'] : null;
+            $relationshipManagerId = isset($attributes['relationship_manager_id'])
+                ? (int) $attributes['relationship_manager_id']
+                : null;
+
+            if (! $this->hierarchy->relationshipIsValid($managerId, $relationshipManagerId)) {
+                throw new DomainException('An employee must be assigned to a relationship manager under the same manager.', 422);
+            }
         }
 
         return $attributes;
