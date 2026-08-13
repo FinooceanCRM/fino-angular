@@ -55,6 +55,19 @@ import { AuthService } from '@core/services/auth.service';
           <a mat-button routerLink="/relationship-manager/profile" routerLinkActive="active">
             Profile
           </a>
+        } @else if (auth.hasRole('manager')) {
+          <a mat-button routerLink="/manager/dashboard" routerLinkActive="active">
+            Manager dashboard
+          </a>
+          <a mat-button routerLink="/manager/relationship-managers" routerLinkActive="active">
+            Relationship Managers
+          </a>
+          <a mat-button routerLink="/manager/employees" routerLinkActive="active">
+            Employees
+          </a>
+          <a mat-button routerLink="/manager/profile" routerLinkActive="active">
+            Profile
+          </a>
         } @else {
           <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
         }
