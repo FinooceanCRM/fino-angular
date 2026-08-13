@@ -2,8 +2,9 @@
 
 MySQL 8, `utf8mb4_unicode_ci`.
 
-Phase 1 defines no tables. The schema, Laravel migrations, and seed data are
-introduced in Phase 2.
+The authoritative schema lives in Laravel migrations under
+`backend/database/migrations/`. See `docs/database.md` for the table reference
+and ER diagram.
 
 - `schema/` — raw SQL reference dumps
 - `../seeds/` — seed data scripts
@@ -14,4 +15,12 @@ introduced in Phase 2.
 CREATE DATABASE finoocean
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
+```
+
+## Apply schema and seed data
+
+```bash
+cd backend
+php artisan migrate
+php artisan db:seed
 ```
