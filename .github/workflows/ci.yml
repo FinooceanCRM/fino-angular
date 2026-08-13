@@ -7,7 +7,7 @@ on:
 
 jobs:
   backend:
-    name: Backend (Laravel 12 / PHP 8.4)
+    name: Backend (Laravel 12 / PHP 8.2)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -18,7 +18,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.4"
+          php-version: "8.2"
           extensions: mbstring, pdo_mysql, intl, bcmath, zip
           coverage: none
 
