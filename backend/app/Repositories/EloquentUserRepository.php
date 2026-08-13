@@ -25,11 +25,7 @@ class EloquentUserRepository extends BaseRepository implements UserRepositoryInt
 
     public function markLoggedIn(User $user): User
     {
-        $user->forceFill(['last_login_at' => now()]);
-
-        if ($user->isDirty('last_login_at') && \Illuminate\Support\Facades\Schema::hasColumn('users', 'last_login_at')) {
-            $user->save();
-        }
+        $user->touch();
 
         return $user;
     }
