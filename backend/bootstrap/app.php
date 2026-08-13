@@ -20,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
+            'auth.active' => App\Http\Middleware\EnsureAuthenticated::class,
             'role' => App\Http\Middleware\EnsureUserHasRole::class,
         ]);
     })
