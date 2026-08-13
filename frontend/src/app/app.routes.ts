@@ -31,6 +31,14 @@ export const routes: Routes = [
       ),
   },
   {
+    // Employee module (Phase 6). Leaf of the reporting hierarchy.
+    path: 'employee',
+    loadChildren: () =>
+      import('@features/employee/employee.routes').then(
+        (m) => m.employeeRoutes,
+      ),
+  },
+  {
     // Permission-protected area. Screens land here in a later phase; the
     // access-control wiring is complete already.
     path: 'users',

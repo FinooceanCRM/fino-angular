@@ -65,6 +65,23 @@ The Connector is a standalone role with its own workspace:
   `authGuard` + `roleGuard`.
 - Connector-only data lives in the `connectors` table, joined 1:1 to `users`.
 
+## Employee module (Phase 6)
+
+The Employee is the leaf of the reporting hierarchy and reports to a
+Relationship Manager:
+
+- `GET /api/v1/employees/dashboard` — welcome, employee information, assigned
+  Relationship Manager, account status and quick actions.
+- `GET|PUT /api/v1/employees/profile` — view and update the employee's own
+  profile only.
+- `GET /api/v1/employees/team` — own details plus the reporting Relationship
+  Manager.
+- Angular routes `/employee/dashboard`, `/employee/profile` and
+  `/employee/team`, guarded by `authGuard` + `roleGuard`.
+- Employee-only data lives in the `employees` table, joined 1:1 to `users`.
+- Employees cannot create or edit users, and cannot reach Manager, Super Admin
+  or Connector routes.
+
 ## Local development
 
 See `docs/SETUP.md`. Summary:

@@ -92,6 +92,28 @@ A Connector never appears in the reporting tree:
 | `GET /connectors/profile` | yes (own) | no | no | no | no |
 | `PUT /connectors/profile` | yes (own, active) | no | no | no | no |
 
+## Employee role (Phase 6)
+
+The Employee is the leaf of the hierarchy:
+
+- Always reports to a Relationship Manager (`relationship_manager_id`), and
+  inherits the Manager above that RM (`manager_id`).
+- Can read and update **only their own** profile; role, status, employee code
+  and reporting links are never editable by the employee.
+- Cannot create users, edit other users, or delete users.
+- Cannot access Manager, Super Admin or Connector routes.
+- Employee-specific data lives in the `employees` table (1:1 with `users`).
+- Frontend area: `/employee/dashboard`, `/employee/profile`, `/employee/team`,
+  protected by `authGuard` + `roleGuard` with `data: { roles: ['employee'] }`.
+
+| Action | Employee | Super Admin | Manager | RM | Connector |
+| --- | --- | --- | --- | --- | --- |
+| `GET /employees/dashboard` | yes (own) | no | no | no | no |
+| `GET /employees/profile` | yes (own) | no | no | no | no |
+| `PUT /employees/profile` | yes (own, active) | no | no | no | no |
+| `GET /employees/team` | yes (own) | no | no | no | no |
+| Create / edit / delete users | no | yes | subtree | subtree | no |
+
 ## Seeded test users
 
 Password for every account: `12345678`
