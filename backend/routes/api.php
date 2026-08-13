@@ -4,6 +4,8 @@ use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\ConnectorController;
 use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\ManagerController;
+
 use App\Http\Controllers\Api\V1\RelationshipManagerController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
@@ -54,6 +56,25 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('employees', [RelationshipManagerController::class, 'employees'])->name('employees');
                 Route::get('connectors', [RelationshipManagerController::class, 'connectors'])->name('connectors');
             });
+
+        // Manager module (Phase 8). Scoped to their own RMs and employees.
+        Route::prefix('managers')->name('managers.')
+            ->middleware('role:manager')
+            ->group(function (): void {
+                Route::get('dashboard', [ManagerController::class, 'dashboard'])->name('dashboard');
+                Route::get('profile', [ManagerController::class, 'profile'])->name('profile.show');
+                Route::put('profile', [ManagerController::class, 'updateProfile'])->name('profile.update');
+                Route::get('relationship-managers', [ManagerController::class, 'relationshipManagers'])
+                    ->name('relationship-managers.index');
+                Route::post('relationship-managers', [ManagerController::class, 'storeRelationshipManager'])
+                    ->name('relationship-managers.store');
+                Route::put('relationship-managers/{relationship_manager}', [ManagerController::class, 'updateRelationshipManager'])
+                    ->whereNumber('relationship_manager')
+                    ->name('relationship-managers.update');
+                Route::get('employees', [ManagerController::class, 'employees'])->name('employees');
+            });
+
+
 
         Route::prefix('users')->name('users.')->group(function (): void {
             Route::get('/', [UserController::class, 'index'])

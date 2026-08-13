@@ -47,6 +47,12 @@ export const routes: Routes = [
       ).then((m) => m.relationshipManagerRoutes),
   },
   {
+    // Manager module (Phase 8). Owns Relationship Managers and their teams.
+    path: 'manager',
+    loadChildren: () =>
+      import('@features/manager/manager.routes').then((m) => m.managerRoutes),
+  },
+  {
     // Permission-protected area. Screens land here in a later phase; the
     // access-control wiring is complete already.
     path: 'users',

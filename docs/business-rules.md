@@ -68,3 +68,24 @@
 | `UserHierarchyService` | Single source of truth for subtree membership |
 | `UserService` | Business rules for role assignment and hierarchy defaults |
 | Angular guards | UX-level gating only; never a security boundary |
+
+## BR-9 Manager module (Phase 8)
+
+1. A Manager may read and update **only their own** profile. Role, status,
+   `manager_code` and the reporting link to the Super Admin are never editable
+   by the Manager.
+2. A Manager sees only the Relationship Managers whose `manager_id` equals
+   their own id.
+3. A Manager sees only the Employees whose `relationship_manager_id` points at
+   one of those Relationship Managers. Employee records are read-only for the
+   Manager.
+4. Creating a Relationship Manager always sets `role = relationship_manager`
+   and `manager_id` to the acting Manager. The caller cannot choose a parent
+   and cannot create any other role from this module.
+5. Updating a Relationship Manager is allowed only when the RM is inside the
+   acting Manager's subtree; otherwise the request fails with `403`.
+   Activation and deactivation happen through the `is_active` flag.
+6. A Manager can never reach another Manager's subtree, Super Admin
+   functionality, or the Connector module.
+7. Connectors stay outside the reporting hierarchy and are never visible to a
+   Manager.

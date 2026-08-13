@@ -216,6 +216,85 @@ profiles whose `relationship_manager_id` matches the authenticated RM.
 Connectors remain outside the reporting hierarchy; the RM is only their point
 of contact.
 
+## Manager module (Phase 8)
+
+All routes are prefixed with `/api/v1/managers` and protected by
+`auth:sanctum` + `auth.active` + `role:manager`. Every response is scoped to
+the authenticated Manager's own subtree.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| GET | `/managers/dashboard` | Manager info, team summary, team hierarchy, quick actions |
+| GET | `/managers/profile` | The Manager's own profile |
+| PUT | `/managers/profile` | Update the Manager's own profile |
+| GET | `/managers/relationship-managers` | Relationship Managers reporting to the Manager |
+| POST | `/managers/relationship-managers` | Create a Relationship Manager under the Manager |
+| PUT | `/managers/relationship-managers/{id}` | Update / activate / deactivate an owned RM |
+| GET | `/managers/employees` | Employees belonging to the Manager's RMs (read-only) |
+
+### GET /managers/dashboard
+
+```json
+{
+  "welcome": { "headline": "Welcome back, Manager One.", "message": "..." },
+  "manager": { "id": 2, "name": "Manager One", "manager_code": "MGR-0002", "branch": "..." },
+  "role": { "value": "manager", "label": "Manager", "description": "..." },
+  "reports_to": { "id": 1, "name": "Super Admin", "role_label": "Super Admin" },
+  "team_summary": {
+    "relationship_manager_count": 2,
+    "active_relationship_manager_count": 2,
+    "employee_count": 4,
+    "active_employee_count": 4,
+    "total_members": 6
+  },
+  "hierarchy": [
+    {
+      "id": 4, "name": "RM One", "email": "rm1@finoocean.test", "is_active": true,
+      "employees": [{ "id": 8, "name": "Employee One", "email": "employee1@finoocean.test", "is_active": true }]
+    }
+  ],
+  "account_status": { "is_active": true, "status": "Active", "profile_complete": true },
+  "quick_actions": [{ "label": "View profile", "route": "/manager/profile", "icon": "badge" }]
+}
+```
+
+### PUT /managers/profile
+
+Editable: `name`, `phone`, `designation`, `branch`, `region`,
+`alternate_phone`, `address_line1`, `address_line2`, `city`, `state`,
+`pincode`. Role, status, `manager_code` and the reporting link to the Super
+Admin are never editable.
+
+### POST /managers/relationship-managers
+
+```json
+{
+  "name": "RM Five",
+  "email": "rm5@finoocean.test",
+  "password": "12345678",
+  "phone": "9000000005",
+  "is_active": true,
+  "designation": "Relationship Manager",
+  "branch": "Andheri",
+  "region": "West"
+}
+```
+
+The new user is always created with `role = relationship_manager` and
+`manager_id` set to the acting Manager. The caller cannot choose a parent.
+
+### PUT /managers/relationship-managers/{id}
+
+Accepts the same fields; `password` may be omitted or `null` to keep the
+existing one. Setting `is_active` performs activation/deactivation. A `403` is
+returned when the RM is not part of the Manager's team.
+
+### GET /managers/employees
+
+Returns `{ "total": n, "employees": [...] }` containing only employees whose
+`relationship_manager_id` points at one of the Manager's RMs. Each row
+includes the owning `relationship_manager`.
+
 ## Status codes
 
 | Code | Meaning |

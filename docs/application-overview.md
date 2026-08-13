@@ -110,3 +110,23 @@ cd backend && composer install && php artisan migrate --seed && php artisan serv
 # frontend
 cd frontend && npm install && npm start
 ```
+
+## Manager module (Phase 8)
+
+The Manager owns a slice of the reporting tree:
+
+- `GET /api/v1/managers/dashboard` — manager information, team summary and the
+  full team hierarchy (each RM with the employees assigned to them).
+- `GET|PUT /api/v1/managers/profile` — view and update the Manager's own
+  profile only.
+- `GET|POST /api/v1/managers/relationship-managers` — list and create the
+  Relationship Managers reporting to the Manager.
+- `PUT /api/v1/managers/relationship-managers/{id}` — edit, activate or
+  deactivate an owned Relationship Manager.
+- `GET /api/v1/managers/employees` — read-only list of employees under the
+  Manager's Relationship Managers.
+- Angular routes `/manager/dashboard`, `/manager/profile`,
+  `/manager/relationship-managers` and `/manager/employees`, guarded by
+  `authGuard` + `roleGuard` with `roles: ['manager']`.
+- Manager-only data lives in the `managers` table, joined 1:1 to `users`.
+- Managers cannot reach another Manager's subtree or Super Admin routes.
