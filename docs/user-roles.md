@@ -195,3 +195,18 @@ Password for every account: `12345678`
 | employee8@finoocean.test | Employee | RM 4 |
 | connector1@finoocean.test | Connector | — |
 | connector2@finoocean.test | Connector | — |
+
+
+## Phase 9 capabilities by role
+
+| Capability | Super Admin | Manager | RM | Employee | Connector |
+| --- | --- | --- | --- | --- | --- |
+| Create lead | yes | yes | yes | yes | yes |
+| See leads | all | own subtree | own team | own assigned | own submitted |
+| Update lead | yes | yes | yes | own assigned | own, while new/assigned |
+| Delete lead | yes | no | no | no | no |
+| Assign lead | anyone | own RMs/employees | own employees | no | no |
+| Change status | yes | yes | yes | own assigned | no |
+| Run matching | yes | yes | yes | yes | no |
+| Manage bank criteria | yes | no | no | no | no |
+| Upload documents | yes | yes | yes | own assigned | own leads |

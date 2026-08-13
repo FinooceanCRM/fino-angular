@@ -71,9 +71,19 @@ import { AuthService } from '@core/services/auth.service';
         } @else {
           <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
         }
+
+        <!-- Loan management workspace (Phase 9), shared by every role. -->
+        <a mat-button routerLink="/leads" routerLinkActive="active">Leads</a>
+        <a mat-button routerLink="/banks" routerLinkActive="active">Banks</a>
+        <a mat-button routerLink="/documents" routerLinkActive="active">Documents</a>
+        <a mat-button routerLink="/reports" routerLinkActive="active">Reports</a>
+        <a mat-button routerLink="/notifications" routerLinkActive="active">
+          Notifications
+        </a>
       } @else {
         <a mat-button routerLink="/auth/login" routerLinkActive="active">Sign in</a>
       }
+
     </mat-toolbar>
 
     <main class="content">

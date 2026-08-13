@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\LeadStatus;
 use App\Models\LoanLead;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
@@ -32,9 +33,13 @@ class LoanLeadFactory extends Factory
             'city' => $this->faker->city(),
             'state' => $this->faker->state(),
             'pincode' => $this->faker->numerify('4#####'),
-            'status' => $this->faker->randomElement(['new', 'in_review', 'matched', 'submitted', 'approved', 'rejected']),
+            'status' => $this->faker->randomElement(LeadStatus::values()),
             'created_by' => null,
+            'updated_by' => null,
             'connector_id' => null,
+            'assigned_employee_id' => null,
+            'assigned_relationship_manager_id' => null,
+            'assigned_manager_id' => null,
             'notes' => $this->faker->optional()->sentence(),
         ];
     }

@@ -89,3 +89,37 @@
    functionality, or the Connector module.
 7. Connectors stay outside the reporting hierarchy and are never visible to a
    Manager.
+
+
+## BR-10 Loan management workflow (Phase 9)
+
+1. Lead visibility is derived, never stored as a permission:
+   Super Admin sees every lead; a Manager sees leads assigned to them, to their
+   RMs, or to those RMs' employees; an RM sees leads assigned to them or to
+   their employees; an Employee sees only their own assigned leads; a Connector
+   sees only the leads they submitted.
+2. A lead created by a Connector always records `connector_id` as that
+   Connector; the value cannot be spoofed from the request body.
+3. Assignment only moves down the hierarchy. Super Admin may assign to anyone;
+   a Manager only to users whose `manager_id` is their own id; an RM only to
+   Employees whose `relationship_manager_id` is their own id. Employees and
+   Connectors cannot assign.
+4. Assigning an Employee also back-fills the owning RM and Manager, so the full
+   chain stays queryable. The previous active `lead_assignments` row is
+   released and a new active row is written.
+5. A lead in `new` becomes `assigned` automatically on first assignment.
+6. Status changes are always recorded in `lead_status_history` with the actor
+   and remarks. `closed` is terminal: no further transition is accepted.
+7. Employees may change status only on their own leads; Connectors may never
+   change status and may only edit their own leads while still `new` or
+   `assigned`.
+8. Bank criteria are readable by the whole hierarchy but writable by the Super
+   Admin only.
+9. The matching engine evaluates active products of the same loan type. A
+   product qualifies only when the amount range, minimum income, minimum credit
+   score, employment type and every configured `eligibility_rules` entry pass.
+   Score weighting: amount 40, income 25, credit score 25, employment 10.
+10. Notifications are written for lead creation, assignment, status change and
+    document upload, and are readable only by their owner.
+11. Documents belong to a lead; visibility follows the lead. A document may be
+    deleted by its uploader or by Super Admin/Manager/RM.

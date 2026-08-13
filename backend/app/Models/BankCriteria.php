@@ -25,6 +25,7 @@ class BankCriteria extends Model
         'max_age',
         'employment_type',
         'interest_rate',
+        'eligibility_rules',
         'is_active',
         'banker_id',
     ];
@@ -36,9 +37,11 @@ class BankCriteria extends Model
             'max_loan_amount' => 'decimal:2',
             'min_monthly_income' => 'decimal:2',
             'interest_rate' => 'decimal:2',
+            'eligibility_rules' => 'array',
             'is_active' => 'boolean',
         ];
     }
+
 
     public function banker(): BelongsTo
     {

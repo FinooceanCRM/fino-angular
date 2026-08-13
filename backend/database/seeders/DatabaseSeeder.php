@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             RelationshipManagerSeeder::class,
             ManagerSeeder::class,
             BankCriteriaSeeder::class,
+            LoanLeadSeeder::class,
         ]);
     }
 }

@@ -305,3 +305,50 @@ includes the owning `relationship_manager`.
 | 403 | Missing permission, or target outside the actor's hierarchy |
 | 404 | Record not found |
 | 422 | Validation or business-rule failure |
+
+
+## Loan management (Phase 9)
+
+All endpoints below require `Authorization: Bearer <token>` and an active
+account. Reads are hierarchy-scoped inside the repository, so two users calling
+the same URL legitimately receive different rows.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/v1/leads` | Paginated, searchable, filterable lead list |
+| GET | `/api/v1/leads/metadata` | Status, loan-type and employment catalogues |
+| GET | `/api/v1/leads/assignable-users` | Users the caller may assign leads to |
+| POST | `/api/v1/leads` | Create a lead (status starts at `new`) |
+| GET | `/api/v1/leads/{id}` | Lead, status history and stored bank matches |
+| PUT | `/api/v1/leads/{id}` | Update applicant/loan fields |
+| DELETE | `/api/v1/leads/{id}` | Soft-delete a lead (Super Admin only) |
+| POST | `/api/v1/leads/{id}/assign` | Route the lead down the hierarchy |
+| POST | `/api/v1/leads/{id}/status` | Change status with remarks |
+| POST | `/api/v1/leads/{id}/match` | Run the matching engine and store matches |
+| GET | `/api/v1/leads/{id}/documents` | Documents attached to a lead |
+| POST | `/api/v1/leads/{id}/documents` | Upload a document (multipart) |
+| GET | `/api/v1/documents/{id}/download` | Stream a stored document |
+| DELETE | `/api/v1/documents/{id}` | Delete a document and its file |
+| GET | `/api/v1/banks` | Bank criteria list (search, loan type, active) |
+| POST | `/api/v1/banks` | Create bank criteria (Super Admin) |
+| GET | `/api/v1/banks/{id}` | Single bank product |
+| PUT | `/api/v1/banks/{id}` | Update bank criteria (Super Admin) |
+| DELETE | `/api/v1/banks/{id}` | Delete bank criteria (Super Admin) |
+| GET | `/api/v1/notifications` | Own notifications, `?unread=1` supported |
+| POST | `/api/v1/notifications/{id}/read` | Mark one as read |
+| POST | `/api/v1/notifications/read-all` | Mark every notification as read |
+| GET | `/api/v1/reports/dashboard` | Role-aware dashboard statistics |
+
+### Search, filtering and pagination
+
+`GET /api/v1/leads` accepts `search`, `status`, `loan_type`, `city`, `state`,
+`assigned_employee_id`, `connector_id`, `min_amount`, `max_amount`, `sort`
+(`created_at`, `loan_amount`, `applicant_name`, `status`), `direction`
+(`asc`/`desc`), `page` and `per_page`. Pagination values are returned in the
+`meta` object of the standard envelope.
+
+### Matching response
+
+`POST /api/v1/leads/{id}/match` returns `evaluated`, `matched`, the `matches`
+array (bank, product, interest rate, score 0-100 and the reasons that were met)
+and a `rejected` array explaining why a product did not qualify.
