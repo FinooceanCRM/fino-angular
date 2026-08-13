@@ -97,3 +97,12 @@ Password for every seeded account: `Password123!`
 | connector@finoocean.test  | Connector            | Manager 1  |
 
 Run `php artisan migrate --seed` to create them.
+
+---
+
+## Phase 4 — Users & access control
+
+User management endpoints (`GET/POST/PUT/DELETE /api/v1/users`) are documented in
+[api-inventory.md](./api-inventory.md). Role capabilities are listed in
+[user-roles.md](./user-roles.md) and the enforcement rules in
+[business-rules.md](./business-rules.md).
