@@ -23,7 +23,7 @@ class AuthenticationTest extends TestCase
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'manager@example.test',
-            'password' => 'Password123!',
+            'password' => '12345678',
         ])
             ->assertOk()
             ->assertJsonPath('success', true)
@@ -54,7 +54,7 @@ class AuthenticationTest extends TestCase
 
         $this->postJson('/api/v1/auth/login', [
             'email' => 'connector@example.test',
-            'password' => 'Password123!',
+            'password' => '12345678',
         ])->assertStatus(403);
     }
 
@@ -80,7 +80,7 @@ class AuthenticationTest extends TestCase
 
         $token = $this->postJson('/api/v1/auth/login', [
             'email' => 'logout@example.test',
-            'password' => 'Password123!',
+            'password' => '12345678',
         ])->json('data.token');
 
         $this->withHeader('Authorization', "Bearer {$token}")

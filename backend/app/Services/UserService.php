@@ -46,6 +46,11 @@ class UserService extends BaseService
      */
     public function update(User $actor, User $target, array $attributes): User
     {
+        $attributes = array_merge([
+            'manager_id' => $target->manager_id,
+            'relationship_manager_id' => $target->relationship_manager_id,
+        ], $attributes);
+
         if (array_key_exists('role', $attributes) && $attributes['role'] !== null) {
             $role = UserRole::from($attributes['role']);
             $this->assertRoleAssignable($actor, $role);
