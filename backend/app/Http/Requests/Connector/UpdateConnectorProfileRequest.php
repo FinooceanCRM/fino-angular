@@ -55,5 +55,24 @@ class UpdateConnectorProfileRequest extends BaseFormRequest
         if ($this->has('gst_number') && is_string($this->input('gst_number'))) {
             $this->merge(['gst_number' => strtoupper(trim($this->input('gst_number')))]);
         }
+
+        // Blank optional inputs from the Angular form are stored as NULL.
+        $nullable = [
+            'phone', 'company_name', 'contact_person', 'alternate_phone',
+            'address_line1', 'address_line2', 'city', 'state',
+            'pincode', 'pan_number', 'gst_number',
+        ];
+
+        $blanked = [];
+        foreach ($nullable as $field) {
+            if ($this->has($field) && is_string($this->input($field)) && trim($this->input($field)) === '') {
+                $blanked[$field] = null;
+            }
+        }
+
+        if ($blanked !== []) {
+            $this->merge($blanked);
+        }
     }
 }
+
