@@ -47,7 +47,7 @@ Response `200`:
 {
   "success": true,
   "data": {
-    "user": { "id": 1, "name": "Super Admin", "email": "superadmin@finoocean.test", "role": "super_admin", "role_label": "Super Admin", "parent_id": null, "phone": null, "is_active": true, "created_at": "2026-01-01T00:00:00+00:00" },
+    "user": { "id": 1, "name": "Super Admin", "email": "superadmin@finoocean.test", "role": "super_admin", "role_label": "Super Admin", "manager_id": null, "relationship_manager_id": null, "employee_id": null, "phone": null, "is_active": true, "created_at": "2026-01-01T00:00:00+00:00" },
     "token": "1|xxxxxxxx",
     "token_type": "Bearer"
   },
