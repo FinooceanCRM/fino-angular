@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Hash;
  */
 class UserSeeder extends Seeder
 {
-    public const DEFAULT_PASSWORD = 'Password123!';
+    public const DEFAULT_PASSWORD = '12345678';
 
     public function run(): void
     {
