@@ -2,6 +2,11 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, catchError, of, tap } from 'rxjs';
 
 import {
+  AppPermission,
+  ASSIGNABLE_ROLES,
+  permissionsForRole,
+} from '@core/auth/permissions';
+import {
   AuthenticatedUser,
   LoginPayload,
   LoginResponse,
@@ -28,6 +33,14 @@ export class AuthService {
   readonly loading = this.loadingState.asReadonly();
   readonly isAuthenticated = computed(() => this.userState() !== null);
   readonly role = computed<UserRole | null>(() => this.userState()?.role ?? null);
+  readonly permissions = computed<AppPermission[]>(() =>
+    permissionsForRole(this.role()),
+  );
+  readonly assignableRoles = computed<UserRole[]>(() => {
+    const role = this.role();
+    return role ? ASSIGNABLE_ROLES[role] ?? [] : [];
+  });
+  readonly canManageUsers = computed(() => this.permissions().length > 0);
 
   get token(): string | null {
     return this.session.token;
@@ -75,6 +88,12 @@ export class AuthService {
       }),
       catchError(() => of(null)),
     );
+  }
+
+  /** Permission check mirroring the backend policy matrix. */
+  can(...permissions: AppPermission[]): boolean {
+    const granted = this.permissions();
+    return permissions.every((permission) => granted.includes(permission));
   }
 
   hasRole(...roles: UserRole[]): boolean {

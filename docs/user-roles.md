@@ -1,0 +1,95 @@
+# User Roles & Hierarchy
+
+FINOOCEAN uses five application roles. Four form a strict reporting hierarchy;
+the Connector role is independent. The **Vendor** role has been removed
+completely and must not be reintroduced.
+
+```text
+                 SUPER ADMIN
+                      |
+        +-------------+-------------+
+        |                           |
+     MANAGER                     MANAGER
+        |                           |
+  RELATIONSHIP MANAGER      RELATIONSHIP MANAGER
+        |                           |
+     EMPLOYEE                    EMPLOYEE
+
+  CONNECTOR  (independent — no parent, no reports)
+```
+
+## Roles
+
+| Role | Value | Position |
+| --- | --- | --- |
+| Super Admin | `super_admin` | Root of the hierarchy |
+| Manager | `manager` | Reports to Super Admin |
+| Relationship Manager | `relationship_manager` | Reports to a Manager |
+| Employee | `employee` | Reports to a Relationship Manager |
+| Connector | `connector` | Outside the hierarchy |
+
+> `banker` remains in the enum only to support the `bank_criteria` table from
+> Phase 3. It has no user-management capabilities.
+
+## Hierarchy columns on `users`
+
+| Column | Meaning |
+| --- | --- |
+| `manager_id` | The Manager the user rolls up to (null for Super Admin / Connector) |
+| `relationship_manager_id` | The RM an Employee is assigned to |
+| `employee_id` | Reserved link for future lead ownership |
+| `is_active` | Inactive users are rejected at authentication |
+
+## Management matrix
+
+| Actor | May manage |
+| --- | --- |
+| Super Admin | Every user |
+| Manager | Relationship Managers with `manager_id = actor`, and Employees under those RMs |
+| Relationship Manager | Employees with `relationship_manager_id = actor` |
+| Employee | Nobody |
+| Connector | Nobody |
+
+## Permissions
+
+Defined in `App\Enums\Permission` (backend) and mirrored in
+`frontend/src/app/core/auth/permissions.ts`.
+
+| Permission | Super Admin | Manager | RM | Employee | Connector |
+| --- | --- | --- | --- | --- | --- |
+| `users.view` | yes | yes | yes | no | no |
+| `users.create` | yes | yes | yes | no | no |
+| `users.update` | yes | yes | yes | no | no |
+| `users.delete` | yes | no | no | no | no |
+
+A permission grants the *capability*; `UserPolicy` + `UserHierarchyService`
+then decide whether the specific target record is inside the actor's subtree.
+
+## Assignable roles when creating users
+
+| Actor | Can create |
+| --- | --- |
+| Super Admin | Manager, Relationship Manager, Employee, Connector |
+| Manager | Relationship Manager, Employee (auto-assigned to themselves) |
+| Relationship Manager | Employee (auto-assigned to themselves) |
+| Employee / Connector | none |
+
+## Seeded test users
+
+Password for every account: `12345678`
+
+| Email | Role | Reports to |
+| --- | --- | --- |
+| superadmin@finoocean.test | Super Admin | — |
+| manager1@finoocean.test | Manager | Super Admin |
+| manager2@finoocean.test | Manager | Super Admin |
+| rm1@finoocean.test | Relationship Manager | Manager 1 |
+| rm2@finoocean.test | Relationship Manager | Manager 1 |
+| rm3@finoocean.test | Relationship Manager | Manager 2 |
+| rm4@finoocean.test | Relationship Manager | Manager 2 |
+| employee1@finoocean.test | Employee | RM 1 |
+| employee2@finoocean.test | Employee | RM 2 |
+| employee3@finoocean.test | Employee | RM 3 |
+| employee4@finoocean.test | Employee | RM 4 |
+| connector1@finoocean.test | Connector | — |
+| connector2@finoocean.test | Connector | — |

@@ -53,7 +53,8 @@ npm start
 - API: http://localhost:8000/api/v1/health
 - App: http://localhost:4200
 
-Full instructions: [docs/SETUP.md](docs/SETUP.md). API reference: [docs/API.md](docs/API.md).
+Full instructions: [docs/SETUP.md](docs/SETUP.md). API reference: [docs/API.md](docs/API.md) and [docs/api-inventory.md](docs/api-inventory.md).
+Roles and hierarchy: [docs/user-roles.md](docs/user-roles.md). Business rules: [docs/business-rules.md](docs/business-rules.md).
 
 ## Status
 

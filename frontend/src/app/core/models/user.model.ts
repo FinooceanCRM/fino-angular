@@ -15,7 +15,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   connector: 'Connector',
 };
 
-/** Hierarchy: super_admin -> manager -> relationship_manager -> employee. */
+/** Reporting hierarchy. Connector is intentionally outside of it. */
 export const ROLE_HIERARCHY: UserRole[] = [
   'super_admin',
   'manager',
@@ -36,6 +36,32 @@ export interface AuthenticatedUser {
   is_active: boolean;
   created_at: string | null;
 }
+
+/** A user returned by /api/v1/users. Same shape as the authenticated user. */
+export type ManagedUser = AuthenticatedUser;
+
+export interface UserListFilters {
+  role?: UserRole;
+  search?: string;
+  isActive?: boolean;
+  page?: number;
+  perPage?: number;
+}
+
+export interface CreateUserPayload {
+  name: string;
+  email: string;
+  password: string;
+  role: UserRole;
+  manager_id?: number | null;
+  relationship_manager_id?: number | null;
+  phone?: string | null;
+  is_active?: boolean;
+}
+
+export type UpdateUserPayload = Partial<Omit<CreateUserPayload, 'password'>> & {
+  password?: string | null;
+};
 
 export interface LoginPayload {
   email: string;

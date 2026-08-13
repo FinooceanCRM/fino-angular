@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -21,9 +22,20 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
 
-        // Example of role-protected routing, used by later phases.
-        Route::get('auth/admin-check', [AuthController::class, 'me'])
-            ->middleware('role:super_admin')
-            ->name('auth.admin-check');
+        /*
+        | User management (hierarchy + access control).
+        | Middleware performs the coarse permission check; the UserPolicy
+        | performs the per-record hierarchy check.
+        */
+        Route::get('users', [UserController::class, 'index'])
+            ->middleware('permission:users.view')->name('users.index');
+        Route::post('users', [UserController::class, 'store'])
+            ->middleware('permission:users.create')->name('users.store');
+        Route::get('users/{user}', [UserController::class, 'show'])
+            ->middleware('permission:users.view')->name('users.show');
+        Route::put('users/{user}', [UserController::class, 'update'])
+            ->middleware('permission:users.update')->name('users.update');
+        Route::delete('users/{user}', [UserController::class, 'destroy'])
+            ->middleware('permission:users.delete')->name('users.destroy');
     });
 });
