@@ -129,10 +129,44 @@ Status legend: **done** = implemented and tested, **planned** = not built yet.
   `roles: ['relationship_manager']`).
 - Role-aware navigation menu entries for Relationship Managers.
 
+## Manager module (Phase 8)
+
+### Backend
+
+- `managers` table (1:1 with `users`) for Manager-only profile data:
+  `manager_code`, `designation`, `branch`, `region`, `date_of_joining`,
+  contact and address fields.
+- `ManagerService`, `EloquentManagerRepository`, `ManagerPolicy`,
+  `ManagerProfileResource` and `ManagerController`.
+- Endpoints:
+  - `GET /api/v1/managers/dashboard`
+  - `GET /api/v1/managers/profile`
+  - `PUT /api/v1/managers/profile`
+  - `GET /api/v1/managers/relationship-managers`
+  - `POST /api/v1/managers/relationship-managers`
+  - `PUT /api/v1/managers/relationship-managers/{id}`
+  - `GET /api/v1/managers/employees`
+- Guarded by `auth:sanctum` + `auth.active` + `role:manager`.
+- Every query is scoped to the acting Manager's subtree: RMs with
+  `manager_id = actor`, and the employees assigned to those RMs.
+
+### Frontend
+
+- `/manager/dashboard` — welcome section, team metrics and a team-hierarchy
+  tree of RMs with their employees.
+- `/manager/profile` — Reactive Forms view/edit of the Manager's own profile;
+  email and manager code are read-only.
+- `/manager/relationship-managers` — create, edit, activate and deactivate the
+  Manager's Relationship Managers.
+- `/manager/employees` — read-only table of employees in the subtree.
+- `ManagerService` transport layer over the shared `ApiService`.
+- Route guards (`authGuard`, `roleGuard` with `roles: ['manager']`) and
+  role-aware navigation entries.
+
 ## Not implemented
 
 - Loan leads, lead assignment, lead matching.
-- Banker, manager and Super Admin workflows.
+- Banker and Super Admin workflows.
 - Documents and notifications UI.
 - Reports and analytics.
 - Vendor role (removed permanently).
