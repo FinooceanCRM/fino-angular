@@ -17,6 +17,10 @@ import { RouterLink } from '@angular/router';
 import { ManagerDashboard } from '@core/models/manager.model';
 import { ManagerService } from '@core/services/manager.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
+import { RecentActivityComponent } from '@shared/components/recent-activity.component';
+import { StatCardComponent } from '@shared/components/stat-card.component';
+import { recentActivityForRole } from '@shared/mocks/dashboard-mocks';
 
 @Component({
   selector: 'app-manager-dashboard',
@@ -31,6 +35,9 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     MatListModule,
     MatProgressBarModule,
     PageHeaderComponent,
+    NotificationsPanelComponent,
+    RecentActivityComponent,
+    StatCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -67,31 +74,30 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
           </mat-card-actions>
         </mat-card>
 
-        <mat-card class="metric">
-          <mat-card-content>
-            <mat-icon>supervisor_account</mat-icon>
-            <span class="value">
-              {{ dashboard.team_summary.relationship_manager_count }}
-            </span>
-            <span class="label">Relationship Managers</span>
-          </mat-card-content>
-        </mat-card>
+        <app-stat-card
+          icon="supervisor_account"
+          [value]="dashboard.team_summary.relationship_manager_count"
+          label="Relationship Managers"
+          accent="primary"
+        />
 
-        <mat-card class="metric">
-          <mat-card-content>
-            <mat-icon>groups</mat-icon>
-            <span class="value">{{ dashboard.team_summary.employee_count }}</span>
-            <span class="label">Employees</span>
-          </mat-card-content>
-        </mat-card>
+        <app-stat-card
+          icon="groups"
+          [value]="dashboard.team_summary.employee_count"
+          label="Employees"
+          accent="accent"
+        />
 
-        <mat-card class="metric">
-          <mat-card-content>
-            <mat-icon>diversity_3</mat-icon>
-            <span class="value">{{ dashboard.team_summary.total_members }}</span>
-            <span class="label">Total team members</span>
-          </mat-card-content>
-        </mat-card>
+        <app-stat-card
+          icon="diversity_3"
+          [value]="dashboard.team_summary.total_members"
+          label="Total team members"
+        />
+
+        <div class="panels">
+          <app-recent-activity [items]="activity" />
+          <app-notifications-panel />
+        </div>
 
         <mat-card>
           <mat-card-header>
@@ -219,22 +225,14 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
         margin-top: 1rem;
       }
       .welcome,
-      .hierarchy {
+      .hierarchy,
+      .panels {
         grid-column: 1 / -1;
       }
-      .metric mat-card-content {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.25rem;
-      }
-      .metric .value {
-        font-size: 2rem;
-        font-weight: 600;
-        line-height: 1;
-      }
-      .metric .label {
-        opacity: 0.75;
+      .panels {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       }
       .tree {
         list-style: none;
@@ -266,6 +264,7 @@ export class ManagerDashboardComponent implements OnInit {
   protected readonly data = signal<ManagerDashboard | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly activity = recentActivityForRole('manager');
 
   ngOnInit(): void {
     this.loading.set(true);

@@ -11,6 +11,10 @@ import { RouterLink } from '@angular/router';
 import { EmployeeDashboard } from '@core/models/employee.model';
 import { EmployeeService } from '@core/services/employee.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
+import { RecentActivityComponent } from '@shared/components/recent-activity.component';
+import { StatCardComponent } from '@shared/components/stat-card.component';
+import { EMPLOYEE_STATS, recentActivityForRole } from '@shared/mocks/dashboard-mocks';
 
 @Component({
   selector: 'app-employee-dashboard',
@@ -25,6 +29,9 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     MatListModule,
     MatProgressBarModule,
     PageHeaderComponent,
+    NotificationsPanelComponent,
+    RecentActivityComponent,
+    StatCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -60,6 +67,20 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
             }
           </mat-card-actions>
         </mat-card>
+
+        @for (stat of stats; track stat.label) {
+          <app-stat-card
+            [icon]="stat.icon"
+            [value]="stat.value"
+            [label]="stat.label"
+            [accent]="stat.accent"
+          />
+        }
+
+        <div class="panels">
+          <app-recent-activity [items]="activity" />
+          <app-notifications-panel />
+        </div>
 
         <mat-card>
           <mat-card-header>
@@ -161,8 +182,14 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         margin-top: 1rem;
       }
-      .welcome {
+      .welcome,
+      .panels {
         grid-column: 1 / -1;
+      }
+      .panels {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       }
       .muted {
         opacity: 0.75;
@@ -180,6 +207,8 @@ export class EmployeeDashboardComponent implements OnInit {
   protected readonly data = signal<EmployeeDashboard | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly stats = EMPLOYEE_STATS;
+  protected readonly activity = recentActivityForRole('employee');
 
   ngOnInit(): void {
     this.loading.set(true);

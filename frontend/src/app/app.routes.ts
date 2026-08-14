@@ -53,6 +53,20 @@ export const routes: Routes = [
       import('@features/manager/manager.routes').then((m) => m.managerRoutes),
   },
   {
+    // Super Admin module. Platform-wide dashboard.
+    path: 'super-admin',
+    loadChildren: () =>
+      import('@features/super-admin/super-admin.routes').then(
+        (m) => m.superAdminRoutes,
+      ),
+  },
+  {
+    // Banker module. Matched-leads dashboard.
+    path: 'banker',
+    loadChildren: () =>
+      import('@features/banker/banker.routes').then((m) => m.bankerRoutes),
+  },
+  {
     // Loan management workflow (Phase 9).
     path: 'leads',
     loadChildren: () =>

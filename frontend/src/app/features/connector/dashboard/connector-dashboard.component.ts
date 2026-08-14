@@ -11,6 +11,10 @@ import { RouterLink } from '@angular/router';
 import { ConnectorDashboard } from '@core/models/connector.model';
 import { ConnectorService } from '@core/services/connector.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
+import { RecentActivityComponent } from '@shared/components/recent-activity.component';
+import { StatCardComponent } from '@shared/components/stat-card.component';
+import { CONNECTOR_STATS, recentActivityForRole } from '@shared/mocks/dashboard-mocks';
 
 @Component({
   selector: 'app-connector-dashboard',
@@ -25,6 +29,9 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     MatListModule,
     MatProgressBarModule,
     PageHeaderComponent,
+    NotificationsPanelComponent,
+    RecentActivityComponent,
+    StatCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -56,8 +63,30 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
               <mat-icon>badge</mat-icon>
               Manage profile
             </a>
+            <a mat-stroked-button routerLink="/leads">
+              <mat-icon>assignment</mat-icon>
+              Leads
+            </a>
+            <a mat-stroked-button routerLink="/documents">
+              <mat-icon>description</mat-icon>
+              Documents
+            </a>
           </mat-card-actions>
         </mat-card>
+
+        @for (stat of stats; track stat.label) {
+          <app-stat-card
+            [icon]="stat.icon"
+            [value]="stat.value"
+            [label]="stat.label"
+            [accent]="stat.accent"
+          />
+        }
+
+        <div class="panels">
+          <app-recent-activity [items]="activity" />
+          <app-notifications-panel />
+        </div>
 
         <mat-card>
           <mat-card-header>
@@ -129,8 +158,14 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         margin-top: 1rem;
       }
-      .welcome {
+      .welcome,
+      .panels {
         grid-column: 1 / -1;
+      }
+      .panels {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       }
       .muted {
         opacity: 0.75;
@@ -148,6 +183,8 @@ export class ConnectorDashboardComponent implements OnInit {
   protected readonly data = signal<ConnectorDashboard | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly stats = CONNECTOR_STATS;
+  protected readonly activity = recentActivityForRole('connector');
 
   ngOnInit(): void {
     this.loading.set(true);
