@@ -14,6 +14,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, AppPermission[]> = {
   employee: [],
   banker: [],
   connector: [],
+  telecaller: [],
 };
 
 export function permissionsForRole(role: UserRole | null): AppPermission[] {
@@ -22,10 +23,11 @@ export function permissionsForRole(role: UserRole | null): AppPermission[] {
 
 /** Roles a given role is allowed to create/assign. */
 export const ASSIGNABLE_ROLES: Record<UserRole, UserRole[]> = {
-  super_admin: ['manager', 'relationship_manager', 'employee', 'connector'],
+  super_admin: ['manager', 'relationship_manager', 'employee', 'connector', 'banker', 'telecaller'],
   manager: ['relationship_manager', 'employee'],
   relationship_manager: ['employee'],
   employee: [],
   banker: [],
   connector: [],
+  telecaller: [],
 };

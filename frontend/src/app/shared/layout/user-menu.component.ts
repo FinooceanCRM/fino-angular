@@ -16,8 +16,13 @@ import { profileLink } from './nav-items';
   imports: [MatButtonModule, MatDividerModule, MatIconModule, MatMenuModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Account menu">
-      <mat-icon>account_circle</mat-icon>
+    <button type="button" class="account-trigger" [matMenuTriggerFor]="menu" aria-label="Account menu">
+      <span class="account-avatar">{{ initials() }}</span>
+      <span class="account-text">
+        <span class="account-name">{{ auth.user()?.name }}</span>
+        <span class="account-role">{{ auth.user()?.role_label }}</span>
+      </span>
+      <mat-icon class="account-chevron">expand_more</mat-icon>
     </button>
 
     <mat-menu #menu="matMenu" xPosition="before">
@@ -43,6 +48,57 @@ import { profileLink } from './nav-items';
   `,
   styles: [
     `
+      .account-trigger {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border: none;
+        background: transparent;
+        color: inherit;
+        cursor: pointer;
+        padding: 0.25rem 0.5rem 0.25rem 0.25rem;
+        border-radius: 999px;
+        font: inherit;
+
+        &:hover {
+          background: rgba(255, 255, 255, 0.12);
+        }
+      }
+      .account-avatar {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #ffffff;
+        color: var(--mat-sys-primary);
+        font-weight: 700;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+      }
+      .account-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+        text-align: left;
+      }
+      .account-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+      .account-role {
+        font-size: 0.72rem;
+        opacity: 0.85;
+      }
+      .account-chevron {
+        opacity: 0.85;
+      }
+      @media (max-width: 720px) {
+        .account-text {
+          display: none;
+        }
+      }
       .user-summary {
         display: flex;
         flex-direction: column;
@@ -64,6 +120,15 @@ export class UserMenuComponent {
   private readonly router = inject(Router);
 
   protected readonly profile = computed(() => profileLink(this.auth));
+
+  protected readonly initials = computed(() => {
+    const name = this.auth.user()?.name ?? '';
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+  });
 
   protected signOut(): void {
     this.auth.logout().subscribe(() => {

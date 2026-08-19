@@ -31,6 +31,9 @@ class StoreBankCriteriaRequest extends BaseFormRequest
             'eligibility_rules.*.value' => ['nullable'],
             'eligibility_rules.*.label' => ['nullable', 'string', 'max:191'],
             'is_active' => ['boolean'],
+            // Only meaningful when a Super Admin sets it on behalf of a banker;
+            // BankCriteriaService overrides this for banker actors regardless.
+            'banker_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 }

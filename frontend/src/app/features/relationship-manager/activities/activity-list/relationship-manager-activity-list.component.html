@@ -1,0 +1,75 @@
+<div class="activity-list__stats">
+  <app-stat-card icon="report" [value]="counts().overdue" label="Overdue" accent="warn" />
+  <app-stat-card icon="today" [value]="counts().dueToday" label="Due today" accent="accent" />
+  <app-stat-card icon="event_upcoming" [value]="counts().upcoming" label="Upcoming" accent="primary" />
+  <app-stat-card icon="task_alt" [value]="counts().completed" label="Completed" />
+</div>
+
+<mat-card class="activity-list__toolbar">
+  <mat-card-content class="activity-list__toolbar-row">
+    <mat-form-field appearance="outline" class="activity-list__status">
+      <mat-label>Status</mat-label>
+      <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <mat-option value="open">Open</mat-option>
+        <mat-option value="all">All</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <span class="activity-list__spacer"></span>
+
+    <button mat-flat-button color="primary" type="button" (click)="schedule()">
+      <mat-icon>{{ typeMeta().icon }}</mat-icon>
+      Schedule {{ typeMeta().label }}
+    </button>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="activity-list__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      [emptyMessage]="'No ' + typeMeta().label + 's match the current filters.'"
+      itemLabel="items"
+    >
+      <ng-template appTableCell="dueAt" let-row>
+        {{ row.dueAt | date: 'mediumDate' }}
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="statusLabel(row)" [colour]="statusColour(row)" />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        @if (row.leadId) {
+          <a
+            mat-icon-button
+            [routerLink]="['/relationship-manager/leads', row.leadId]"
+            matTooltip="View lead"
+            aria-label="View lead"
+          >
+            <mat-icon>visibility</mat-icon>
+          </a>
+        }
+        @if (row.status === 'pending') {
+          <button mat-icon-button type="button" matTooltip="Reschedule" aria-label="Reschedule" (click)="reschedule(row)">
+            <mat-icon>event_repeat</mat-icon>
+          </button>
+          <button mat-icon-button type="button" matTooltip="Cancel" aria-label="Cancel" (click)="cancel(row)">
+            <mat-icon>close</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            color="primary"
+            matTooltip="Mark complete"
+            aria-label="Mark complete"
+            (click)="complete(row)"
+          >
+            <mat-icon>check</mat-icon>
+          </button>
+        }
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\UpdatePasswordRequest;
+use App\Http\Requests\Auth\UpdatePreferencesRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuthService;
@@ -47,5 +49,29 @@ class AuthController extends BaseApiController
         $this->auth->logout($user);
 
         return $this->respondSuccess(null, 'Logged out successfully.');
+    }
+
+    public function updatePassword(UpdatePasswordRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $this->auth->updatePassword(
+            $user,
+            $request->string('current_password')->toString(),
+            $request->string('password')->toString(),
+        );
+
+        return $this->respondSuccess(null, 'Password updated successfully.');
+    }
+
+    public function updatePreferences(UpdatePreferencesRequest $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        $updated = $this->auth->updatePreferences($user, $request->validated());
+
+        return $this->respondSuccess(new UserResource($updated), 'Preferences updated successfully.');
     }
 }

@@ -1,0 +1,68 @@
+<div class="report-page__header">
+  <app-page-header title="Performance Reports" subtitle="Conversion funnel, team throughput and time-to-decision for your team." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<mat-card class="report-page__range">
+  <mat-card-content>
+    <form class="report-page__range-form" [formGroup]="range">
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="from" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="to" />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<div class="report-page__summary">
+  <app-stat-card icon="trending_up" [value]="summary().conversionRate + '%'" label="Conversion rate" accent="primary" />
+  <app-stat-card icon="schedule" [value]="summary().avgDaysToDecision + 'd'" label="Avg. days to decision" accent="accent" />
+  <app-stat-card icon="badge" [value]="summary().activeEmployees" label="Employees handling leads" />
+  <app-stat-card icon="fact_check" [value]="summary().decisionsMade" label="Decisions made" />
+</div>
+
+<div class="report-page__charts">
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Conversion funnel</mat-card-title>
+      <mat-card-subtitle>Leads that reached each stage</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="funnel()" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Leads handled per employee</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="teamBarData()" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Approvals &amp; disbursements per week</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-trend-chart [points]="trend()" />
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<mat-card class="report-page__table-card">
+  <mat-card-header>
+    <mat-card-title>Team performance</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <app-table [columns]="teamColumns" [rows]="teamPerformance()" emptyMessage="No leads assigned in the selected range." />
+  </mat-card-content>
+</mat-card>

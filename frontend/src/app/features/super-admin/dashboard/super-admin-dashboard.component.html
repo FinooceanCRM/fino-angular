@@ -1,0 +1,151 @@
+<div class="dash__header">
+  <app-page-header title="Super Admin dashboard" [subtitle]="'Platform-wide overview · As of ' + asOfLabel" />
+  <div class="dash__header-actions">
+    <app-super-admin-notification-dropdown />
+  </div>
+</div>
+
+<div class="dash">
+  <div class="dash__kpis app-stagger">
+    @for (kpi of kpis(); track kpi.label) {
+      <app-stat-card
+        [icon]="kpi.icon"
+        [value]="kpi.value"
+        [label]="kpi.label"
+        [trend]="kpi.trend"
+        [accent]="kpi.accent"
+      />
+    }
+  </div>
+
+  <div class="dash__charts app-stagger">
+    <mat-card class="dash__chart-card">
+      <mat-card-header>
+        <mat-card-title>Leads by Status</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="status-bars">
+          @for (row of statusBreakdown(); track row.label) {
+            <div class="status-bars__row">
+              <span class="status-bars__label">{{ row.label }}</span>
+              <div class="status-bars__track">
+                <div
+                  class="status-bars__fill"
+                  [style.width.%]="row.percent"
+                  [style.background]="'var(--app-status-' + row.colour + '-fg)'"
+                  [title]="row.label + ': ' + row.count"
+                ></div>
+              </div>
+              <span class="status-bars__count">{{ row.count }}</span>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dash__chart-card">
+      <mat-card-header>
+        <mat-card-title>Loans by Month</mat-card-title>
+        <mat-card-subtitle>Last 6 months</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="month-bars">
+          @for (month of loansByMonth(); track month.label) {
+            <div class="month-bars__col">
+              <div class="month-bars__track">
+                <div
+                  class="month-bars__fill"
+                  [style.height.%]="month.percent"
+                  [title]="month.label + ': ' + month.value + ' loans'"
+                ></div>
+              </div>
+              <span class="month-bars__label">{{ month.label }}</span>
+            </div>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dash__chart-card">
+      <mat-card-header>
+        <mat-card-title>Commission Trends</mat-card-title>
+        <mat-card-subtitle>Last 6 months</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <svg
+          class="trend"
+          viewBox="0 0 320 118"
+          preserveAspectRatio="none"
+          role="img"
+          aria-label="Commission trend, last 6 months, rising from 9.8 lakh rupees in March to 18.6 lakh rupees in August"
+        >
+          <line x1="0" y1="12" x2="320" y2="12" class="trend__grid" />
+          <line x1="0" y1="60" x2="320" y2="60" class="trend__grid" />
+          <line x1="0" y1="108" x2="320" y2="108" class="trend__grid" />
+          <path class="trend__area" [attr.d]="commissionAreaPath()"></path>
+          <path class="trend__line" [attr.d]="commissionLinePath()"></path>
+          @for (point of commissionPoints(); track point.label; let last = $last) {
+            <circle
+              class="trend__point"
+              [class.trend__point--end]="last"
+              [attr.cx]="point.x"
+              [attr.cy]="point.y"
+              [attr.r]="last ? 4.5 : 3"
+            >
+              <title>{{ point.label }}: {{ point.value }}</title>
+            </circle>
+          }
+        </svg>
+        <div class="trend__labels">
+          @for (point of commissionPoints(); track point.label) {
+            <span>{{ point.label }}</span>
+          }
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div class="dash__tables app-stagger">
+    <mat-card class="dash__table-card">
+      <mat-card-header>
+        <mat-card-title>Recent Leads</mat-card-title>
+        <a mat-button routerLink="/leads">View all</a>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="app-scroll-x">
+          <table class="leads-table">
+            <thead>
+              <tr>
+                <th>Reference</th>
+                <th>Applicant</th>
+                <th>Loan</th>
+                <th>Status</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (lead of recentLeads(); track lead.reference) {
+                <tr>
+                  <td class="leads-table__ref">{{ lead.reference }}</td>
+                  <td>{{ lead.applicant }}</td>
+                  <td>{{ lead.loanType }} · {{ lead.amount }}</td>
+                  <td><app-status-pill [label]="lead.status" [colour]="lead.statusColour" /></td>
+                  <td class="leads-table__date">{{ lead.date }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="dash__table-card">
+      <mat-card-header>
+        <mat-card-title>Recent Activities</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <app-timeline [entries]="recentActivities()" />
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

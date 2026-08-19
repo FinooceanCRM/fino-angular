@@ -1,0 +1,425 @@
+@if (lead(); as data) {
+  <a class="lead-detail__back" routerLink="/super-admin/leads">
+    <mat-icon>arrow_back</mat-icon>
+    Back to leads
+  </a>
+
+  <app-entity-header
+    [title]="data.applicant_name"
+    idLabel="Lead ID"
+    [idValue]="data.reference"
+    [statusLabel]="data.status_label"
+    [statusColour]="data.status_colour"
+  />
+
+  <!-- Status tracking stepper -->
+  <div class="stage-tracker" [class.stage-tracker--rejected]="isRejected()">
+    @for (stage of stages; track stage.value; let last = $last) {
+      <div
+        class="stage-tracker__step"
+        [class.stage-tracker__step--reached]="reachedStages().has(stage.value)"
+        [class.stage-tracker__step--current]="data.status === stage.value"
+      >
+        <span class="stage-tracker__dot"><mat-icon>{{ stage.icon }}</mat-icon></span>
+        <span class="stage-tracker__label">{{ stage.label }}</span>
+      </div>
+      @if (!last) {
+        <span class="stage-tracker__connector" [class.stage-tracker__connector--reached]="reachedStages().has(stage.value)"></span>
+      }
+    }
+    @if (isRejected()) {
+      <span class="stage-tracker__connector stage-tracker__connector--reached"></span>
+      <div class="stage-tracker__step stage-tracker__step--rejected stage-tracker__step--current">
+        <span class="stage-tracker__dot"><mat-icon>cancel</mat-icon></span>
+        <span class="stage-tracker__label">Rejected</span>
+      </div>
+    }
+  </div>
+
+  <mat-tab-group class="lead-detail__tabs" animationDuration="0ms">
+    <!-- 1. Overview -->
+    <mat-tab label="Overview">
+      <div class="tab-panel tab-panel--grid">
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Loan summary</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="lead-detail__fields">
+            <div class="lead-detail__field">
+              <mat-icon>home</mat-icon>
+              <span class="lead-detail__label">Loan</span>
+              <span class="lead-detail__value">
+                {{ data.loan_type }} · {{ data.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}
+              </span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>event_repeat</mat-icon>
+              <span class="lead-detail__label">Tenure</span>
+              <span class="lead-detail__value">{{ data.tenure_months }} months</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>location_on</mat-icon>
+              <span class="lead-detail__label">Location</span>
+              <span class="lead-detail__value">{{ data.city }}, {{ data.state }}</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>event</mat-icon>
+              <span class="lead-detail__label">Created</span>
+              <span class="lead-detail__value">{{ data.created_at | date: 'medium' }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Reporting chain</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="lead-detail__fields">
+            <div class="lead-detail__field">
+              <mat-icon>hub</mat-icon>
+              <span class="lead-detail__label">Connector</span>
+              <span class="lead-detail__value">{{ data.connector?.name ?? '—' }}</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>badge</mat-icon>
+              <span class="lead-detail__label">Employee</span>
+              <span class="lead-detail__value">{{ data.assigned_employee?.name ?? '—' }}</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>support_agent</mat-icon>
+              <span class="lead-detail__label">Relationship Manager</span>
+              <span class="lead-detail__value">{{ data.assigned_relationship_manager?.name ?? '—' }}</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>supervisor_account</mat-icon>
+              <span class="lead-detail__label">Manager</span>
+              <span class="lead-detail__value">{{ data.assigned_manager?.name ?? '—' }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- 2. Customer information -->
+    <mat-tab label="Customer information">
+      <div class="tab-panel tab-panel--grid">
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Contact</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="lead-detail__fields">
+            <div class="lead-detail__field">
+              <mat-icon>mail</mat-icon>
+              <span class="lead-detail__label">Email</span>
+              <span class="lead-detail__value">{{ data.applicant_email ?? '—' }}</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>call</mat-icon>
+              <span class="lead-detail__label">Phone</span>
+              <span class="lead-detail__value">{{ data.applicant_phone ?? '—' }}</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>pin_drop</mat-icon>
+              <span class="lead-detail__label">Address</span>
+              <span class="lead-detail__value">{{ data.city }}, {{ data.state }} — {{ data.pincode }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Financial profile</mat-card-title>
+          </mat-card-header>
+          <mat-card-content class="lead-detail__fields">
+            <div class="lead-detail__field">
+              <mat-icon>payments</mat-icon>
+              <span class="lead-detail__label">Monthly income</span>
+              <span class="lead-detail__value">
+                {{ data.monthly_income | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}
+              </span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>credit_score</mat-icon>
+              <span class="lead-detail__label">Credit score</span>
+              <span class="lead-detail__value">{{ data.credit_score ?? '—' }}</span>
+            </div>
+            <div class="lead-detail__field">
+              <mat-icon>work</mat-icon>
+              <span class="lead-detail__label">Employment</span>
+              <span class="lead-detail__value">{{ data.employment_type ?? '—' }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- 3. Documents -->
+    <mat-tab label="Documents">
+      <div class="tab-panel">
+        @if (documents().length === 0) {
+          <app-empty-state icon="description" message="No documents for this lead." />
+        } @else {
+          <ul class="doc-list">
+            @for (document of documents(); track document.id) {
+              <li class="doc-list__item">
+                <span class="doc-list__icon"><mat-icon>description</mat-icon></span>
+                <span class="doc-list__body">
+                  <span class="doc-list__title">{{ document.document_type }}</span>
+                  <span class="doc-list__subtitle">
+                    {{ document.file_name }} · {{ document.file_size_kb }} KB · uploaded {{ document.uploaded_at | date: 'mediumDate' }} by {{ document.uploaded_by }}
+                  </span>
+                </span>
+                <button mat-stroked-button type="button" (click)="previewDocument(document)">
+                  <mat-icon>visibility</mat-icon>
+                  Preview
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- 4. Timeline -->
+    <mat-tab label="Timeline">
+      <div class="tab-panel">
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Status timeline</mat-card-title>
+            <mat-card-subtitle>Every transition since this lead was created</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            @if (historyEntries().length === 0) {
+              <app-empty-state icon="track_changes" message="No status history yet." />
+            } @else {
+              <app-timeline [entries]="historyEntries()" />
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- 5. Notes -->
+    <mat-tab label="Notes">
+      <div class="tab-panel">
+        <mat-card class="lead-detail__card">
+          <mat-card-content>
+            <form class="note-form" [formGroup]="noteForm" (ngSubmit)="addNote()">
+              <mat-form-field appearance="outline" class="note-form__field">
+                <mat-label>Add a note</mat-label>
+                <textarea matInput rows="3" formControlName="body" placeholder="Write an update for the team…"></textarea>
+              </mat-form-field>
+              <button mat-flat-button color="primary" type="submit" [disabled]="noteForm.invalid">
+                <mat-icon>add_comment</mat-icon>
+                Add note
+              </button>
+            </form>
+          </mat-card-content>
+        </mat-card>
+
+        @if (notes().length === 0) {
+          <app-empty-state icon="sticky_note_2" message="No notes yet — add the first one above." />
+        } @else {
+          <ul class="note-list">
+            @for (note of notes(); track note.id) {
+              <li class="note-list__item">
+                <span class="note-list__avatar">{{ note.author_name.charAt(0) }}</span>
+                <span class="note-list__body">
+                  <span class="note-list__meta">
+                    <strong>{{ note.author_name }}</strong>
+                    <span class="note-list__role">{{ note.author_role }}</span>
+                    <span class="note-list__time">{{ note.created_at | date: 'medium' }}</span>
+                  </span>
+                  <span class="note-list__text">{{ note.body }}</span>
+                </span>
+                <button mat-icon-button type="button" aria-label="Delete note" (click)="deleteNote(note)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- 6. Matching history -->
+    <mat-tab label="Matching history">
+      <div class="tab-panel">
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Previous runs</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            @if (matchingRuns().length === 0) {
+              <p class="lead-detail__muted">No previous matching runs recorded for this lead.</p>
+            } @else {
+              <ul class="run-list">
+                @for (run of matchingRuns(); track run.id) {
+                  <li class="run-list__item">
+                    <mat-icon>bolt</mat-icon>
+                    <span>{{ run.description }}</span>
+                    <span class="run-list__time">{{ run.timestamp | date: 'medium' }}</span>
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Run the matching engine now</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <button mat-flat-button color="primary" type="button" (click)="runMatching()">
+              <mat-icon>bolt</mat-icon>
+              Run matching engine
+            </button>
+
+            @if (matchResult(); as result) {
+              <div class="match-results">
+                <div>
+                  <h4 class="lead-detail__section-title">Matches ({{ result.matched }} of {{ result.evaluated }})</h4>
+                  @if (result.matches.length === 0) {
+                    <app-empty-state icon="search_off" message="No bank product matched this lead." />
+                  } @else {
+                    <ul class="match-list">
+                      @for (match of result.matches; track match.bank_criteria_id) {
+                        <li class="match-list__item">
+                          <span class="match-list__icon"><mat-icon>account_balance</mat-icon></span>
+                          <span class="match-list__body">
+                            <span class="match-list__title">{{ match.bank_name }} — {{ match.product_name }}</span>
+                            <span class="match-list__subtitle">Interest {{ match.interest_rate ?? '—' }}%</span>
+                          </span>
+                          <app-status-pill [label]="match.score + '% match'" [colour]="scoreColour(match.score)" />
+                        </li>
+                      }
+                    </ul>
+                  }
+                </div>
+
+                @if (result.rejected.length > 0) {
+                  <div>
+                    <h4 class="lead-detail__section-title">Not eligible ({{ result.rejected.length }})</h4>
+                    <ul class="match-list">
+                      @for (item of result.rejected; track item.bank_name + item.product_name) {
+                        <li class="match-list__item match-list__item--rejected">
+                          <span class="match-list__icon match-list__icon--rejected"><mat-icon>block</mat-icon></span>
+                          <span class="match-list__body">
+                            <span class="match-list__title">{{ item.bank_name }} — {{ item.product_name }}</span>
+                            <span class="match-list__subtitle">{{ item.reasons.join(' · ') }}</span>
+                          </span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- 7. Assigned banker -->
+    <mat-tab label="Assigned banker">
+      <div class="tab-panel">
+        <mat-card class="lead-detail__card">
+          <mat-card-header>
+            <mat-card-title>Banker</mat-card-title>
+            <button mat-stroked-button type="button" (click)="assignBanker()">
+              <mat-icon>account_balance</mat-icon>
+              {{ data.assigned_banker ? 'Reassign' : 'Assign banker' }}
+            </button>
+          </mat-card-header>
+          <mat-card-content>
+            @if (bankerProfile(); as banker) {
+              <div class="lead-detail__fields">
+                <div class="lead-detail__field">
+                  <mat-icon>person</mat-icon>
+                  <span class="lead-detail__label">Name</span>
+                  <span class="lead-detail__value">{{ banker.name }}</span>
+                </div>
+                <div class="lead-detail__field">
+                  <mat-icon>mail</mat-icon>
+                  <span class="lead-detail__label">Email</span>
+                  <span class="lead-detail__value">{{ banker.email }}</span>
+                </div>
+                <div class="lead-detail__field">
+                  <mat-icon>call</mat-icon>
+                  <span class="lead-detail__label">Phone</span>
+                  <span class="lead-detail__value">{{ banker.phone ?? '—' }}</span>
+                </div>
+                <div class="lead-detail__field">
+                  <mat-icon>event</mat-icon>
+                  <span class="lead-detail__label">Status</span>
+                  <app-status-pill
+                    [label]="banker.is_active ? 'Active' : 'Inactive'"
+                    [colour]="banker.is_active ? 'success' : 'default'"
+                  />
+                </div>
+              </div>
+            } @else {
+              <app-empty-state icon="account_balance" message="No banker assigned yet." />
+            }
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <!-- 8. Commission history -->
+    <mat-tab label="Commission history">
+      <div class="tab-panel">
+        @if (commissionHistory().length === 0) {
+          <app-empty-state icon="payments" message="No commission recorded for this lead." />
+        } @else {
+          <ul class="commission-list">
+            @for (row of commissionHistory(); track row.id) {
+              <li class="commission-list__item">
+                <span class="commission-list__icon"><mat-icon>hub</mat-icon></span>
+                <span class="commission-list__body">
+                  <span class="commission-list__title">{{ row.connector_name }}</span>
+                  <span class="commission-list__subtitle">
+                    ₹{{ row.commission_amount | number: '1.0-0' }} ({{ row.commission_rate }}%) · earned {{ row.earned_at | date: 'mediumDate' }}
+                  </span>
+                </span>
+                <app-status-pill
+                  [label]="row.status"
+                  [colour]="row.status === 'paid' ? 'success' : row.status === 'accrued' ? 'primary' : 'default'"
+                />
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </mat-tab>
+
+    <!-- 9. Activity log -->
+    <mat-tab label="Activity log">
+      <div class="tab-panel">
+        @if (activityLog().length === 0) {
+          <app-empty-state icon="history" message="No recorded platform activity references this lead directly." />
+        } @else {
+          <ul class="activity-list">
+            @for (entry of activityLog(); track entry.id) {
+              <li class="activity-list__item">
+                <span class="activity-list__icon"><mat-icon>track_changes</mat-icon></span>
+                <span class="activity-list__body">
+                  <span class="activity-list__title">{{ entry.actor_name }} {{ entry.action }} — {{ entry.description }}</span>
+                  <span class="activity-list__subtitle">{{ entry.actor_role }} · {{ entry.timestamp | date: 'medium' }}</span>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+} @else {
+  <mat-card class="lead-detail__notice">
+    <mat-card-content>
+      This lead could not be found.
+      <a routerLink="/super-admin/leads">Back to leads</a>
+    </mat-card-content>
+  </mat-card>
+}

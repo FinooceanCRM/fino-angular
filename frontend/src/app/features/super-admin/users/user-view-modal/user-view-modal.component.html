@@ -1,0 +1,29 @@
+<app-modal title="User details">
+  <div class="user-view-modal">
+    <span class="user-view-modal__avatar">{{ initials() }}</span>
+    <h3 class="user-view-modal__name">{{ data.user.name }}</h3>
+    <p class="user-view-modal__role">{{ data.user.role_label }}</p>
+    <app-status-pill
+      [label]="data.user.is_active ? 'Active' : 'Inactive'"
+      [colour]="data.user.is_active ? 'success' : 'default'"
+    />
+
+    <dl class="user-view-modal__fields">
+      <div class="user-view-modal__field">
+        <mat-icon>mail</mat-icon>
+        <dt>Email</dt>
+        <dd><a [href]="'mailto:' + data.user.email">{{ data.user.email }}</a></dd>
+      </div>
+      <div class="user-view-modal__field">
+        <mat-icon>call</mat-icon>
+        <dt>Phone</dt>
+        <dd>{{ data.user.phone ?? '—' }}</dd>
+      </div>
+      <div class="user-view-modal__field">
+        <mat-icon>event</mat-icon>
+        <dt>Created</dt>
+        <dd>{{ data.user.created_at ? (data.user.created_at | date: 'mediumDate') : '—' }}</dd>
+      </div>
+    </dl>
+  </div>
+</app-modal>

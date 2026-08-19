@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
 import {
+  AssignableUser,
   Lead,
   LeadDetail,
   LeadFilters,
@@ -10,7 +11,6 @@ import {
   MatchingResult,
   Paginated,
   PaginationMeta,
-  UserSummary,
 } from '@core/models/lead.model';
 
 import { ApiService } from './api.service';
@@ -40,8 +40,8 @@ export class LeadService {
     return this.api.get<LeadMetadata>(`${this.base}/metadata`);
   }
 
-  assignableUsers(): Observable<UserSummary[]> {
-    return this.api.get<UserSummary[]>(`${this.base}/assignable-users`);
+  assignableUsers(): Observable<AssignableUser[]> {
+    return this.api.get<AssignableUser[]>(`${this.base}/assignable-users`);
   }
 
   create(payload: LeadPayload): Observable<Lead> {
@@ -72,5 +72,12 @@ export class LeadService {
 
   runMatching(id: number): Observable<MatchingResult> {
     return this.api.post<MatchingResult>(`${this.base}/${id}/match`);
+  }
+
+  /** Telecaller PD (pre-disbursement verification call) workflow, Phase 6. */
+  completePd(id: number, remarks?: string): Observable<Lead> {
+    return this.api.post<Lead>(`${this.base}/${id}/pd-complete`, {
+      remarks: remarks ?? null,
+    });
   }
 }

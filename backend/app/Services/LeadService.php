@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use App\Enums\Department;
 use App\Enums\LeadStatus;
+use App\Enums\LoanType;
 use App\Enums\UserRole;
 use App\Exceptions\DomainException;
 use App\Models\LeadAssignment;
@@ -54,11 +56,14 @@ class LeadService extends BaseService
         return $this->transaction(function () use ($actor, $attributes): LoanLead {
             $attributes['reference'] = 'LD-'.strtoupper(Str::random(10));
             $attributes['created_by'] = $actor->id;
-            $attributes['updated_by'] = $actor->id;
+
             $attributes['status'] = LeadStatus::New->value;
+            $attributes['department'] = Department::fromLoanType(LoanType::from($attributes['loan_type']))->value;
 
             if ($actor->roleEnum() === UserRole::Connector) {
                 $attributes['connector_id'] = $actor->id;
+            } else {
+                $attributes = array_merge($attributes, $this->cascadeAssignmentAttributes($actor));
             }
 
             $lead = $this->leads->create($attributes);
@@ -89,7 +94,10 @@ class LeadService extends BaseService
     public function update(User $actor, LoanLead $lead, array $attributes): LoanLead
     {
         unset($attributes['reference'], $attributes['status'], $attributes['created_by']);
-        $attributes['updated_by'] = $actor->id;
+
+        if (! empty($attributes['loan_type'])) {
+            $attributes['department'] = Department::fromLoanType(LoanType::from($attributes['loan_type']))->value;
+        }
 
         return $this->leads->update($lead, $attributes);
     }
@@ -106,27 +114,16 @@ class LeadService extends BaseService
      */
     public function assign(User $actor, LoanLead $lead, User $assignee, ?string $remarks = null): LoanLead
     {
-        $this->guardAssignment($actor, $assignee);
+        $this->guardAssignment($actor, $lead, $assignee);
 
         return $this->transaction(function () use ($actor, $lead, $assignee, $remarks): LoanLead {
             $attributes = ['updated_by' => $actor->id];
 
-            switch ($assignee->roleEnum()) {
-                case UserRole::RelationshipManager:
-                    $attributes['assigned_relationship_manager_id'] = $assignee->id;
-                    $attributes['assigned_manager_id'] = $assignee->manager_id;
-                    break;
-                case UserRole::Employee:
-                    $attributes['assigned_employee_id'] = $assignee->id;
-                    $attributes['assigned_relationship_manager_id'] = $assignee->relationship_manager_id;
-                    $attributes['assigned_manager_id'] = $assignee->manager_id;
-                    break;
-                case UserRole::Manager:
-                    $attributes['assigned_manager_id'] = $assignee->id;
-                    break;
-                default:
-                    throw new DomainException('Leads can only be assigned to managers, relationship managers or employees.', 422);
+            $cascade = $this->cascadeAssignmentAttributes($assignee);
+            if ($cascade === []) {
+                throw new DomainException('Leads can only be assigned to managers, relationship managers, employees or bankers.', 422);
             }
+            $attributes = array_merge($attributes, $cascade);
 
             $previousStatus = $lead->statusEnum();
             if ($previousStatus === LeadStatus::New) {
@@ -183,9 +180,8 @@ class LeadService extends BaseService
 
         return $this->transaction(function () use ($actor, $lead, $current, $target, $remarks): LoanLead {
             $lead = $this->leads->update($lead, [
-                'status' => $target->value,
-                'updated_by' => $actor->id,
-            ]);
+        'status' => $target->value,
+    ]);
 
             $this->recordStatus($lead, $current->value, $target->value, $actor->id, $remarks);
 
@@ -208,6 +204,40 @@ class LeadService extends BaseService
     }
 
     /**
+     * Telecaller PD (pre-disbursement verification call) workflow, Phase 6.
+     *
+     * Lead created -> Telecaller opens lead (employee info is already
+     * eager-loaded via the `creator` relation on every visibility query) ->
+     * PD completed (this) -> Manager review, triggered by the notification
+     * below. Deliberately does not touch `status`: only Super Admin,
+     * Manager and Relationship Manager may change lead status.
+     */
+    public function completePd(User $actor, LoanLead $lead, ?string $remarks = null): LoanLead
+    {
+        if ($lead->pd_completed_at !== null) {
+            throw new DomainException('PD has already been completed for this lead.', 422);
+        }
+
+        return $this->transaction(function () use ($actor, $lead, $remarks): LoanLead {
+            $lead = $this->leads->update($lead, [
+                'pd_completed_at' => now(),
+                'pd_completed_by' => $actor->id,
+                'updated_by' => $actor->id,
+            ]);
+
+            $this->notifications->notifyMany(
+                [$lead->assigned_relationship_manager_id, $lead->assigned_manager_id],
+                'lead.pd_completed',
+                'PD completed — ready for review',
+                sprintf('%s completed the PD call for lead %s.', $actor->name, $lead->reference).($remarks ? ' '.$remarks : ''),
+                ['lead_id' => $lead->id],
+            );
+
+            return $lead;
+        });
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function runMatching(LoanLead $lead): array
@@ -222,21 +252,28 @@ class LeadService extends BaseService
      */
     public function assignableUsers(User $actor): array
     {
-        $query = User::query()->where('is_active', true)->select(['id', 'name', 'email', 'role']);
+        $query = User::query()->where('is_active', true)
+            ->select(['id', 'name', 'email', 'role', 'relationship_manager_id', 'manager_id']);
 
         $query = match ($actor->roleEnum()) {
-            UserRole::SuperAdmin => $query->whereIn('role', [
-                UserRole::Manager->value,
-                UserRole::RelationshipManager->value,
-                UserRole::Employee->value,
-            ]),
-            UserRole::Manager => $query->where(function ($q) use ($actor): void {
-                $q->where('manager_id', $actor->id)
-                    ->whereIn('role', [UserRole::RelationshipManager->value, UserRole::Employee->value]);
+            UserRole::SuperAdmin => $query->where(function ($q): void {
+                $q->whereIn('role', [
+                    UserRole::Manager->value,
+                    UserRole::RelationshipManager->value,
+                    UserRole::Employee->value,
+                ])->orWhere('role', UserRole::Banker->value);
             }),
-            UserRole::RelationshipManager => $query
-                ->where('relationship_manager_id', $actor->id)
-                ->where('role', UserRole::Employee->value),
+            UserRole::Manager, UserRole::RelationshipManager => $query->where(function ($q) use ($actor): void {
+                $q->where(function ($sub) use ($actor): void {
+                    if ($actor->roleEnum() === UserRole::Manager) {
+                        $sub->where('manager_id', $actor->id)
+                            ->whereIn('role', [UserRole::RelationshipManager->value, UserRole::Employee->value]);
+                    } else {
+                        $sub->where('relationship_manager_id', $actor->id)
+                            ->where('role', UserRole::Employee->value);
+                    }
+                })->orWhere('role', UserRole::Banker->value);
+            }),
             default => $query->whereRaw('1 = 0'),
         };
 
@@ -245,11 +282,63 @@ class LeadService extends BaseService
             'name' => $u->name,
             'email' => $u->email,
             'role' => $u->role instanceof UserRole ? $u->role->value : (string) $u->role,
+            'relationship_manager_id' => $u->relationship_manager_id,
+            'manager_id' => $u->manager_id,
         ])->all();
     }
 
-    private function guardAssignment(User $actor, User $assignee): void
+    /**
+     * The assignment columns implied by a user's position in the hierarchy:
+     * assigning to (or creating as) an Employee also fills their RM and
+     * Manager, assigning to an RM also fills their Manager. Returns an
+     * empty array for roles that don't cascade (Super Admin, Banker,
+     * Connector), so callers can decide how to handle that case.
+     *
+     * @return array<string, int|null>
+     */
+    private function cascadeAssignmentAttributes(User $user): array
     {
+        return match ($user->roleEnum()) {
+            UserRole::RelationshipManager => [
+                'assigned_relationship_manager_id' => $user->id,
+                'assigned_manager_id' => $user->manager_id,
+            ],
+            UserRole::Employee => [
+                'assigned_employee_id' => $user->id,
+                'assigned_relationship_manager_id' => $user->relationship_manager_id,
+                'assigned_manager_id' => $user->manager_id,
+            ],
+            UserRole::Manager => [
+                'assigned_manager_id' => $user->id,
+            ],
+            UserRole::Banker => [
+                'assigned_banker_id' => $user->id,
+            ],
+            default => [],
+        };
+    }
+
+    private function guardAssignment(User $actor, LoanLead $lead, User $assignee): void
+    {
+        // Bankers sit outside the manager/RM/employee hierarchy (like
+        // Connector), so there's no subtree to check — any actor who can
+        // already assign leads (Super Admin, Manager, RM; enforced by
+        // LoanLeadPolicy::assign) may route a lead to any active banker.
+        // Bankers are also not department-scoped, so no department check.
+        if ($assignee->roleEnum() === UserRole::Banker) {
+            $allowed = in_array($actor->roleEnum(), [
+                UserRole::SuperAdmin,
+                UserRole::Manager,
+                UserRole::RelationshipManager,
+            ], true);
+
+            if (! $allowed) {
+                throw new DomainException('You cannot assign leads to this user.', 403);
+            }
+
+            return;
+        }
+
         $allowed = match ($actor->roleEnum()) {
             UserRole::SuperAdmin => true,
             UserRole::Manager => $assignee->manager_id === $actor->id,
@@ -260,6 +349,15 @@ class LeadService extends BaseService
 
         if (! $allowed) {
             throw new DomainException('You cannot assign leads to this user.', 403);
+        }
+
+        // Department isolation: a Manager runs all three departments at
+        // once, but each RM (and every Employee under them) only ever
+        // works leads inside their own department. Without this check a
+        // Manager could route a lead to an RM whose own (department-scoped)
+        // visibility would then never show it to them.
+        if ($assignee->department !== null && $assignee->department->value !== $lead->department?->value) {
+            throw new DomainException("This lead's department does not match the assignee's department.", 422);
         }
     }
 

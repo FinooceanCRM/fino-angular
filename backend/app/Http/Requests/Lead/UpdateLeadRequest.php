@@ -27,6 +27,7 @@ class UpdateLeadRequest extends BaseFormRequest
             'state' => ['sometimes', 'string', 'max:128'],
             'pincode' => ['nullable', 'string', 'max:12'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'details' => ['nullable', 'array'],
         ];
     }
 }

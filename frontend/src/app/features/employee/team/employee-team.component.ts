@@ -8,6 +8,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { EmployeeTeam } from '@core/models/employee.model';
 import { EmployeeService } from '@core/services/employee.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { StatusPillComponent } from '@shared/components/status-pill.component';
 
 @Component({
   selector: 'app-employee-team',
@@ -19,6 +20,7 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     MatListModule,
     MatProgressBarModule,
     PageHeaderComponent,
+    StatusPillComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -68,11 +70,10 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
                 <span matListItemLine>Department</span>
               </mat-list-item>
             </mat-list>
-            <mat-chip-set>
-              <mat-chip [highlighted]="team.employee.is_active">
-                {{ team.employee.is_active ? 'Active' : 'Inactive' }}
-              </mat-chip>
-            </mat-chip-set>
+            <app-status-pill
+              [label]="team.employee.is_active ? 'Active' : 'Inactive'"
+              [colour]="team.employee.is_active ? 'success' : 'default'"
+            />
           </mat-card-content>
         </mat-card>
 

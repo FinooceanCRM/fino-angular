@@ -1,0 +1,57 @@
+<div class="commission-page__header">
+  <app-page-header title="Connector Commission" subtitle="1% of loan amount, accrued once a lead is approved." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<div class="commission-page__summary">
+  <app-stat-card icon="payments" [value]="'₹' + (summary().total | number: '1.0-0')" label="Total commission" accent="primary" />
+  <app-stat-card icon="task_alt" [value]="'₹' + (summary().paid | number: '1.0-0')" label="Paid out" accent="accent" />
+  <app-stat-card icon="hourglass_top" [value]="'₹' + (summary().outstanding | number: '1.0-0')" label="Outstanding" />
+  <app-stat-card icon="hub" [value]="summary().activeConnectors" label="Earning connectors" />
+</div>
+
+<mat-card class="commission-page__toolbar">
+  <mat-card-content>
+    <form class="commission-page__filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Connector, lead reference or applicant" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="">All statuses</mat-option>
+          <mat-option value="accrued">Accrued</mat-option>
+          <mat-option value="pending">Pending</mat-option>
+          <mat-option value="paid">Paid</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="commission-page__table-card">
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="filteredRows()" emptyMessage="No commission records match the current filters.">
+      <ng-template appTableCell="loan" let-row>
+        {{ row.loan_type }} · ₹{{ row.loan_amount | number: '1.0-0' }}
+      </ng-template>
+
+      <ng-template appTableCell="commission" let-row>
+        ₹{{ row.commission_amount | number: '1.0-0' }} ({{ row.commission_rate }}%)
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="row.status" [colour]="colourFor(row.status)" />
+      </ng-template>
+
+      <ng-template appTableCell="earned_at" let-row>
+        {{ row.earned_at | date: 'mediumDate' }}
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

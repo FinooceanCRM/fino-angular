@@ -1,0 +1,5 @@
+@if (entries().length === 0) {
+  <app-empty-state icon="history" message="No recorded activity for your team yet." />
+} @else {
+  <app-timeline [entries]="entries()" />
+}

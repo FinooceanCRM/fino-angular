@@ -1,0 +1,132 @@
+<app-page-header
+  title="Bank criteria"
+  subtitle="Products the matching engine evaluates leads against"
+/>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <mat-card class="bank-list__notice">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
+
+@if (canManage()) {
+  <mat-card class="bank-list__form-card">
+    <mat-card-header>
+      <mat-card-title>Add a bank product</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form class="bank-list__form-grid" [formGroup]="form" (ngSubmit)="create()">
+        <mat-form-field appearance="outline">
+          <mat-label>Bank name</mat-label>
+          <input matInput formControlName="bank_name" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Product name</mat-label>
+          <input matInput formControlName="product_name" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Loan type</mat-label>
+          <mat-select formControlName="loan_type">
+            @for (type of loanTypes(); track type.value) {
+              <mat-option [value]="type.value">{{ type.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum amount</mat-label>
+          <input matInput type="number" formControlName="min_loan_amount" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Maximum amount</mat-label>
+          <input matInput type="number" formControlName="max_loan_amount" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum monthly income</mat-label>
+          <input matInput type="number" formControlName="min_monthly_income" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum credit score</mat-label>
+          <input matInput type="number" formControlName="min_credit_score" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Interest rate (%)</mat-label>
+          <input matInput type="number" formControlName="interest_rate" />
+        </mat-form-field>
+        <mat-checkbox formControlName="is_active">Active</mat-checkbox>
+        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+          Save product
+        </button>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}
+
+<mat-chip-listbox class="bank-list__chips" [(ngModel)]="activeFilter" [ngModelOptions]="{ standalone: true }">
+  <mat-chip-option value="">All</mat-chip-option>
+  @for (type of loanTypes(); track type.value) {
+    <mat-chip-option [value]="type.value">{{ type.label }}</mat-chip-option>
+  }
+</mat-chip-listbox>
+
+@if (filteredRows().length === 0 && !loading()) {
+  <p class="bank-list__empty">No bank criteria configured yet.</p>
+} @else {
+  <div class="bank-list__grid">
+    @for (row of filteredRows(); track row.id) {
+      <mat-card class="bank-list__card">
+        <mat-card-content>
+          <div class="bank-list__card-header">
+            <mat-icon class="bank-list__bank-icon">account_balance</mat-icon>
+            <div>
+              <h3 class="bank-list__bank-name">{{ row.bank_name }}</h3>
+              <p class="bank-list__product-name">{{ row.product_name }}</p>
+            </div>
+          </div>
+
+          <div class="bank-list__badges">
+            <app-status-pill [label]="row.loan_type" colour="primary" />
+            <app-status-pill
+              [label]="row.is_active ? 'Active' : 'Inactive'"
+              [colour]="row.is_active ? 'success' : 'default'"
+            />
+            @if (isMine(row)) {
+              <app-status-pill label="Yours" colour="accent" />
+            }
+          </div>
+
+          <dl class="bank-list__stats">
+            <div>
+              <dt>Amount range</dt>
+              <dd>
+                {{ row.min_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }} –
+                {{
+                  row.max_loan_amount
+                    ? (row.max_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0')
+                    : 'no cap'
+                }}
+              </dd>
+            </div>
+            <div>
+              <dt>Interest rate</dt>
+              <dd>{{ row.interest_rate ?? '—' }}%</dd>
+            </div>
+            <div>
+              <dt>Min. credit score</dt>
+              <dd>{{ row.min_credit_score ?? '—' }}</dd>
+            </div>
+          </dl>
+
+          @if (canToggle(row)) {
+            <button mat-stroked-button class="bank-list__toggle" (click)="toggle(row)">
+              {{ row.is_active ? 'Deactivate' : 'Activate' }}
+            </button>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

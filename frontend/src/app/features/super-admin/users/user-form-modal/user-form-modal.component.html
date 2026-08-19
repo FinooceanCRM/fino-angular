@@ -1,0 +1,60 @@
+<app-modal
+  [title]="(data.mode === 'edit' ? 'Edit ' : 'Add ') + data.roleLabel"
+  [showActions]="true"
+>
+  <form [formGroup]="form" class="user-form-modal__grid" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Name</mat-label>
+      <input matInput formControlName="name" placeholder="Enter full name" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" formControlName="email" placeholder="Enter email address" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone</mat-label>
+      <input matInput formControlName="phone" placeholder="Enter phone number" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>{{ data.mode === 'edit' ? 'New password (optional)' : 'Password' }}</mat-label>
+      <input
+        matInput
+        [type]="hidePassword() ? 'password' : 'text'"
+        formControlName="password"
+        autocomplete="new-password"
+        placeholder="Enter password"
+      />
+      <button
+        mat-icon-button
+        matSuffix
+        type="button"
+        [attr.aria-label]="hidePassword() ? 'Show password' : 'Hide password'"
+        (click)="hidePassword.set(!hidePassword())"
+      >
+        <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+      </button>
+      @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+        <mat-error>Password must be at least 8 characters.</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-checkbox formControlName="is_active" class="user-form-modal__active">
+      Active
+    </mat-checkbox>
+  </form>
+
+  <button modal-actions mat-button type="button" (click)="dialogRef.close()">Cancel</button>
+  <button
+    modal-actions
+    mat-flat-button
+    color="primary"
+    type="button"
+    [disabled]="form.invalid"
+    (click)="submit()"
+  >
+    {{ data.mode === 'edit' ? 'Save changes' : 'Create user' }}
+  </button>
+</app-modal>

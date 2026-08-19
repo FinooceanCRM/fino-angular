@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use App\Http\Requests\BaseFormRequest;
 use Illuminate\Validation\Rule;
@@ -26,6 +27,9 @@ class StoreUserRequest extends BaseFormRequest
             'manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'relationship_manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'employee_id' => ['prohibited'],
+            // Required-when-manager is enforced in UserService::applyHierarchyDefaults,
+            // alongside the other hierarchy cross-field rules.
+            'department' => ['nullable', Rule::in(Department::values())],
             'phone' => ['nullable', 'string', 'max:32'],
             'is_active' => ['nullable', 'boolean'],
         ];

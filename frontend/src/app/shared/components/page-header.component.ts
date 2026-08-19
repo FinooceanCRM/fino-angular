@@ -5,7 +5,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <header class="page-header">
+    <header class="page-header app-animate-in">
       <h1>{{ title() }}</h1>
       @if (subtitle()) {
         <p>{{ subtitle() }}</p>
@@ -20,11 +20,14 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       h1 {
         margin: 0;
         font-size: 1.5rem;
-        font-weight: 500;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        color: var(--mat-sys-on-surface);
       }
       p {
-        margin: 0.25rem 0 0;
-        opacity: 0.7;
+        margin: 0.3rem 0 0;
+        font-size: 0.95rem;
+        color: var(--app-status-default-fg);
       }
     `,
   ],

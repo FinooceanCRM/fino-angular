@@ -1,255 +1,132 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
 
-import { RelationshipManagerProfile } from '@core/models/relationship-manager.model';
-import { RelationshipManagerService } from '@core/services/relationship-manager.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 
+import { RelationshipManagerProfileDataProvider } from './data/relationship-manager-profile.provider';
+
+/** Profile — User profile, Settings and Password management, all backed by mock state (no HTTP). */
 @Component({
   selector: 'app-relationship-manager-profile',
   standalone: true,
   imports: [
+    DatePipe,
     ReactiveFormsModule,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatProgressBarModule,
+    MatSlideToggleModule,
+    MatTabsModule,
     PageHeaderComponent,
   ],
+  templateUrl: './relationship-manager-profile.component.html',
+  styleUrl: './relationship-manager-profile.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <app-page-header
-      title="Relationship Manager profile"
-      subtitle="View and update your own details"
-    />
-
-    @if (loading()) {
-      <mat-progress-bar mode="indeterminate" />
-    }
-
-    <mat-card class="card">
-      <mat-card-content>
-        <form [formGroup]="form" (ngSubmit)="save()">
-          <div class="grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Full name</mat-label>
-              <input matInput formControlName="name" />
-              @if (form.controls.name.hasError('required')) {
-                <mat-error>Name is required.</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Email</mat-label>
-              <input matInput [value]="email()" disabled />
-              <mat-hint>Email changes are handled by an administrator.</mat-hint>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>RM code</mat-label>
-              <input matInput [value]="rmCode()" disabled />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Phone</mat-label>
-              <input matInput formControlName="phone" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Designation</mat-label>
-              <input matInput formControlName="designation" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Branch</mat-label>
-              <input matInput formControlName="branch" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Region</mat-label>
-              <input matInput formControlName="region" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Alternate phone</mat-label>
-              <input matInput formControlName="alternate_phone" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Address line 1</mat-label>
-              <input matInput formControlName="address_line1" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Address line 2</mat-label>
-              <input matInput formControlName="address_line2" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>City</mat-label>
-              <input matInput formControlName="city" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>State</mat-label>
-              <input matInput formControlName="state" />
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Pincode</mat-label>
-              <input matInput formControlName="pincode" />
-              @if (form.controls.pincode.hasError('pattern')) {
-                <mat-error>Enter a valid pincode.</mat-error>
-              }
-            </mat-form-field>
-          </div>
-
-          <div class="actions">
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              [disabled]="form.invalid || saving()"
-            >
-              <mat-icon>save</mat-icon>
-              Save changes
-            </button>
-            <button mat-stroked-button type="button" (click)="reset()">
-              Reset
-            </button>
-          </div>
-
-          @if (message(); as text) {
-            <p class="message">{{ text }}</p>
-          }
-        </form>
-      </mat-card-content>
-    </mat-card>
-  `,
-  styles: [
-    `
-      .card {
-        margin-top: 1rem;
-      }
-      .grid {
-        display: grid;
-        gap: 0.75rem 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      }
-      .actions {
-        display: flex;
-        gap: 0.75rem;
-        margin-top: 1rem;
-      }
-      .message {
-        margin-top: 0.75rem;
-        font-weight: 500;
-      }
-    `,
-  ],
 })
-export class RelationshipManagerProfileComponent implements OnInit {
-  private readonly relationshipManagers = inject(RelationshipManagerService);
+export class RelationshipManagerProfileComponent {
+  private readonly data = inject(RelationshipManagerProfileDataProvider);
   private readonly fb = inject(FormBuilder);
+  private readonly snackBar = inject(MatSnackBar);
 
-  protected readonly loading = signal(false);
-  protected readonly saving = signal(false);
-  protected readonly message = signal<string | null>(null);
-  protected readonly email = signal('');
-  protected readonly rmCode = signal('');
+  protected readonly email = this.data.profile().email;
+  protected readonly rmCode = this.data.profile().rmCode;
+  protected readonly dateOfJoining = this.data.profile().dateOfJoining;
 
-  private profile: RelationshipManagerProfile | null = null;
-
-  protected readonly form = this.fb.nonNullable.group({
-    name: ['', [Validators.required, Validators.minLength(2)]],
-    phone: [''],
-    designation: [''],
-    branch: [''],
-    region: [''],
-    alternate_phone: [''],
-    address_line1: [''],
-    address_line2: [''],
-    city: [''],
-    state: [''],
-    pincode: ['', [Validators.pattern(/^$|^[0-9]{4,10}$/)]],
+  // ---------- User profile ----------
+  protected readonly profileForm = this.fb.nonNullable.group({
+    name: [this.data.profile().name, [Validators.required, Validators.minLength(2)]],
+    phone: [this.data.profile().phone],
+    designation: [this.data.profile().designation],
+    branch: [this.data.profile().branch],
+    region: [this.data.profile().region],
+    addressLine1: [this.data.profile().addressLine1],
+    addressLine2: [this.data.profile().addressLine2],
+    city: [this.data.profile().city],
+    state: [this.data.profile().state],
+    pincode: [this.data.profile().pincode, [Validators.pattern(/^$|^[0-9]{4,10}$/)]],
   });
 
-  ngOnInit(): void {
-    this.loading.set(true);
-    this.relationshipManagers.profile().subscribe({
-      next: (profile) => {
-        this.apply(profile);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.message.set('Unable to load your profile.');
-        this.loading.set(false);
-      },
-    });
-  }
-
-  protected save(): void {
-    if (this.form.invalid) {
+  protected saveProfile(): void {
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
       return;
     }
 
-    this.saving.set(true);
-    this.message.set(null);
-
-    this.relationshipManagers
-      .updateProfile(this.form.getRawValue())
-      .subscribe({
-        next: (profile) => {
-          this.apply(profile);
-          this.message.set('Profile updated.');
-          this.saving.set(false);
-        },
-        error: () => {
-          this.message.set(
-            'Could not save your profile. Please check the fields.',
-          );
-          this.saving.set(false);
-        },
-      });
+    this.data.updateProfile(this.profileForm.getRawValue());
+    this.snackBar.open('Profile updated.', 'Dismiss', { duration: 4000 });
   }
 
-  protected reset(): void {
-    if (this.profile) {
-      this.apply(this.profile);
-    }
-  }
-
-  private apply(profile: RelationshipManagerProfile): void {
-    this.profile = profile;
-    this.email.set(profile.user?.email ?? '');
-    this.rmCode.set(profile.rm_code ?? '—');
-    this.form.patchValue({
-      name: profile.user?.name ?? '',
-      phone: profile.user?.phone ?? '',
-      designation: profile.designation ?? '',
-      branch: profile.branch ?? '',
-      region: profile.region ?? '',
-      alternate_phone: profile.alternate_phone ?? '',
-      address_line1: profile.address_line1 ?? '',
-      address_line2: profile.address_line2 ?? '',
-      city: profile.city ?? '',
-      state: profile.state ?? '',
-      pincode: profile.pincode ?? '',
+  protected resetProfile(): void {
+    const profile = this.data.profile();
+    this.profileForm.reset({
+      name: profile.name,
+      phone: profile.phone,
+      designation: profile.designation,
+      branch: profile.branch,
+      region: profile.region,
+      addressLine1: profile.addressLine1,
+      addressLine2: profile.addressLine2,
+      city: profile.city,
+      state: profile.state,
+      pincode: profile.pincode,
     });
-    this.form.markAsPristine();
+  }
+
+  // ---------- Settings ----------
+  protected readonly settingsForm = this.fb.nonNullable.group({
+    emailNotifications: [this.data.settings().emailNotifications],
+    smsNotifications: [this.data.settings().smsNotifications],
+    notifyOnLeadAssignment: [this.data.settings().notifyOnLeadAssignment],
+    notifyOnFollowUpDue: [this.data.settings().notifyOnFollowUpDue],
+  });
+
+  protected saveSettings(): void {
+    this.data.updateSettings(this.settingsForm.getRawValue());
+    this.snackBar.open('Settings saved.', 'Dismiss', { duration: 4000 });
+  }
+
+  // ---------- Password management ----------
+  protected readonly passwordForm = this.fb.nonNullable.group({
+    currentPassword: ['', Validators.required],
+    newPassword: ['', [Validators.required, Validators.minLength(8)]],
+    confirmPassword: ['', Validators.required],
+  });
+
+  protected readonly passwordError = signal<string | null>(null);
+
+  protected changePassword(): void {
+    this.passwordError.set(null);
+
+    if (this.passwordForm.invalid) {
+      this.passwordForm.markAllAsTouched();
+      return;
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = this.passwordForm.getRawValue();
+
+    if (newPassword !== confirmPassword) {
+      this.passwordError.set('New password and confirmation do not match.');
+      return;
+    }
+
+    const success = this.data.changePassword(currentPassword, newPassword);
+    if (!success) {
+      this.passwordError.set('Current password is incorrect.');
+      return;
+    }
+
+    this.passwordForm.reset({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    this.snackBar.open('Password changed.', 'Dismiss', { duration: 4000 });
   }
 }

@@ -1,0 +1,97 @@
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  padding-inline: var(--app-space-4);
+  height: 64px;
+
+  // M3's mat-toolbar always sources its background from the surface token
+  // and ignores the legacy `color="primary"` input, so the brand colour is
+  // applied explicitly here instead.
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+}
+
+.topbar__menu {
+  color: var(--mat-sys-on-primary);
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  color: var(--mat-sys-on-primary);
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
+.topbar__brand-icon {
+  font-size: 1.5rem;
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.topbar__brand-name {
+  font-weight: 600;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.topbar__search {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: var(--app-radius-md);
+  padding: 0 var(--app-space-3);
+  height: 40px;
+  width: 100%;
+  max-width: 420px;
+  margin-inline: var(--app-space-4);
+
+  &:focus-within {
+    background: rgba(255, 255, 255, 0.24);
+  }
+}
+
+.topbar__search-icon {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.15rem;
+  height: 1.15rem;
+  width: 1.15rem;
+}
+
+.topbar__search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--mat-sys-on-primary);
+  font-size: 0.9rem;
+  width: 100%;
+
+  &::placeholder {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  &::-webkit-search-cancel-button {
+    filter: invert(1) brightness(2);
+  }
+}
+
+.topbar__spacer {
+  flex: 1 1 auto;
+}
+
+.topbar__signin {
+  color: var(--mat-sys-on-primary);
+}
+
+.topbar__help {
+  color: var(--mat-sys-on-primary);
+}
+
+@media (max-width: 720px) {
+  .topbar__search {
+    display: none;
+  }
+}

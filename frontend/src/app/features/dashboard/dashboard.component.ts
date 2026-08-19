@@ -1,55 +1,29 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, OnInit, inject } from '@angular/core';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { Router } from '@angular/router';
 
 import { AuthService } from '@core/services/auth.service';
-import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { roleNavItems } from '@shared/layout/nav-items';
 
-/** Protected landing view for every signed-in role. */
+/**
+ * `/dashboard` is the default post-login landing route (see login.component.ts
+ * and app.routes.ts). It has no content of its own — it immediately forwards
+ * to the signed-in user's actual role dashboard, reusing the same
+ * `roleNavItems` mapping the sidebar uses so the two never drift apart.
+ */
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, RouterLink, PageHeaderComponent],
+  imports: [MatProgressBarModule],
+  templateUrl: './dashboard.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <app-page-header
-      title="Dashboard"
-      [subtitle]="auth.user()?.role_label ?? 'FINOOCEAN'"
-    />
-
-    <mat-card>
-      <mat-card-content>
-        <p>Signed in as {{ auth.user()?.name }} ({{ auth.user()?.email }}).</p>
-      </mat-card-content>
-      <mat-card-actions>
-        @if (auth.hasRole('connector')) {
-          <a mat-stroked-button routerLink="/connector/dashboard">
-            Connector dashboard
-          </a>
-        }
-
-        <button mat-flat-button type="button" (click)="logout()">Sign out</button>
-      </mat-card-actions>
-    </mat-card>
-  `,
-  styles: [
-    `
-      mat-card-actions {
-        display: flex;
-        gap: 0.5rem;
-      }
-    `,
-  ],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
 
-  protected readonly auth = inject(AuthService);
-
-  protected logout(): void {
-    this.auth.logout().subscribe(() => {
-      void this.router.navigate(['/auth/login']);
-    });
+  ngOnInit(): void {
+    const target = roleNavItems(this.auth)[0]?.link ?? '/unauthorized';
+    void this.router.navigateByUrl(target, { replaceUrl: true });
   }
 }

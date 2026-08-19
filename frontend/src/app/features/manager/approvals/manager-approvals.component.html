@@ -1,0 +1,24 @@
+<app-page-header title="Approval Center" subtitle="Requests waiting on your decision, across your team" />
+
+<mat-tab-group>
+  <mat-tab [label]="'Banker approvals (' + approvals.pendingCount('banker') + ')'">
+    <div class="manager-approvals__tab-body">
+      <app-manager-approval-list type="banker" />
+    </div>
+  </mat-tab>
+  <mat-tab [label]="'Lead approvals (' + approvals.pendingCount('lead') + ')'">
+    <div class="manager-approvals__tab-body">
+      <app-manager-approval-list type="lead" />
+    </div>
+  </mat-tab>
+  <mat-tab [label]="'Document approvals (' + approvals.pendingCount('document') + ')'">
+    <div class="manager-approvals__tab-body">
+      <app-manager-approval-list type="document" />
+    </div>
+  </mat-tab>
+  <mat-tab [label]="'Access approvals (' + accessPendingCount() + ')'">
+    <div class="manager-approvals__tab-body">
+      <app-manager-access-request-list />
+    </div>
+  </mat-tab>
+</mat-tab-group>

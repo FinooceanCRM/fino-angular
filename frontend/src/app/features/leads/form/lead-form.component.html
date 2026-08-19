@@ -1,0 +1,460 @@
+<app-page-header
+  [title]="leadId() ? 'Edit lead' : 'Create lead'"
+  subtitle="Applicant and loan requirement details"
+/>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <mat-card class="lead-form__notice">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
+
+<mat-card class="lead-form__card">
+  <mat-card-content>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <mat-stepper orientation="horizontal" [linear]="false" class="lead-form__stepper">
+        <mat-step label="Applicant details" [completed]="stepValid(form.controls.applicant)">
+          <div class="lead-form__grid" formGroupName="applicant">
+            <mat-form-field appearance="outline">
+              <mat-label>Full name</mat-label>
+              <input matInput formControlName="applicant_name" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Gender</mat-label>
+              <mat-select formControlName="gender">
+                @for (option of genderOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Date of birth</mat-label>
+              <input matInput [matDatepicker]="dobPicker" formControlName="dob" [max]="maxDob" />
+              <mat-datepicker-toggle matIconSuffix [for]="dobPicker" />
+              <mat-datepicker #dobPicker startView="multi-year" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput type="email" formControlName="applicant_email" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Mobile number</mat-label>
+              <input matInput formControlName="applicant_phone" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Alternative mobile</mat-label>
+              <input matInput formControlName="alternative_phone" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Age</mat-label>
+              <input matInput type="number" formControlName="age" />
+              <mat-hint>Auto-filled from date of birth</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Marital status</mat-label>
+              <mat-select formControlName="marital_status">
+                @for (option of maritalStatusOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Caste category</mat-label>
+              <mat-select formControlName="caste_category">
+                @for (option of casteCategoryOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="lead-form__step-actions">
+            <button mat-flat-button color="primary" type="button" matStepperNext>
+              Next
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </mat-step>
+
+        <mat-step label="Loan details" [completed]="stepValid(form.controls.loan)">
+          <div class="lead-form__grid" formGroupName="loan">
+            <mat-form-field appearance="outline">
+              <mat-label>Loan type</mat-label>
+              <mat-select formControlName="loan_type">
+                @for (type of loanTypes(); track type.value) {
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Employment type</mat-label>
+              <mat-select formControlName="employment_type">
+                @for (type of employmentTypes(); track type.value) {
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Loan amount</mat-label>
+              <input matInput type="number" formControlName="loan_amount" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Company name</mat-label>
+              <input matInput formControlName="company_name" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Monthly income</mat-label>
+              <input matInput type="number" formControlName="monthly_income" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Net salary</mat-label>
+              <input matInput type="number" formControlName="net_salary" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Salary account type</mat-label>
+              <mat-select formControlName="salary_account_type">
+                @for (option of salaryAccountTypeOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>CIBIL score</mat-label>
+              <input matInput type="number" formControlName="credit_score" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Tenure (months)</mat-label>
+              <input matInput type="number" formControlName="tenure_months" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Purpose of loan</mat-label>
+              <mat-select formControlName="purpose_of_loan">
+                @for (option of purposeOfLoanOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          @if (showGstField() || showInsuranceField() || showCarTypeField() || showMudraTypeField()) {
+            <h3 class="lead-form__title">Additional details</h3>
+            <div class="lead-form__grid" formGroupName="loan">
+              @if (showGstField()) {
+                <mat-form-field appearance="outline">
+                  <mat-label>GST number</mat-label>
+                  <input matInput formControlName="gst_number" />
+                </mat-form-field>
+              }
+
+              @if (showInsuranceField()) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Insurance type</mat-label>
+                  <mat-select formControlName="insurance_type">
+                    @for (option of insuranceTypeOptions; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+
+              @if (showCarTypeField()) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Car type</mat-label>
+                  <mat-select formControlName="car_type">
+                    @for (option of carTypeOptions; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+
+              @if (showMudraTypeField()) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Mudra loan type</mat-label>
+                  <mat-select formControlName="mudra_loan_type">
+                    @for (option of mudraLoanTypeOptions; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              }
+            </div>
+          }
+
+          <div class="lead-form__step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </button>
+            <button mat-flat-button color="primary" type="button" matStepperNext>
+              Next
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </mat-step>
+
+        <mat-step label="Address details" [completed]="stepValid(form.controls.address)">
+          <div class="lead-form__grid" formGroupName="address">
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input matInput formControlName="city" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>State</mat-label>
+              <input matInput formControlName="state" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Pincode</mat-label>
+              <input matInput formControlName="pincode" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Landmark</mat-label>
+              <input matInput formControlName="landmark" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="lead-form__span-2">
+              <mat-label>Current residential address</mat-label>
+              <textarea matInput rows="3" formControlName="current_address"></textarea>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Residential type</mat-label>
+              <mat-select formControlName="residential_type">
+                @for (option of residentialTypeOptions; track option.value) {
+                  <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Since resident</mat-label>
+              <input matInput formControlName="since_resident" placeholder="e.g. 2 years" />
+            </mat-form-field>
+          </div>
+
+          <div class="lead-form__grid">
+            <mat-form-field appearance="outline" class="lead-form__span-2">
+              <mat-label>Notes</mat-label>
+              <textarea matInput rows="3" formControlName="notes"></textarea>
+            </mat-form-field>
+          </div>
+
+          <div class="lead-form__step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </button>
+            <button mat-flat-button color="primary" type="button" matStepperNext>
+              Next
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </mat-step>
+
+        <mat-step label="Loan type details" [completed]="stepValid(form.controls.loanTypeDetails)">
+          @if (showNoLoanTypeExtrasHint()) {
+            <p class="lead-form__hint">
+              No additional loan-type specific details are required for
+              {{ loanTypeLabel(form.controls.loan.controls.loan_type.value) }}.
+            </p>
+          }
+
+          @if (showPropertyTypeSection()) {
+            <div class="lead-form__grid" formGroupName="loanTypeDetails">
+              <mat-form-field appearance="outline">
+                <mat-label>Property type</mat-label>
+                <mat-select formControlName="property_type">
+                  @for (option of propertyTypeOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+
+          @if (showLapSection()) {
+            <div class="lead-form__grid" formGroupName="loanTypeDetails">
+              <mat-form-field appearance="outline">
+                <mat-label>LAP property type</mat-label>
+                <mat-select formControlName="lap_property_type">
+                  @for (option of lapPropertyTypeOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Balance transfer type</mat-label>
+                <mat-select formControlName="balance_transfer_type">
+                  @for (option of balanceTransferTypeOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              @if (showBalanceTransferAmount()) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Balance transfer loan amount</mat-label>
+                  <input matInput type="number" formControlName="balance_transfer_loan_amount" />
+                </mat-form-field>
+              }
+
+              <mat-form-field appearance="outline">
+                <mat-label>Top-up loan amount</mat-label>
+                <input matInput type="number" formControlName="topup_loan_amount" />
+              </mat-form-field>
+            </div>
+          }
+
+          <div class="lead-form__step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </button>
+            <button mat-flat-button color="primary" type="button" matStepperNext>
+              Review
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </mat-step>
+
+        <mat-step label="Review">
+          <div class="lead-form__review">
+            <div>
+              <span class="lead-form__review-label">Applicant</span>
+              <strong>
+                {{ form.controls.applicant.controls.applicant_name.value }} ·
+                {{ form.controls.applicant.controls.applicant_phone.value }}
+              </strong>
+            </div>
+            <div>
+              <span class="lead-form__review-label">Gender · DOB · Age</span>
+              <strong>
+                {{ optionLabel(genderOptions, form.controls.applicant.controls.gender.value) }} ·
+                {{
+                  form.controls.applicant.controls.dob.value
+                    ? (form.controls.applicant.controls.dob.value | date: 'mediumDate')
+                    : '—'
+                }}
+                ·
+                {{ form.controls.applicant.controls.age.value ?? '—' }}
+              </strong>
+            </div>
+            <div>
+              <span class="lead-form__review-label">Marital status · Caste category</span>
+              <strong>
+                {{ optionLabel(maritalStatusOptions, form.controls.applicant.controls.marital_status.value) }} ·
+                {{ optionLabel(casteCategoryOptions, form.controls.applicant.controls.caste_category.value) }}
+              </strong>
+            </div>
+            <div>
+              <span class="lead-form__review-label">Loan</span>
+              <strong>
+                {{ loanTypeLabel(form.controls.loan.controls.loan_type.value) }} ·
+                ₹{{ form.controls.loan.controls.loan_amount.value }} ·
+                {{ form.controls.loan.controls.tenure_months.value }} months
+              </strong>
+            </div>
+            <div>
+              <span class="lead-form__review-label">Income &amp; credit</span>
+              <strong>
+                ₹{{ form.controls.loan.controls.monthly_income.value ?? 0 }} income ·
+                {{ form.controls.loan.controls.credit_score.value ?? '—' }} score ·
+                {{ employmentTypeLabel(form.controls.loan.controls.employment_type.value) }}
+              </strong>
+            </div>
+            <div>
+              <span class="lead-form__review-label">Company · Purpose of loan</span>
+              <strong>
+                {{ form.controls.loan.controls.company_name.value }} ·
+                {{ optionLabel(purposeOfLoanOptions, form.controls.loan.controls.purpose_of_loan.value) }}
+              </strong>
+            </div>
+            <div>
+              <span class="lead-form__review-label">Location</span>
+              <strong>
+                {{ form.controls.address.controls.city.value }}, {{ form.controls.address.controls.state.value }}
+                {{ form.controls.address.controls.pincode.value }}
+              </strong>
+            </div>
+            <div>
+              <span class="lead-form__review-label">Residential type · Since resident</span>
+              <strong>
+                {{ optionLabel(residentialTypeOptions, form.controls.address.controls.residential_type.value) }} ·
+                {{ form.controls.address.controls.since_resident.value || '—' }}
+              </strong>
+            </div>
+            @if (showPropertyTypeSection()) {
+              <div>
+                <span class="lead-form__review-label">Property type</span>
+                <strong>
+                  {{ optionLabel(propertyTypeOptions, form.controls.loanTypeDetails.controls.property_type.value) }}
+                </strong>
+              </div>
+            }
+            @if (showLapSection()) {
+              <div>
+                <span class="lead-form__review-label">LAP property · Balance transfer</span>
+                <strong>
+                  {{
+                    optionLabel(
+                      lapPropertyTypeOptions,
+                      form.controls.loanTypeDetails.controls.lap_property_type.value
+                    )
+                  }}
+                  ·
+                  {{
+                    optionLabel(
+                      balanceTransferTypeOptions,
+                      form.controls.loanTypeDetails.controls.balance_transfer_type.value
+                    )
+                  }}
+                </strong>
+              </div>
+            }
+          </div>
+
+          <div class="lead-form__step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              type="submit"
+              [disabled]="form.invalid || saving()"
+            >
+              {{ leadId() ? 'Save changes' : 'Create lead' }}
+            </button>
+            <a mat-button routerLink="/leads">Cancel</a>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </form>
+  </mat-card-content>
+</mat-card>

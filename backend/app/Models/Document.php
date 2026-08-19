@@ -21,6 +21,7 @@ class Document extends Model
         'mime_type',
         'size_bytes',
         'status',
+        'remarks',
     ];
 
     protected function casts(): array

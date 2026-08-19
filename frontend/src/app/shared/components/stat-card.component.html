@@ -1,0 +1,16 @@
+<mat-card class="stat-card" [class]="'stat-card--' + accent()">
+  <mat-card-content class="stat-card__content">
+    <span class="stat-card__icon">
+      <mat-icon>{{ icon() }}</mat-icon>
+    </span>
+
+    <div class="stat-card__body">
+      <span class="stat-card__value">{{ value() }}</span>
+      <span class="stat-card__label">{{ label() }}</span>
+
+      @if (trend()) {
+        <span class="stat-card__trend">{{ trend() }}</span>
+      }
+    </div>
+  </mat-card-content>
+</mat-card>

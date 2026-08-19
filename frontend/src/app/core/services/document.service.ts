@@ -29,10 +29,14 @@ export class DocumentService {
     leadId: number,
     file: File,
     documentType: string,
+    remarks?: string,
   ): Observable<LeadDocument> {
     const form = new FormData();
     form.append('file', file);
     form.append('document_type', documentType);
+    if (remarks?.trim()) {
+      form.append('remarks', remarks.trim());
+    }
 
     return this.api.upload<LeadDocument>(`leads/${leadId}/documents`, form);
   }

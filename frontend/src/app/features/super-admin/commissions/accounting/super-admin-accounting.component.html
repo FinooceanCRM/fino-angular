@@ -1,0 +1,61 @@
+<div class="commission-page__header">
+  <app-page-header title="Accounting" subtitle="Commission-liability ledger — what's accrued, paid and still outstanding." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<div class="commission-page__summary">
+  <app-stat-card icon="account_balance_wallet" [value]="'₹' + (summary().totalDisbursed | number: '1.0-0')" label="Total disbursed" accent="primary" />
+  <app-stat-card icon="add_card" [value]="'₹' + (summary().totalAccrued | number: '1.0-0')" label="Commission accrued" accent="accent" />
+  <app-stat-card icon="task_alt" [value]="'₹' + (summary().totalPaid | number: '1.0-0')" label="Commission paid" />
+  <app-stat-card icon="balance" [value]="'₹' + (summary().outstanding | number: '1.0-0')" label="Outstanding liability" />
+</div>
+
+<mat-card class="commission-page__toolbar">
+  <mat-card-content>
+    <form class="commission-page__filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Search the description" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Entry type</mat-label>
+        <mat-select formControlName="type">
+          <mat-option value="">All entries</mat-option>
+          <mat-option value="disbursement">Disbursement</mat-option>
+          <mat-option value="connector_commission_accrued">Connector commission accrued</mat-option>
+          <mat-option value="connector_commission_paid">Connector commission paid</mat-option>
+          <mat-option value="affiliate_commission_accrued">Affiliate commission accrued</mat-option>
+          <mat-option value="affiliate_commission_paid">Affiliate commission paid</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="commission-page__table-card">
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="filteredRows()" emptyMessage="No ledger entries match the current filters.">
+      <ng-template appTableCell="date" let-row>{{ row.date | date: 'mediumDate' }}</ng-template>
+
+      <ng-template appTableCell="type" let-row>
+        <app-status-pill [label]="labelFor(row.type)" [colour]="colourFor(row.type)" />
+      </ng-template>
+
+      <ng-template appTableCell="debit" let-row>
+        {{ row.debit ? '₹' + (row.debit | number: '1.0-0') : '—' }}
+      </ng-template>
+
+      <ng-template appTableCell="credit" let-row>
+        {{ row.credit ? '₹' + (row.credit | number: '1.0-0') : '—' }}
+      </ng-template>
+
+      <ng-template appTableCell="balance" let-row>
+        ₹{{ row.balance | number: '1.0-0' }}
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

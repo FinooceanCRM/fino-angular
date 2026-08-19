@@ -1,0 +1,93 @@
+<div class="user-role-table__header">
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
+  <button mat-flat-button color="primary" type="button" class="user-role-table__new" (click)="openCreate()">
+    <mat-icon>add</mat-icon>
+    Add {{ roleLabel() }}
+  </button>
+</div>
+
+<mat-card class="user-role-table__toolbar">
+  <mat-card-content>
+    <form class="user-role-table__filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Search by name or email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="">All Status</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>filter_alt</mat-icon>
+        Apply
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="user-role-table__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      [loading]="loading()"
+      [emptyMessage]="'No ' + roleLabel().toLowerCase() + 's match the current filters.'"
+      [length]="total()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      itemLabel="results"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="name" let-row>
+        <div class="user-role-table__name-cell">
+          <span class="user-role-table__avatar">{{ initials(row.name) }}</span>
+          <strong>{{ row.name }}</strong>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.is_active ? 'Active' : 'Inactive'"
+          [colour]="row.is_active ? 'success' : 'default'"
+        />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <button
+          mat-icon-button
+          class="row-action row-action--view"
+          type="button"
+          aria-label="View user"
+          (click)="openView(row)"
+        >
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="row-action row-action--edit"
+          type="button"
+          aria-label="Edit user"
+          (click)="openEdit(row)"
+        >
+          <mat-icon>edit</mat-icon>
+        </button>
+        <button
+          mat-icon-button
+          class="row-action"
+          [class.user-role-table__action--danger]="row.is_active"
+          type="button"
+          [attr.aria-label]="row.is_active ? 'Deactivate user' : 'Activate user'"
+          (click)="toggleActive(row)"
+        >
+          <mat-icon>{{ row.is_active ? 'block' : 'check_circle' }}</mat-icon>
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

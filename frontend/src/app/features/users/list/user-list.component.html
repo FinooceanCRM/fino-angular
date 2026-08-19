@@ -1,0 +1,106 @@
+<div class="user-list__header">
+  <app-page-header title="Users" subtitle="Manage and monitor system users and their access." />
+  @if (auth.can('users.create')) {
+    <a mat-flat-button color="primary" routerLink="/users/create" class="user-list__new">
+      <mat-icon>add</mat-icon>
+      New User
+    </a>
+  }
+</div>
+
+<mat-card class="user-list__toolbar">
+  <mat-card-content>
+    <form class="user-list__filters" [formGroup]="filters" (ngSubmit)="load(0)">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Search by name or email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Role</mat-label>
+        <mat-select formControlName="role">
+          <mat-option value="">All Roles</mat-option>
+          @for (role of roles; track role) {
+            <mat-option [value]="role">{{ roleLabels[role] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="isActive">
+          <mat-option value="">All Status</mat-option>
+          <mat-option value="1">Active</mat-option>
+          <mat-option value="0">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>filter_alt</mat-icon>
+        Apply
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="user-list__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="users.users()"
+      [loading]="users.loading()"
+      emptyMessage="No users match the current filters."
+      [length]="users.meta().total"
+      [pageSize]="users.meta().per_page"
+      [pageIndex]="users.meta().current_page - 1"
+      itemLabel="users"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="name" let-row>
+        <div class="user-list__name-cell">
+          <span class="user-list__avatar">{{ initials(row.name) }}</span>
+          <strong>{{ row.name }}</strong>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.is_active ? 'Active' : 'Inactive'"
+          [colour]="row.is_active ? 'success' : 'default'"
+        />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <a
+          mat-icon-button
+          class="row-action row-action--view"
+          [routerLink]="['/users', row.id]"
+          aria-label="View user"
+        >
+          <mat-icon>visibility</mat-icon>
+        </a>
+        @if (auth.can('users.update')) {
+          <a
+            mat-icon-button
+            class="row-action row-action--edit"
+            [routerLink]="['/users', row.id, 'edit']"
+            aria-label="Edit user"
+          >
+            <mat-icon>edit</mat-icon>
+          </a>
+        }
+        @if (auth.can('users.delete') && row.id !== auth.user()?.id) {
+          <button
+            mat-icon-button
+            class="row-action row-action--delete"
+            type="button"
+            (click)="confirmDelete(row)"
+            aria-label="Delete user"
+          >
+            <mat-icon>delete</mat-icon>
+          </button>
+        }
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

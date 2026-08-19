@@ -30,6 +30,8 @@ class UserHierarchyService
                 UserRole::RelationshipManager,
                 UserRole::Employee,
                 UserRole::Connector,
+                UserRole::Banker,
+                UserRole::Telecaller,
             ],
             UserRole::Manager => [UserRole::RelationshipManager, UserRole::Employee],
             UserRole::RelationshipManager => [UserRole::Employee],

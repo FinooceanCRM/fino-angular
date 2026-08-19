@@ -1,0 +1,50 @@
+:host {
+  display: block;
+}
+
+.bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.bar-list__row {
+  display: grid;
+  grid-template-columns: 140px 1fr 64px;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.bar-list__label {
+  font-size: 0.82rem;
+  color: var(--app-status-default-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bar-list__track {
+  height: 8px;
+  border-radius: var(--app-radius-pill);
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.bar-list__fill {
+  height: 100%;
+  border-radius: var(--app-radius-pill);
+  transition: width 0.3s ease;
+}
+
+.bar-list__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.bar-list__empty {
+  margin: 0;
+  color: var(--app-status-default-fg);
+  font-size: 0.85rem;
+}

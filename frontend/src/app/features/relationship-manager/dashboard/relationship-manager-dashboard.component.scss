@@ -1,0 +1,49 @@
+.rm-dashboard {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-top: var(--app-space-4);
+}
+
+.rm-dashboard__welcome,
+.rm-dashboard__notifications {
+  grid-column: 1 / -1;
+}
+
+.rm-dashboard__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+}
+
+.rm-dashboard__stats {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.rm-dashboard__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+  margin-top: var(--app-space-2);
+}
+
+.rm-dashboard__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.rm-dashboard__description {
+  flex-basis: 100%;
+  margin: var(--app-space-1) 0 0;
+  color: var(--app-status-default-fg);
+  font-size: 0.9rem;
+}
+
+.rm-dashboard__error {
+  margin-top: var(--app-space-4);
+}

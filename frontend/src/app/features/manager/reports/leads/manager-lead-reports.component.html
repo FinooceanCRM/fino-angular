@@ -1,0 +1,73 @@
+<div class="report-page__header">
+  <app-page-header [title]="title()" [subtitle]="subtitle()" />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<mat-card class="report-page__range">
+  <mat-card-content>
+    <form class="report-page__range-form" [formGroup]="range">
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="from" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="to" />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<div class="report-page__summary">
+  <app-stat-card icon="assignment" [value]="summary().total" label="Leads in range" accent="primary" />
+  <app-stat-card icon="paid" [value]="summary().disbursed" label="Disbursed" accent="accent" />
+  <app-stat-card icon="trending_up" [value]="summary().conversionRate + '%'" label="Conversion rate" />
+  <app-stat-card icon="account_balance_wallet" [value]="'₹' + (summary().totalValue | number: '1.0-0')" label="Total loan value" />
+</div>
+
+<div class="report-page__charts">
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Leads by status</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="statusBreakdown()" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Leads by loan type</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="loanTypeBreakdown()" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Weekly lead volume</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-trend-chart [points]="trend()" />
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<mat-card class="report-page__table-card">
+  <mat-card-header>
+    <mat-card-title>Leads in range</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="filteredLeads()" emptyMessage="No leads in the selected range.">
+      <ng-template appTableCell="loan" let-row> {{ row.loan_type }} · ₹{{ row.loan_amount | number: '1.0-0' }} </ng-template>
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+      </ng-template>
+      <ng-template appTableCell="created_at" let-row>{{ row.created_at | date: 'mediumDate' }}</ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

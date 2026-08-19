@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\LeadStatus;
 use App\Enums\UserRole;
 use App\Exceptions\DomainException;
+use App\Models\Document;
 use App\Models\Employee;
 use App\Models\User;
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
+use App\Repositories\Contracts\LoanLeadRepositoryInterface;
 
 /**
  * Business rules for the Employee module (Phase 6).
@@ -19,6 +22,7 @@ class EmployeeService extends BaseService
 {
     public function __construct(
         private readonly EmployeeRepositoryInterface $employees,
+        private readonly LoanLeadRepositoryInterface $leads,
     ) {
     }
 
@@ -117,6 +121,26 @@ class EmployeeService extends BaseService
                 ['label' => 'Edit profile', 'route' => '/employee/profile', 'icon' => 'edit'],
                 ['label' => 'View my team', 'route' => '/employee/team', 'icon' => 'groups'],
             ],
+            'stats' => $this->statsFor($user),
+        ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function statsFor(User $user): array
+    {
+        $statusCounts = $this->leads->statusCounts($user);
+
+        $pendingDocuments = Document::query()
+            ->where('status', 'pending')
+            ->whereHas('loanLead', fn ($q) => $q->where('assigned_employee_id', $user->id))
+            ->count();
+
+        return [
+            'leads_assigned' => array_sum($statusCounts),
+            'pending_documents' => $pendingDocuments,
+            'approved_leads' => (int) ($statusCounts[LeadStatus::Approved->value] ?? 0),
         ];
     }
 

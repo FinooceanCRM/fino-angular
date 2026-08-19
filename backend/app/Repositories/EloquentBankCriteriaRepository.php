@@ -32,6 +32,10 @@ class EloquentBankCriteriaRepository implements BankCriteriaRepositoryInterface
             $query->where('is_active', filter_var($filters['is_active'], FILTER_VALIDATE_BOOLEAN));
         }
 
+        if (! empty($filters['banker_id'])) {
+            $query->where('banker_id', (int) $filters['banker_id']);
+        }
+
         return $query->orderBy('bank_name')->paginate($perPage);
     }
 

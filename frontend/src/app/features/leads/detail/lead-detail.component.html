@@ -1,0 +1,498 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <mat-card class="lead-detail__notice">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
+
+@if (detail(); as data) {
+  <app-entity-header
+    [title]="data.lead.applicant_name"
+    idLabel="Lead ID"
+    [idValue]="data.lead.reference"
+    [statusLabel]="data.lead.status_label"
+    [statusColour]="data.lead.status_colour"
+  >
+    @if (!isBanker() || hasFullAccess()) {
+      <a mat-stroked-button [routerLink]="['/leads', data.lead.id, 'edit']">
+        <mat-icon>edit</mat-icon>
+        Edit
+      </a>
+    }
+    @if (canAssign()) {
+      <button mat-stroked-button type="button" (click)="selectedTab.set(workflowTab)">
+        <mat-icon>person_add</mat-icon>
+        Assign
+      </button>
+    }
+    @if (!isBanker() || hasFullAccess()) {
+      <button
+        mat-stroked-button
+        color="warn"
+        type="button"
+        [disabled]="data.lead.status === 'closed'"
+        (click)="rejectLead()"
+      >
+        <mat-icon>close</mat-icon>
+        Reject
+      </button>
+      <button
+        mat-flat-button
+        color="primary"
+        type="button"
+        [disabled]="data.lead.status === 'closed'"
+        (click)="approveLead()"
+      >
+        <mat-icon>check</mat-icon>
+        Approve
+      </button>
+    }
+  </app-entity-header>
+
+  <mat-card class="lead-detail__summary">
+    <mat-card-content class="lead-detail__summary-grid">
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>home</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">Loan</span>
+          <strong>
+            {{ data.lead.loan_type }} ·
+            {{ data.lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}
+          </strong>
+        </span>
+      </div>
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>location_on</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">City</span>
+          <strong>{{ data.lead.city }}, {{ data.lead.state }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>hub</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">Connector</span>
+          <strong>{{ data.lead.connector?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>badge</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">Employee</span>
+          <strong>{{ data.lead.assigned_employee?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>support_agent</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">Relationship Manager</span>
+          <strong>{{ data.lead.assigned_relationship_manager?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>supervisor_account</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">Manager</span>
+          <strong>{{ data.lead.assigned_manager?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>account_balance</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">Banker</span>
+          <strong>{{ data.lead.assigned_banker?.name ?? '—' }}</strong>
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-tab-group [selectedIndex]="selectedTab()" (selectedIndexChange)="onTabChange($event)">
+    <mat-tab label="Overview">
+      <div class="lead-detail__tab-body">
+        <mat-card class="lead-detail__form-card">
+          <h3 class="lead-detail__section-title">Applicant details</h3>
+          <div class="lead-detail__grid">
+            <div><span class="lead-detail__label">Email</span><strong>{{ data.lead.applicant_email ?? '—' }}</strong></div>
+            <div><span class="lead-detail__label">Phone</span><strong>{{ data.lead.applicant_phone ?? '—' }}</strong></div>
+            <div><span class="lead-detail__label">Tenure</span><strong>{{ data.lead.tenure_months ?? '—' }} months</strong></div>
+            <div><span class="lead-detail__label">Monthly income</span><strong>{{ data.lead.monthly_income | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+            <div><span class="lead-detail__label">Credit score</span><strong>{{ data.lead.credit_score ?? '—' }}</strong></div>
+            <div><span class="lead-detail__label">Employment</span><strong>{{ data.lead.employment_type ?? '—' }}</strong></div>
+          </div>
+        </mat-card>
+
+        @if (data.lead.details; as details) {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Additional details</h3>
+
+            <div class="lead-detail__additional-section">
+              <h4 class="lead-detail__additional-title">Personal</h4>
+              <div class="lead-detail__grid">
+                <div><span class="lead-detail__label">Gender</span><strong>{{ optionLabel(genderOptions, details.gender) }}</strong></div>
+                <div><span class="lead-detail__label">Date of birth</span><strong>{{ details.dob ? (details.dob | date: 'mediumDate') : '—' }}</strong></div>
+                <div><span class="lead-detail__label">Age</span><strong>{{ details.age ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Alternative mobile</span><strong>{{ details.alternative_phone ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Marital status</span><strong>{{ optionLabel(maritalStatusOptions, details.marital_status) }}</strong></div>
+                <div><span class="lead-detail__label">Caste category</span><strong>{{ optionLabel(casteCategoryOptions, details.caste_category) }}</strong></div>
+              </div>
+            </div>
+
+            <div class="lead-detail__additional-section">
+              <h4 class="lead-detail__additional-title">Loan &amp; employment</h4>
+              <div class="lead-detail__grid">
+                <div><span class="lead-detail__label">Company name</span><strong>{{ details.company_name ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Net salary</span><strong>{{ details.net_salary ? (details.net_salary | currency: 'INR' : 'symbol-narrow' : '1.0-0') : '—' }}</strong></div>
+                <div><span class="lead-detail__label">Salary account type</span><strong>{{ optionLabel(salaryAccountTypeOptions, details.salary_account_type) }}</strong></div>
+                <div><span class="lead-detail__label">Purpose of loan</span><strong>{{ optionLabel(purposeOfLoanOptions, details.purpose_of_loan) }}</strong></div>
+                @if (details.gst_number) {
+                  <div><span class="lead-detail__label">GST number</span><strong>{{ details.gst_number }}</strong></div>
+                }
+                @if (details.insurance_type) {
+                  <div><span class="lead-detail__label">Insurance type</span><strong>{{ optionLabel(insuranceTypeOptions, details.insurance_type) }}</strong></div>
+                }
+                @if (details.car_type) {
+                  <div><span class="lead-detail__label">Car type</span><strong>{{ optionLabel(carTypeOptions, details.car_type) }}</strong></div>
+                }
+                @if (details.mudra_loan_type) {
+                  <div><span class="lead-detail__label">Mudra loan type</span><strong>{{ optionLabel(mudraLoanTypeOptions, details.mudra_loan_type) }}</strong></div>
+                }
+              </div>
+            </div>
+
+            <div class="lead-detail__additional-section">
+              <h4 class="lead-detail__additional-title">Address</h4>
+              <div class="lead-detail__grid">
+                <div><span class="lead-detail__label">Landmark</span><strong>{{ details.landmark ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Residential type</span><strong>{{ optionLabel(residentialTypeOptions, details.residential_type) }}</strong></div>
+                <div><span class="lead-detail__label">Since resident</span><strong>{{ details.since_resident ?? '—' }}</strong></div>
+                <div class="lead-detail__span-2"><span class="lead-detail__label">Current residential address</span><strong>{{ details.current_address ?? '—' }}</strong></div>
+              </div>
+            </div>
+
+            @if (showPropertyType() || showLapDetails()) {
+              <div class="lead-detail__additional-section">
+                <h4 class="lead-detail__additional-title">Loan type details</h4>
+                <div class="lead-detail__grid">
+                  @if (showPropertyType()) {
+                    <div><span class="lead-detail__label">Property type</span><strong>{{ optionLabel(propertyTypeOptions, details.property_type) }}</strong></div>
+                  }
+                  @if (showLapDetails()) {
+                    <div><span class="lead-detail__label">LAP property type</span><strong>{{ optionLabel(lapPropertyTypeOptions, details.lap_property_type) }}</strong></div>
+                    <div><span class="lead-detail__label">Balance transfer type</span><strong>{{ optionLabel(balanceTransferTypeOptions, details.balance_transfer_type) }}</strong></div>
+                    @if (details.balance_transfer_loan_amount) {
+                      <div><span class="lead-detail__label">Balance transfer loan amount</span><strong>{{ details.balance_transfer_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+                    }
+                    @if (details.topup_loan_amount) {
+                      <div><span class="lead-detail__label">Top-up loan amount</span><strong>{{ details.topup_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+                    }
+                  }
+                </div>
+              </div>
+            }
+          </mat-card>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Workflow">
+      <div class="lead-detail__tab-body">
+        @if (canChangeStatus()) {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Change status</h3>
+            <form class="lead-detail__inline-form" [formGroup]="statusForm" (ngSubmit)="changeStatus()">
+              <mat-form-field appearance="outline">
+                <mat-label>Change status</mat-label>
+                <mat-select formControlName="status">
+                  @for (status of statuses(); track status.value) {
+                    <mat-option [value]="status.value">{{ status.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Remarks</mat-label>
+                <input matInput formControlName="remarks" />
+              </mat-form-field>
+              <button mat-flat-button color="primary" type="submit">Update status</button>
+            </form>
+          </mat-card>
+        } @else {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Change status</h3>
+            @if (isBanker()) {
+              <p class="lead-detail__muted">
+                Status updates unlock once a Manager approves full access to this lead. Request it from the Bank
+                matches tab.
+              </p>
+            } @else if (isEmployee()) {
+              <p class="lead-detail__muted">
+                This lead has been reassigned, so status is read-only for you now. You can still attach supporting
+                documents — with a remark on each upload — from the Documents tab.
+              </p>
+            } @else {
+              <p class="lead-detail__muted">You don't have permission to change this lead's status.</p>
+            }
+          </mat-card>
+        }
+
+        @if (canAssign() && assignees().length > 0) {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Assign lead</h3>
+            <form class="lead-detail__inline-form" [formGroup]="assignForm" (ngSubmit)="assign()">
+              <mat-form-field appearance="outline">
+                <mat-label>Assign to</mat-label>
+                <mat-select formControlName="assignee_id">
+                  @for (user of assignees(); track user.id) {
+                    <mat-option [value]="user.id">{{ user.name }} ({{ user.role }})</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Remarks</mat-label>
+                <input matInput formControlName="remarks" />
+              </mat-form-field>
+              <button mat-flat-button color="primary" type="submit">Assign lead</button>
+            </form>
+          </mat-card>
+        }
+
+        <mat-card class="lead-detail__form-card">
+          <h3 class="lead-detail__section-title">Status history</h3>
+          @if (data.status_history.length === 0) {
+            <p class="lead-detail__muted">No status changes yet.</p>
+          } @else {
+            <app-timeline [entries]="historyEntries()" />
+          }
+        </mat-card>
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Bank matches">
+      <div class="lead-detail__tab-body">
+        <div class="lead-detail__match-actions">
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="matching()"
+            (click)="runMatching()"
+          >
+            {{ matching() ? 'Matching…' : 'Re-run matching engine' }}
+          </button>
+
+          @if (isBanker()) {
+            @if (myAccessRequest(); as mine) {
+              <app-status-pill
+                [label]="'Your request: ' + mine.status_label"
+                [colour]="mine.status_colour"
+              />
+            } @else {
+              <button mat-stroked-button color="primary" type="button" (click)="requestAccess()">
+                <mat-icon>lock_open</mat-icon>
+                Request access
+              </button>
+            }
+          }
+        </div>
+
+        @if (matching()) {
+          <mat-progress-bar mode="indeterminate" />
+        }
+
+        @if (data.matches.length === 0) {
+          <p class="lead-detail__muted">
+            {{
+              matching()
+                ? 'Evaluating banks…'
+                : 'No bank products are configured for this loan type yet.'
+            }}
+          </p>
+        } @else {
+          <ul class="match-list">
+            @for (match of data.matches; track match.id) {
+              <li class="match-list__item">
+                <span class="match-list__icon"><mat-icon>account_balance</mat-icon></span>
+                <span class="match-list__body">
+                  <span class="match-list__title">{{ match.bank_name }} — {{ match.product_name }}</span>
+                  <span class="match-list__subtitle">
+                    Interest {{ match.interest_rate ?? '—' }}% · {{ match.reasons.join(' ') }}
+                  </span>
+                </span>
+                <app-status-pill
+                  [label]="match.match_score + '% match'"
+                  [colour]="scoreColour(match.match_score)"
+                />
+              </li>
+            }
+          </ul>
+        }
+
+        @if (canDecideAccessRequests() && accessRequests().length > 0) {
+          <div class="lead-detail__access-requests">
+            <h3 class="lead-detail__section-title">Access requests</h3>
+            <mat-list>
+              @for (request of accessRequests(); track request.id) {
+                <mat-list-item class="lead-detail__access-request">
+                  <span matListItemTitle>{{ request.banker?.name ?? 'Unknown banker' }}</span>
+                  <span matListItemLine>
+                    <app-status-pill [label]="request.status_label" [colour]="request.status_colour" />
+                    @if (request.remarks) {
+                      · {{ request.remarks }}
+                    }
+                  </span>
+                  @if (request.status === 'pending') {
+                    <span matListItemMeta class="lead-detail__access-request-actions">
+                      <button mat-button color="warn" (click)="rejectAccessRequest(request)">
+                        Reject
+                      </button>
+                      <button mat-flat-button color="primary" (click)="approveAccessRequest(request)">
+                        Approve
+                      </button>
+                    </span>
+                  }
+                </mat-list-item>
+              }
+            </mat-list>
+          </div>
+        }
+      </div>
+    </mat-tab>
+
+    <mat-tab label="Documents">
+      <div class="lead-detail__tab-body">
+        @if (!isBanker() || hasFullAccess()) {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Upload document</h3>
+            <form class="lead-detail__inline-form" [formGroup]="documentForm" (ngSubmit)="upload()">
+              <mat-form-field appearance="outline">
+                <mat-label>Document type</mat-label>
+                <mat-select formControlName="document_type">
+                  @for (type of documentTypes(); track type.value) {
+                    <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <input type="file" (change)="onFileSelected($event)" />
+              <mat-form-field appearance="outline">
+                <mat-label>Remarks{{ isEmployee() ? '' : ' (optional)' }}</mat-label>
+                <input matInput formControlName="remarks" placeholder="What is this document?" />
+              </mat-form-field>
+              <button mat-flat-button color="primary" type="submit" [disabled]="!selectedFile || documentForm.invalid">
+                Upload
+              </button>
+            </form>
+          </mat-card>
+
+          @if (documents().length === 0) {
+            <p class="lead-detail__muted">No documents uploaded for this lead.</p>
+          } @else {
+            <ul class="document-list">
+              @for (document of documents(); track document.id) {
+                <li class="document-list__item">
+                  <span class="document-list__icon"><mat-icon>description</mat-icon></span>
+                  <span class="document-list__body">
+                    <span class="document-list__title">
+                      {{ document.document_type_label }} — {{ document.original_name }}
+                    </span>
+                    <span class="document-list__subtitle">
+                      {{ document.size_bytes }} bytes · {{ document.created_at | date: 'medium' }}
+                    </span>
+                    @if (document.remarks) {
+                      <span class="document-list__remarks">{{ document.remarks }}</span>
+                    }
+                  </span>
+                  <span class="document-list__actions">
+                    <button mat-icon-button matTooltip="Download" (click)="download(document)">
+                      <mat-icon>download</mat-icon>
+                    </button>
+                    <button
+                      mat-icon-button
+                      color="warn"
+                      matTooltip="Delete"
+                      (click)="removeDocument(document)"
+                    >
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        } @else {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Documents</h3>
+            <p class="lead-detail__muted">
+              Documents unlock once a Manager approves full access to this lead. Request it from the Bank matches
+              tab.
+            </p>
+          </mat-card>
+        }
+      </div>
+    </mat-tab>
+
+    @if (isBanker() && hasFullAccess()) {
+      <mat-tab label="Follow-ups">
+        <div class="lead-detail__tab-body">
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Log a follow-up</h3>
+            <form class="lead-detail__inline-form" [formGroup]="followUpForm" (ngSubmit)="logFollowUp()">
+              <mat-form-field appearance="outline">
+                <mat-label>Type</mat-label>
+                <mat-select formControlName="type">
+                  <mat-option value="call">Call</mat-option>
+                  <mat-option value="meeting">Meeting</mat-option>
+                  <mat-option value="reminder">Reminder</mat-option>
+                  <mat-option value="note">Note</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Notes</mat-label>
+                <input matInput formControlName="notes" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Next follow-up date</mat-label>
+                <input matInput type="date" formControlName="next_follow_up_at" />
+              </mat-form-field>
+              <button mat-flat-button color="primary" type="submit">Log follow-up</button>
+            </form>
+          </mat-card>
+
+          @if (followUps().length === 0) {
+            <p class="lead-detail__muted">No follow-ups logged yet.</p>
+          } @else {
+            <ul class="document-list">
+              @for (item of followUps(); track item.id) {
+                <li class="document-list__item">
+                  <span class="document-list__icon"><mat-icon>event_note</mat-icon></span>
+                  <span class="document-list__body">
+                    <span class="document-list__title">
+                      {{ item.type }}{{ item.notes ? ' — ' + item.notes : '' }}
+                    </span>
+                    <span class="document-list__subtitle">
+                      Logged {{ item.created_at | date: 'medium' }}
+                      @if (item.next_follow_up_at) {
+                        · Next follow-up {{ item.next_follow_up_at | date: 'mediumDate' }}
+                      }
+                      @if (item.completed_at) {
+                        · Completed {{ item.completed_at | date: 'medium' }}
+                      }
+                    </span>
+                  </span>
+                  @if (!item.completed_at) {
+                    <span class="document-list__actions">
+                      <button mat-icon-button matTooltip="Mark complete" (click)="completeFollowUp(item)">
+                        <mat-icon>task_alt</mat-icon>
+                      </button>
+                    </span>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </mat-tab>
+    }
+  </mat-tab-group>
+}

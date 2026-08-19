@@ -129,6 +129,8 @@ export interface CreateRelationshipManagerPayload {
   password: string;
   phone?: string | null;
   is_active?: boolean;
+  /** Required: which of the Manager's departments (PL/HL/ML) this RM runs. */
+  department: import('./user.model').Department;
   designation?: string | null;
   branch?: string | null;
   region?: string | null;

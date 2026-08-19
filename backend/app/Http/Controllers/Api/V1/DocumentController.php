@@ -18,13 +18,12 @@ class DocumentController extends BaseApiController
     public function __construct(
         private readonly DocumentService $documents,
         private readonly LeadService $leads,
-    ) {
-    }
+    ) {}
 
     public function index(Request $request, int $lead): JsonResponse
     {
         $model = $this->leads->findVisible($request->user(), $lead);
-        $this->authorize('view', $model);
+        $this->authorize('viewDocuments', $model);
 
         $paginator = $this->documents->paginateForLead($model, [
             'document_type' => $request->query('document_type'),
@@ -53,6 +52,7 @@ class DocumentController extends BaseApiController
             $model,
             $request->file('file'),
             $request->validated()['document_type'],
+            $request->validated()['remarks'] ?? null,
         );
 
         return $this->respondCreated(

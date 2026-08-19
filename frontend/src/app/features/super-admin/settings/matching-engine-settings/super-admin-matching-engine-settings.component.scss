@@ -1,0 +1,94 @@
+.match-settings {
+  display: flex;
+  flex-direction: column;
+  padding: var(--app-space-5) var(--app-space-4);
+}
+
+.match-settings__section {
+  padding-bottom: var(--app-space-5);
+  margin-bottom: var(--app-space-5);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  &:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: var(--app-space-3);
+  }
+}
+
+.match-settings__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+  margin-bottom: var(--app-space-2);
+
+  .match-settings__title {
+    margin: 0;
+  }
+}
+
+.match-settings__title {
+  margin: 0 0 var(--app-space-3);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.match-settings__hint {
+  margin: 0 0 var(--app-space-3);
+  font-size: 0.82rem;
+  color: var(--app-status-default-fg);
+}
+
+.match-settings__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--app-space-3);
+  align-items: start;
+}
+
+.match-settings__toggle {
+  display: flex;
+  align-items: center;
+  padding: var(--app-space-3) 0;
+}
+
+.match-settings__checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--app-space-2) var(--app-space-4);
+}
+
+.match-settings__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 480px;
+
+  th {
+    text-align: left;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--app-status-default-fg);
+    padding: 0 var(--app-space-2) var(--app-space-2);
+  }
+
+  td {
+    padding: var(--app-space-1) var(--app-space-2);
+    vertical-align: middle;
+  }
+}
+
+.match-settings__table-field {
+  width: 100%;
+  min-width: 110px;
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+.match-settings__actions {
+  display: flex;
+  justify-content: flex-end;
+}

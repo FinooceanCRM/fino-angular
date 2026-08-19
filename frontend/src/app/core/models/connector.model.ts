@@ -55,4 +55,9 @@ export interface ConnectorDashboard {
     status: string;
     profile_complete: boolean;
   };
+  stats: {
+    leads_submitted: number;
+    approved_leads: number;
+    in_progress_leads: number;
+  };
 }

@@ -1,0 +1,83 @@
+<div class="banker-criteria__header">
+  <app-page-header
+    title="Bank Criteria"
+    subtitle="Your lending products — the matching engine scores every new lead against these."
+  />
+  <button mat-flat-button color="primary" type="button" (click)="addCriteria()">
+    <mat-icon>add</mat-icon>
+    Add criteria
+  </button>
+</div>
+
+@if (error(); as message) {
+  <p class="banker-criteria__error" role="alert">{{ message }}</p>
+}
+
+<mat-card class="banker-criteria__toolbar">
+  <mat-card-content>
+    <form class="banker-criteria__filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+      <mat-form-field appearance="outline" class="banker-criteria__search">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Search by bank or product" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Loan type</mat-label>
+        <mat-select formControlName="loan_type">
+          <mat-option value="">All loan types</mat-option>
+          @for (type of loanTypes(); track type.value) {
+            <mat-option [value]="type.value">{{ type.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>filter_alt</mat-icon>
+        Apply
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="banker-criteria__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      [loading]="loading()"
+      [length]="meta().total"
+      [pageIndex]="meta().current_page - 1"
+      [pageSize]="meta().per_page"
+      emptyMessage="You haven't added any lending criteria yet."
+      itemLabel="products"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.is_active ? 'Active' : 'Inactive'"
+          [colour]="row.is_active ? 'success' : 'default'"
+        />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <button mat-icon-button type="button" matTooltip="Edit" aria-label="Edit" (click)="editCriteria(row)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        <mat-slide-toggle
+          [checked]="row.is_active"
+          [matTooltip]="row.is_active ? 'Deactivate' : 'Activate'"
+          (change)="toggle(row)"
+        />
+        <button
+          mat-icon-button
+          type="button"
+          matTooltip="Delete"
+          aria-label="Delete"
+          (click)="deleteCriteria(row)"
+        >
+          <mat-icon>delete</mat-icon>
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

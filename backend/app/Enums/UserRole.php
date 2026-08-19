@@ -6,7 +6,7 @@ namespace App\Enums;
  * Application roles.
  *
  * Hierarchy: super_admin -> manager -> relationship_manager -> employee.
- * Connector is a standalone role outside the hierarchy.
+ * Connector, Banker and Telecaller are standalone roles outside the hierarchy.
  */
 enum UserRole: string
 {
@@ -15,6 +15,8 @@ enum UserRole: string
     case RelationshipManager = 'relationship_manager';
     case Employee = 'employee';
     case Connector = 'connector';
+    case Banker = 'banker';
+    case Telecaller = 'telecaller';
 
     public function label(): string
     {
@@ -24,6 +26,8 @@ enum UserRole: string
             self::RelationshipManager => 'Relationship Manager',
             self::Employee => 'Employee',
             self::Connector => 'Connector',
+            self::Banker => 'Banker',
+            self::Telecaller => 'Telecaller',
         };
     }
 
@@ -40,6 +44,8 @@ enum UserRole: string
             self::RelationshipManager => [self::Manager],
             self::Employee => [self::RelationshipManager],
             self::Connector => [],
+            self::Banker => [],
+            self::Telecaller => [],
         };
     }
 

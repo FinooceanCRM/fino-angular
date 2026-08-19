@@ -1,0 +1,57 @@
+<form class="sec-settings" [formGroup]="form" (ngSubmit)="save()">
+  <section class="sec-settings__section">
+    <h3 class="sec-settings__title">Session</h3>
+    <div class="sec-settings__grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Session timeout (minutes)</mat-label>
+        <input matInput type="number" formControlName="session_timeout_minutes" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Max login attempts</mat-label>
+        <input matInput type="number" formControlName="max_login_attempts" />
+        <mat-hint>Account is locked after this many consecutive failed sign-ins.</mat-hint>
+      </mat-form-field>
+
+      <div class="sec-settings__toggle">
+        <mat-slide-toggle formControlName="two_factor_required">Require two-factor authentication</mat-slide-toggle>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec-settings__section">
+    <h3 class="sec-settings__title">Password policy</h3>
+    <div class="sec-settings__grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Minimum password length</mat-label>
+        <input matInput type="number" min="6" max="32" formControlName="min_password_length" />
+      </mat-form-field>
+
+      <div class="sec-settings__toggle">
+        <mat-slide-toggle formControlName="require_special_character">Require a special character</mat-slide-toggle>
+      </div>
+      <div class="sec-settings__toggle">
+        <mat-slide-toggle formControlName="require_number">Require a number</mat-slide-toggle>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec-settings__section">
+    <h3 class="sec-settings__title">IP allowlist</h3>
+    <div class="sec-settings__toggle">
+      <mat-slide-toggle formControlName="ip_allowlist_enabled">Restrict Super Admin sign-in to allowlisted IPs</mat-slide-toggle>
+    </div>
+    <mat-form-field appearance="outline" class="sec-settings__span-2">
+      <mat-label>Allowlisted IP addresses</mat-label>
+      <textarea matInput formControlName="ip_allowlist" rows="3" placeholder="One IP address per line"></textarea>
+      <mat-hint>Ignored while the allowlist is off.</mat-hint>
+    </mat-form-field>
+  </section>
+
+  <div class="sec-settings__actions">
+    <button mat-flat-button color="primary" type="submit">
+      <mat-icon>save</mat-icon>
+      Save security settings
+    </button>
+  </div>
+</form>

@@ -1,0 +1,21 @@
+.team-table__toolbar,
+.team-table__table-card {
+  border-radius: var(--app-radius-md);
+  margin-bottom: var(--app-space-4);
+}
+
+.team-table__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.team-table__search {
+  flex: 1 1 220px;
+  min-width: 180px;
+}
+
+.team-table__spacer {
+  flex: 1 1 auto;
+}

@@ -1,0 +1,61 @@
+<app-page-header title="KYC Verification" subtitle="Review PAN, Aadhaar and income documents on your leads" />
+
+<div class="kyc__stats">
+  <app-stat-card icon="pending_actions" [value]="counts().pending" label="Pending" accent="accent" />
+  <app-stat-card icon="verified" [value]="counts().verified" label="Verified" accent="primary" />
+  <app-stat-card icon="cancel" [value]="counts().rejected" label="Rejected" accent="warn" />
+</div>
+
+<mat-card class="kyc__toolbar">
+  <mat-card-content class="kyc__toolbar-row">
+    <mat-form-field appearance="outline" class="kyc__status">
+      <mat-label>Status</mat-label>
+      <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <mat-option value="pending">Pending</mat-option>
+        <mat-option value="all">All</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="kyc__table-card">
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="rows()" emptyMessage="Nothing waiting on you here." itemLabel="documents">
+      <ng-template appTableCell="lead" let-row>
+        <a [routerLink]="['/relationship-manager/leads', row.leadId]">{{ leadLabel(row) }}</a>
+      </ng-template>
+
+      <ng-template appTableCell="uploadedAt" let-row>
+        {{ row.uploadedAt | date: 'mediumDate' }}
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.status === 'pending' ? 'Pending' : row.status === 'verified' ? 'Verified' : 'Rejected'"
+          [colour]="statusColour(row)"
+        />
+        @if (row.status === 'rejected' && row.rejectionReason) {
+          <div class="kyc__reason">"{{ row.rejectionReason }}"</div>
+        }
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        @if (row.status === 'pending') {
+          <button mat-icon-button type="button" matTooltip="Reject" aria-label="Reject" (click)="reject(row)">
+            <mat-icon>close</mat-icon>
+          </button>
+          <button
+            mat-icon-button
+            type="button"
+            color="primary"
+            matTooltip="Verify"
+            aria-label="Verify"
+            (click)="verify(row)"
+          >
+            <mat-icon>check</mat-icon>
+          </button>
+        }
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

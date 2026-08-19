@@ -1,0 +1,87 @@
+<app-page-header title="Audit Logs" subtitle="Every recorded platform action." />
+
+<mat-card class="audit-log__toolbar">
+  <mat-card-content>
+    <form class="audit-log__filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Actor, entity or description" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Event type</mat-label>
+        <mat-select formControlName="category">
+          <mat-option value="">All event types</mat-option>
+          @for (entry of categories; track entry[0]) {
+            <mat-option [value]="entry[0]">{{ entry[1] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Entity type</mat-label>
+        <mat-select formControlName="entityType">
+          <mat-option value="">All entities</mat-option>
+          @for (type of entityTypes; track type) {
+            <mat-option [value]="type">{{ type }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="from" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="to" />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="audit-log__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="pagedRows()"
+      emptyMessage="No audit log entries match the current filters."
+      [length]="filteredRows().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      itemLabel="entries"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="timestamp" let-row>{{ row.timestamp | date: 'medium' }}</ng-template>
+
+      <ng-template appTableCell="actor" let-row>
+        <div class="audit-log__actor">
+          <strong>{{ row.actor_name }}</strong>
+          <span>{{ row.actor_role }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="category" let-row>
+        <span class="audit-log__category">{{ categoryLabelFor(row) }}</span>
+      </ng-template>
+
+      <ng-template appTableCell="action" let-row>
+        <span class="audit-log__action">{{ row.action }}</span>
+      </ng-template>
+
+      <ng-template appTableCell="entity" let-row>
+        <div class="audit-log__entity">
+          <strong>{{ row.entity_type }}</strong>
+          <span>{{ row.entity_label }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <a mat-icon-button [routerLink]="['/super-admin/audit-logs', row.id]" aria-label="View audit log details">
+          <mat-icon>visibility</mat-icon>
+        </a>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

@@ -1,0 +1,26 @@
+.activity-list__stats {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin-bottom: var(--app-space-4);
+}
+
+.activity-list__toolbar,
+.activity-list__table-card {
+  border-radius: var(--app-radius-md);
+  margin-bottom: var(--app-space-4);
+}
+
+.activity-list__toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.activity-list__status {
+  min-width: 140px;
+}
+
+.activity-list__spacer {
+  flex: 1 1 auto;
+}

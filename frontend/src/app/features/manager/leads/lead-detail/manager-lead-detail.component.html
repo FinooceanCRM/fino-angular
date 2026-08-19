@@ -1,0 +1,207 @@
+@if (lead(); as data) {
+  <app-entity-header
+    [title]="data.applicant_name"
+    idLabel="Reference"
+    [idValue]="data.reference"
+    [statusLabel]="data.status_label"
+    [statusColour]="data.status_colour"
+  >
+    <a mat-stroked-button [routerLink]="[basePath(), data.id, 'timeline']">
+      <mat-icon>history</mat-icon>
+      View timeline
+    </a>
+    @if (showReassign()) {
+      <a mat-flat-button color="primary" [routerLink]="[basePath(), data.id, 'assign']">
+        <mat-icon>person_add</mat-icon>
+        Reassign
+      </a>
+    }
+  </app-entity-header>
+
+  <mat-card class="lead-detail__summary">
+    <mat-card-content class="lead-detail__summary-grid">
+      <div class="lead-detail__field">
+        <mat-icon>home</mat-icon>
+        <span>
+          <span class="lead-detail__label">Loan</span>
+          <strong>
+            {{ loanTypeLabel(data.loan_type) }} ·
+            {{ data.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}
+          </strong>
+        </span>
+      </div>
+      <div class="lead-detail__field">
+        <mat-icon>location_on</mat-icon>
+        <span>
+          <span class="lead-detail__label">Location</span>
+          <strong>{{ data.city }}, {{ data.state }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__field">
+        <mat-icon>hub</mat-icon>
+        <span>
+          <span class="lead-detail__label">Connector</span>
+          <strong>{{ data.connector?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__field">
+        <mat-icon>badge</mat-icon>
+        <span>
+          <span class="lead-detail__label">Employee</span>
+          <strong>{{ data.assigned_employee?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__field">
+        <mat-icon>support_agent</mat-icon>
+        <span>
+          <span class="lead-detail__label">Relationship Manager</span>
+          <strong>{{ data.assigned_relationship_manager?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__field">
+        <mat-icon>account_balance</mat-icon>
+        <span>
+          <span class="lead-detail__label">Banker</span>
+          <strong>{{ data.assigned_banker?.name ?? '—' }}</strong>
+        </span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="lead-detail__columns">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Applicant details</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="lead-detail__applicant-grid">
+        <div><span class="lead-detail__label">Email</span><strong>{{ data.applicant_email ?? '—' }}</strong></div>
+        <div><span class="lead-detail__label">Phone</span><strong>{{ data.applicant_phone ?? '—' }}</strong></div>
+        <div><span class="lead-detail__label">Tenure</span><strong>{{ data.tenure_months ?? '—' }} months</strong></div>
+        <div><span class="lead-detail__label">Monthly income</span><strong>{{ data.monthly_income | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+        <div><span class="lead-detail__label">Credit score</span><strong>{{ data.credit_score ?? '—' }}</strong></div>
+        <div><span class="lead-detail__label">Employment</span><strong>{{ data.employment_type ?? '—' }}</strong></div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Currently assigned to</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (currentAssignee(); as assignee) {
+          <p class="lead-detail__assignee-name">{{ assignee.name }}</p>
+          @if (latestAssignment(); as entry) {
+            <p class="lead-detail__muted">
+              Since {{ entry.created_at | date: 'mediumDate' }}
+              @if (entry.assigned_by) {
+                · by {{ entry.assigned_by.name }}
+              }
+            </p>
+            @if (entry.remarks) {
+              <p class="lead-detail__muted">"{{ entry.remarks }}"</p>
+            }
+          }
+        } @else {
+          <p class="lead-detail__muted">Not yet assigned to anyone.</p>
+        }
+        @if (showReassign()) {
+          <a mat-stroked-button [routerLink]="[basePath(), data.id, 'assign']">
+            <mat-icon>swap_horiz</mat-icon>
+            Reassignment workflow
+          </a>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  @if (data.details; as details) {
+    <mat-card class="lead-detail__additional">
+      <mat-card-header>
+        <mat-card-title>Additional details</mat-card-title>
+        <mat-card-subtitle>Captured on the lead creation form</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="lead-detail__additional-section">
+          <h4 class="lead-detail__additional-title">Personal</h4>
+          <div class="lead-detail__applicant-grid">
+            <div><span class="lead-detail__label">Gender</span><strong>{{ optionLabel(genderOptions, details.gender) }}</strong></div>
+            <div><span class="lead-detail__label">Date of birth</span><strong>{{ details.dob ? (details.dob | date: 'mediumDate') : '—' }}</strong></div>
+            <div><span class="lead-detail__label">Age</span><strong>{{ details.age ?? '—' }}</strong></div>
+            <div><span class="lead-detail__label">Alternative mobile</span><strong>{{ details.alternative_phone ?? '—' }}</strong></div>
+            <div><span class="lead-detail__label">Marital status</span><strong>{{ optionLabel(maritalStatusOptions, details.marital_status) }}</strong></div>
+            <div><span class="lead-detail__label">Caste category</span><strong>{{ optionLabel(casteCategoryOptions, details.caste_category) }}</strong></div>
+          </div>
+        </div>
+
+        <div class="lead-detail__additional-section">
+          <h4 class="lead-detail__additional-title">Loan &amp; employment</h4>
+          <div class="lead-detail__applicant-grid">
+            <div><span class="lead-detail__label">Company name</span><strong>{{ details.company_name ?? '—' }}</strong></div>
+            <div><span class="lead-detail__label">Net salary</span><strong>{{ details.net_salary ? (details.net_salary | currency: 'INR' : 'symbol-narrow' : '1.0-0') : '—' }}</strong></div>
+            <div><span class="lead-detail__label">Salary account type</span><strong>{{ optionLabel(salaryAccountTypeOptions, details.salary_account_type) }}</strong></div>
+            <div><span class="lead-detail__label">Purpose of loan</span><strong>{{ optionLabel(purposeOfLoanOptions, details.purpose_of_loan) }}</strong></div>
+            @if (details.gst_number) {
+              <div><span class="lead-detail__label">GST number</span><strong>{{ details.gst_number }}</strong></div>
+            }
+            @if (details.insurance_type) {
+              <div><span class="lead-detail__label">Insurance type</span><strong>{{ optionLabel(insuranceTypeOptions, details.insurance_type) }}</strong></div>
+            }
+            @if (details.car_type) {
+              <div><span class="lead-detail__label">Car type</span><strong>{{ optionLabel(carTypeOptions, details.car_type) }}</strong></div>
+            }
+            @if (details.mudra_loan_type) {
+              <div><span class="lead-detail__label">Mudra loan type</span><strong>{{ optionLabel(mudraLoanTypeOptions, details.mudra_loan_type) }}</strong></div>
+            }
+          </div>
+        </div>
+
+        <div class="lead-detail__additional-section">
+          <h4 class="lead-detail__additional-title">Address</h4>
+          <div class="lead-detail__applicant-grid">
+            <div><span class="lead-detail__label">Landmark</span><strong>{{ details.landmark ?? '—' }}</strong></div>
+            <div><span class="lead-detail__label">Residential type</span><strong>{{ optionLabel(residentialTypeOptions, details.residential_type) }}</strong></div>
+            <div><span class="lead-detail__label">Since resident</span><strong>{{ details.since_resident ?? '—' }}</strong></div>
+            <div class="lead-detail__span-2"><span class="lead-detail__label">Current residential address</span><strong>{{ details.current_address ?? '—' }}</strong></div>
+          </div>
+        </div>
+
+        @if (showPropertyType() || showLapDetails()) {
+          <div class="lead-detail__additional-section">
+            <h4 class="lead-detail__additional-title">Loan type details</h4>
+            <div class="lead-detail__applicant-grid">
+              @if (showPropertyType()) {
+                <div><span class="lead-detail__label">Property type</span><strong>{{ optionLabel(propertyTypeOptions, details.property_type) }}</strong></div>
+              }
+              @if (showLapDetails()) {
+                <div><span class="lead-detail__label">LAP property type</span><strong>{{ optionLabel(lapPropertyTypeOptions, details.lap_property_type) }}</strong></div>
+                <div><span class="lead-detail__label">Balance transfer type</span><strong>{{ optionLabel(balanceTransferTypeOptions, details.balance_transfer_type) }}</strong></div>
+                @if (details.balance_transfer_loan_amount) {
+                  <div><span class="lead-detail__label">Balance transfer loan amount</span><strong>{{ details.balance_transfer_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+                }
+                @if (details.topup_loan_amount) {
+                  <div><span class="lead-detail__label">Top-up loan amount</span><strong>{{ details.topup_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+                }
+              }
+            </div>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
+  <mat-card class="lead-detail__activity">
+    <mat-card-header>
+      <mat-card-title>Recent activity</mat-card-title>
+      <mat-card-subtitle>The last 3 status changes on this lead</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <app-timeline [entries]="recentActivity()" />
+      <a mat-button [routerLink]="[basePath(), data.id, 'timeline']">
+        View full timeline
+        <mat-icon>arrow_forward</mat-icon>
+      </a>
+    </mat-card-content>
+  </mat-card>
+} @else {
+  <app-empty-state icon="search_off" message="This lead could not be found." />
+}

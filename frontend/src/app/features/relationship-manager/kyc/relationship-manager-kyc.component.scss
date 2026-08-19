@@ -1,0 +1,23 @@
+.kyc__stats {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  margin: var(--app-space-4) 0;
+}
+
+.kyc__toolbar,
+.kyc__table-card {
+  border-radius: var(--app-radius-md);
+  margin-bottom: var(--app-space-4);
+}
+
+.kyc__status {
+  min-width: 140px;
+}
+
+.kyc__reason {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--app-status-default-fg);
+}

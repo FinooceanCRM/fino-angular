@@ -35,7 +35,7 @@ class DocumentService extends BaseService
             ->paginate($perPage);
     }
 
-    public function upload(User $actor, LoanLead $lead, UploadedFile $file, string $documentType): Document
+    public function upload(User $actor, LoanLead $lead, UploadedFile $file, string $documentType, ?string $remarks = null): Document
     {
         $path = $file->store('lead-documents/'.$lead->id, self::DISK);
 
@@ -52,6 +52,7 @@ class DocumentService extends BaseService
             'mime_type' => $file->getClientMimeType(),
             'size_bytes' => $file->getSize() ?: 0,
             'status' => 'pending',
+            'remarks' => $remarks,
         ]);
 
         $this->notifications->notifyMany(

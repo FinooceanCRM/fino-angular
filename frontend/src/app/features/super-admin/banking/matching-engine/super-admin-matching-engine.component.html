@@ -1,0 +1,85 @@
+<app-page-header title="Matching Engine" subtitle="Evaluate a lead against every active bank product." />
+
+<div class="matching__stats">
+  <app-stat-card icon="assignment" [value]="overview().totalLeads" label="Total leads" accent="primary" />
+  <app-stat-card icon="account_balance" [value]="overview().activeProducts" label="Active bank products" accent="accent" />
+  <app-stat-card icon="task_alt" [value]="overview().leadsWithMatch" label="Leads with a match" accent="accent" />
+  <app-stat-card icon="insights" [value]="overview().avgMatches" label="Avg. matches per lead" />
+</div>
+
+<mat-card class="matching__picker-card">
+  <mat-card-content class="matching__picker">
+    <mat-form-field appearance="outline" class="matching__select">
+      <mat-label>Lead</mat-label>
+      <mat-select [ngModel]="displayedLeadId()" (ngModelChange)="selectedLeadId.set($event)">
+        @for (lead of leads(); track lead.id) {
+          <mat-option [value]="lead.id">
+            {{ lead.reference }} — {{ lead.applicant_name }} ({{ lead.loan_type }})
+          </mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-flat-button color="primary" type="button" (click)="run()">
+      <mat-icon>bolt</mat-icon>
+      Run matching engine
+    </button>
+  </mat-card-content>
+</mat-card>
+
+@if (result(); as data) {
+  <div class="matching__results">
+    <mat-card class="matching__result-card">
+      <mat-card-header>
+        <mat-card-title>Matches</mat-card-title>
+        <mat-card-subtitle>{{ data.matched }} of {{ data.evaluated }} active products</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (data.matches.length === 0) {
+          <app-empty-state icon="search_off" message="No bank product matched this lead." />
+        } @else {
+          <ul class="matching__list">
+            @for (match of data.matches; track match.bank_criteria_id) {
+              <li class="matching__item">
+                <span class="matching__icon"><mat-icon>account_balance</mat-icon></span>
+                <span class="matching__body">
+                  <span class="matching__title">{{ match.bank_name }} — {{ match.product_name }}</span>
+                  <span class="matching__subtitle">
+                    Interest {{ match.interest_rate ?? '—' }}% · {{ match.reasons.join(' ') }}
+                  </span>
+                </span>
+                <app-status-pill class="matching__score" [label]="match.score + '% match'" [colour]="scoreColour(match.score)" />
+              </li>
+            }
+          </ul>
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="matching__result-card">
+      <mat-card-header>
+        <mat-card-title>Not eligible</mat-card-title>
+        <mat-card-subtitle>{{ data.rejected.length }} products ruled out</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (data.rejected.length === 0) {
+          <app-empty-state icon="thumb_up" message="Every active product was eligible." />
+        } @else {
+          <ul class="matching__list">
+            @for (item of data.rejected; track item.bank_name + item.product_name) {
+              <li class="matching__item matching__item--rejected">
+                <span class="matching__icon matching__icon--rejected"><mat-icon>block</mat-icon></span>
+                <span class="matching__body">
+                  <span class="matching__title">{{ item.bank_name }} — {{ item.product_name }}</span>
+                  <span class="matching__subtitle">{{ item.reasons.join(' · ') }}</span>
+                </span>
+              </li>
+            }
+          </ul>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+} @else {
+  <app-empty-state icon="bolt" message="Pick a lead and run the matching engine to see results." />
+}

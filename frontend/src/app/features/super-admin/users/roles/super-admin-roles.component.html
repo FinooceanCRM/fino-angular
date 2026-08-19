@@ -1,0 +1,31 @@
+<app-page-header title="Roles" subtitle="The eight-role permission system — module access at a glance." />
+
+<div class="roles-grid">
+  @for (role of roles(); track role.value) {
+    <mat-card class="role-card">
+      <mat-card-content class="role-card__content">
+        <div class="role-card__header">
+          <span class="role-card__icon"><mat-icon>{{ role.icon }}</mat-icon></span>
+          <div class="role-card__heading">
+            <h3 class="role-card__title">{{ role.label }}</h3>
+            @if (role.hasLiveUsers) {
+              <app-status-pill [label]="role.userCount + ' user' + (role.userCount === 1 ? '' : 's')" colour="primary" />
+            } @else {
+              <app-status-pill label="Permission-only role" colour="accent" />
+            }
+          </div>
+        </div>
+
+        <p class="role-card__description">{{ role.description }}</p>
+
+        <div class="role-card__footer">
+          <span class="role-card__modules">{{ role.moduleCount }} of {{ role.totalModules }} modules visible</span>
+          <a mat-stroked-button [routerLink]="['/super-admin/users/permissions']" [queryParams]="{ role: role.value }">
+            <mat-icon>lock</mat-icon>
+            Manage permissions
+          </a>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  }
+</div>

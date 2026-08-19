@@ -1,0 +1,21 @@
+<app-page-header title="Settings" subtitle="General, matching engine, notification and security configuration." />
+
+<mat-card class="settings-page__card">
+  <mat-tab-group>
+    <mat-tab label="General">
+      <app-super-admin-general-settings />
+    </mat-tab>
+
+    <mat-tab label="Matching Engine">
+      <app-super-admin-matching-engine-settings />
+    </mat-tab>
+
+    <mat-tab label="Notifications">
+      <app-super-admin-notification-settings />
+    </mat-tab>
+
+    <mat-tab label="Security">
+      <app-super-admin-security-settings />
+    </mat-tab>
+  </mat-tab-group>
+</mat-card>

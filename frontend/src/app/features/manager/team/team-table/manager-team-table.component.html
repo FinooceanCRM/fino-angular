@@ -1,0 +1,93 @@
+<mat-card class="team-table__toolbar">
+  <mat-card-content>
+    <form class="team-table__filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+      <mat-form-field appearance="outline" class="team-table__search">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Name or email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="">All</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>filter_alt</mat-icon>
+        Apply
+      </button>
+
+      <span class="team-table__spacer"></span>
+
+      <button mat-flat-button color="primary" type="button" (click)="openCreate()">
+        <mat-icon>person_add</mat-icon>
+        Add {{ roleLabel() }}
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="team-table__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns()"
+      [rows]="pagedRows()"
+      [emptyMessage]="'No ' + roleLabel().toLowerCase() + 's match the current filters.'"
+      [length]="filteredRows().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      itemLabel="records"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="rm" let-row>
+        {{ rmName(row) }}
+      </ng-template>
+
+      <ng-template appTableCell="employees" let-row>
+        {{ employeeCount(row) }}
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.is_active ? 'Active' : 'Inactive'"
+          [colour]="row.is_active ? 'success' : 'default'"
+        />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <a
+          mat-icon-button
+          [routerLink]="[detailBase(), row.id]"
+          matTooltip="View"
+          aria-label="View"
+        >
+          <mat-icon>visibility</mat-icon>
+        </a>
+        <button mat-icon-button type="button" matTooltip="Edit" aria-label="Edit" (click)="openEdit(row)">
+          <mat-icon>edit</mat-icon>
+        </button>
+        @if (isEmployee()) {
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Reassign to another Relationship Manager"
+            aria-label="Reassign"
+            (click)="reassign(row)"
+          >
+            <mat-icon>swap_horiz</mat-icon>
+          </button>
+        }
+        <button
+          mat-button
+          type="button"
+          (click)="toggleActive(row)"
+        >
+          {{ row.is_active ? 'Deactivate' : 'Activate' }}
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

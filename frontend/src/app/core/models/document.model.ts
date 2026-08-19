@@ -7,6 +7,7 @@ export interface LeadDocument {
   mime_type: string | null;
   size_bytes: number;
   status: string;
+  remarks: string | null;
   uploaded_by?: { id: number; name: string } | null;
   download_url: string;
   created_at: string | null;

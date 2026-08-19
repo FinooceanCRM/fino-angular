@@ -21,9 +21,15 @@ export interface BreadcrumbItem {
   template: `
     @if (crumbs().length > 1) {
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        @for (crumb of crumbs(); track crumb.label; let last = $last) {
+        @for (crumb of crumbs(); track crumb.label; let first = $first; let last = $last) {
           @if (!last && crumb.link) {
-            <a [routerLink]="crumb.link">{{ crumb.label }}</a>
+            <a [routerLink]="crumb.link">
+              @if (first) {
+                <mat-icon class="home-icon">home</mat-icon>
+              } @else {
+                {{ crumb.label }}
+              }
+            </a>
             <mat-icon class="separator">chevron_right</mat-icon>
           } @else {
             <span class="current">{{ crumb.label }}</span>
@@ -43,11 +49,18 @@ export interface BreadcrumbItem {
         font-size: 0.875rem;
       }
       a {
-        color: var(--mat-sys-primary);
+        display: flex;
+        align-items: center;
+        color: var(--app-status-default-fg);
         text-decoration: none;
       }
       a:hover {
-        text-decoration: underline;
+        color: var(--mat-sys-primary);
+      }
+      .home-icon {
+        font-size: 1.15rem;
+        width: 1.15rem;
+        height: 1.15rem;
       }
       .separator {
         font-size: 1rem;
@@ -56,7 +69,8 @@ export interface BreadcrumbItem {
         opacity: 0.5;
       }
       .current {
-        opacity: 0.7;
+        font-weight: 600;
+        color: var(--mat-sys-primary);
       }
     `,
   ],

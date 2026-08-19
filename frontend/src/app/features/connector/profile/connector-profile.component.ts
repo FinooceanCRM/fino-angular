@@ -42,6 +42,7 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     <mat-card class="card">
       <mat-card-content>
         <form [formGroup]="form" (ngSubmit)="save()">
+          <h3 class="section-title">Personal Information</h3>
           <div class="grid">
             <mat-form-field appearance="outline">
               <mat-label>Full name</mat-label>
@@ -66,7 +67,10 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
               <mat-label>Alternate phone</mat-label>
               <input matInput formControlName="alternate_phone" />
             </mat-form-field>
+          </div>
 
+          <h3 class="section-title">Business Information</h3>
+          <div class="grid">
             <mat-form-field appearance="outline">
               <mat-label>Company name</mat-label>
               <input matInput formControlName="company_name" />
@@ -77,6 +81,22 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
               <input matInput formControlName="contact_person" />
             </mat-form-field>
 
+            <mat-form-field appearance="outline">
+              <mat-label>PAN number</mat-label>
+              <input matInput formControlName="pan_number" />
+              @if (form.controls.pan_number.hasError('pattern')) {
+                <mat-error>PAN must be 10 alphanumeric characters.</mat-error>
+              }
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>GST number</mat-label>
+              <input matInput formControlName="gst_number" />
+            </mat-form-field>
+          </div>
+
+          <h3 class="section-title">Address Information</h3>
+          <div class="grid">
             <mat-form-field appearance="outline">
               <mat-label>Address line 1</mat-label>
               <input matInput formControlName="address_line1" />
@@ -104,19 +124,6 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
                 <mat-error>Enter 4 to 10 digits.</mat-error>
               }
             </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>PAN number</mat-label>
-              <input matInput formControlName="pan_number" />
-              @if (form.controls.pan_number.hasError('pattern')) {
-                <mat-error>PAN must be 10 alphanumeric characters.</mat-error>
-              }
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>GST number</mat-label>
-              <input matInput formControlName="gst_number" />
-            </mat-form-field>
           </div>
 
           @if (message(); as text) {
@@ -125,6 +132,14 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
 
           <div class="actions">
             <button
+              mat-stroked-button
+              type="button"
+              [disabled]="saving()"
+              (click)="reset()"
+            >
+              Cancel
+            </button>
+            <button
               mat-flat-button
               color="primary"
               type="submit"
@@ -132,14 +147,6 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
             >
               <mat-icon>save</mat-icon>
               Save changes
-            </button>
-            <button
-              mat-stroked-button
-              type="button"
-              [disabled]="saving()"
-              (click)="reset()"
-            >
-              Reset
             </button>
           </div>
         </form>
@@ -150,6 +157,18 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     `
       .card {
         margin-top: 1rem;
+        border-radius: var(--app-radius-md);
+      }
+      .section-title {
+        margin: 0 0 var(--app-space-3);
+        padding-bottom: var(--app-space-2);
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--mat-sys-primary);
+        border-bottom: 1px solid var(--mat-sys-outline-variant);
+      }
+      .section-title:not(:first-child) {
+        margin-top: var(--app-space-5);
       }
       .grid {
         display: grid;
@@ -158,8 +177,9 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
       }
       .actions {
         display: flex;
+        justify-content: flex-end;
         gap: 0.75rem;
-        margin-top: 1rem;
+        margin-top: 1.5rem;
       }
       .message {
         margin-top: 0.75rem;

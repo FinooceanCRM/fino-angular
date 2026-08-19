@@ -1,0 +1,65 @@
+<app-page-header title="Reports" subtitle="Lead statistics for everything you can see" />
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (report(); as data) {
+  <div class="reports__tiles">
+    <app-stat-card icon="assignment" [value]="data.totals.leads" label="Total leads" accent="primary" />
+    <app-stat-card icon="task_alt" [value]="data.totals.approved" label="Approved" accent="accent" />
+    <app-stat-card icon="cancel" [value]="data.totals.rejected" label="Rejected" />
+    <app-stat-card icon="paid" [value]="data.totals.disbursed" label="Disbursed" />
+  </div>
+
+  @if ((data.team | keyvalue).length > 0) {
+    <div class="reports__tiles">
+      @for (entry of data.team | keyvalue; track entry.key) {
+        <app-stat-card icon="groups" [value]="entry.value" [label]="entry.key" />
+      }
+    </div>
+  }
+
+  <mat-card class="reports__card">
+    <mat-card-header>
+      <mat-card-title>Leads by status</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="reports__bars">
+        @for (row of statusBreakdown(); track row.status) {
+          <div class="reports__bar-row">
+            <span class="reports__bar-label">{{ row.label }}</span>
+            <div class="reports__bar-track">
+              <div
+                class="reports__bar-fill"
+                [style.width.%]="row.percent"
+                [style.background]="row.colourVar"
+              ></div>
+            </div>
+            <span class="reports__bar-count">{{ row.count }}</span>
+          </div>
+        }
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="reports__card">
+    <mat-card-header>
+      <mat-card-title>Recent leads</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-list>
+        @for (lead of data.recent_leads; track lead.id) {
+          <mat-list-item>
+            <span matListItemTitle>
+              <a [routerLink]="['/leads', lead.id]">{{ lead.reference }}</a> · {{ lead.applicant_name }}
+            </span>
+            <span matListItemLine>
+              {{ lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }} · {{ lead.status }}
+            </span>
+          </mat-list-item>
+        }
+      </mat-list>
+    </mat-card-content>
+  </mat-card>
+}

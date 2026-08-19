@@ -28,6 +28,7 @@ class DocumentResource extends JsonResource
             'mime_type' => $this->mime_type,
             'size_bytes' => (int) $this->size_bytes,
             'status' => $this->status,
+            'remarks' => $this->remarks,
             'uploaded_by' => $this->whenLoaded('uploader', fn (): ?array => $this->uploader ? [
                 'id' => $this->uploader->id,
                 'name' => $this->uploader->name,

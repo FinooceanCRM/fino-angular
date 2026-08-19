@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,8 +25,13 @@ class User extends Authenticatable
         'manager_id',
         'relationship_manager_id',
         'employee_id',
+        'department',
         'phone',
         'is_active',
+        'email_notifications',
+        'sms_notifications',
+        'notify_on_assignment',
+        'notify_on_approval',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -36,7 +42,12 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
+            'department' => Department::class,
             'is_active' => 'boolean',
+            'email_notifications' => 'boolean',
+            'sms_notifications' => 'boolean',
+            'notify_on_assignment' => 'boolean',
+            'notify_on_approval' => 'boolean',
         ];
     }
 

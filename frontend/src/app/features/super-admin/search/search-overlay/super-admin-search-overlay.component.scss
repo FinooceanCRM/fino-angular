@@ -1,0 +1,174 @@
+// The dialog surface is portaled outside this component's DOM, so its
+// default padding/border-radius can only be reset here via ::ng-deep.
+::ng-deep .search-overlay-panel .mdc-dialog__surface {
+  padding: 0;
+  border-radius: var(--app-radius-lg);
+  overflow: hidden;
+}
+
+.search-overlay {
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+}
+
+.search-overlay__input-row {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  padding: var(--app-space-3) var(--app-space-3);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  flex-shrink: 0;
+}
+
+.search-overlay__search-icon {
+  color: var(--app-status-default-fg);
+  flex-shrink: 0;
+}
+
+.search-overlay__input {
+  flex: 1 1 auto;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1rem;
+  color: var(--mat-sys-on-surface);
+
+  &::placeholder {
+    color: var(--app-status-default-fg);
+  }
+}
+
+.search-overlay__body {
+  overflow-y: auto;
+  padding: var(--app-space-2) 0;
+}
+
+.search-overlay__hint {
+  margin: 0;
+  padding: var(--app-space-5) var(--app-space-4);
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--app-status-default-fg);
+
+  kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.4rem;
+    padding: 1px 5px;
+    margin: 0 2px;
+    border-radius: var(--app-radius-sm);
+    background: var(--mat-sys-surface-container-high);
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 0.75rem;
+  }
+}
+
+.search-overlay__group {
+  padding: var(--app-space-2) 0;
+
+  & + .search-overlay__group {
+    border-top: 1px solid var(--mat-sys-outline-variant);
+  }
+}
+
+.search-overlay__group-label {
+  display: block;
+  padding: var(--app-space-1) var(--app-space-4);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-status-default-fg);
+}
+
+.search-overlay__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.search-overlay__item {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  padding: var(--app-space-2) var(--app-space-4);
+  cursor: pointer;
+}
+
+.search-overlay__item--active {
+  background: var(--mat-sys-primary-container);
+}
+
+.search-overlay__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--mat-sys-surface-container-high);
+  color: var(--mat-sys-tertiary);
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
+.search-overlay__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.search-overlay__title {
+  font-weight: 600;
+  font-size: 0.87rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-overlay__subtitle {
+  font-size: 0.76rem;
+  color: var(--app-status-default-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.search-overlay__meta {
+  font-size: 0.72rem;
+  color: var(--app-status-default-fg);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.search-overlay__more {
+  margin: var(--app-space-1) var(--app-space-3);
+  font-size: 0.78rem;
+}
+
+.search-overlay__footer {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--app-space-1);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 0;
+  padding: var(--app-space-3);
+  width: 100%;
+
+  mat-icon {
+    font-size: 1rem;
+    width: 1rem;
+    height: 1rem;
+  }
+}

@@ -1,0 +1,41 @@
+<div class="notifications__header">
+  <app-page-header title="Notifications" subtitle="Assignments, status changes and document uploads" />
+  <button mat-stroked-button type="button" (click)="markAllRead()">Mark all as read</button>
+</div>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+<mat-card class="notifications__card">
+  <mat-tab-group [selectedIndex]="selectedTabIndex()" (selectedIndexChange)="selectedTabIndex.set($event)">
+    @for (tab of tabs; track tab.key) {
+      <mat-tab [label]="tab.label" />
+    }
+  </mat-tab-group>
+
+  <mat-card-content>
+    @if (filteredItems().length === 0 && !loading()) {
+      <p class="notifications__empty">Nothing here yet.</p>
+    } @else {
+      <mat-list>
+        @for (item of filteredItems(); track item.id) {
+          <mat-list-item class="notifications__item" [class.notifications__item--unread]="!item.is_read">
+            <span matListItemTitle>
+              {{ item.title }}
+              @if (!item.is_read) {
+                <span class="notifications__badge">New</span>
+              }
+            </span>
+            <span matListItemLine>{{ item.body }} · {{ item.created_at | date: 'medium' }}</span>
+            <span matListItemMeta>
+              @if (!item.is_read) {
+                <button mat-button (click)="markRead(item)">Mark read</button>
+              }
+            </span>
+          </mat-list-item>
+        }
+      </mat-list>
+    }
+  </mat-card-content>
+</mat-card>

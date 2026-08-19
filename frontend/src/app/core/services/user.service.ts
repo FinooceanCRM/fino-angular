@@ -1,5 +1,5 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, tap } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 
 import {
   CreateUserPayload,
@@ -9,6 +9,20 @@ import {
 } from '@core/models/user.model';
 
 import { ApiService } from './api.service';
+
+export interface AssignableRole {
+  value: string;
+  label: string;
+}
+
+export interface UserListMeta {
+  current_page: number;
+  per_page: number;
+  total: number;
+  last_page: number;
+}
+
+const EMPTY_META: UserListMeta = { current_page: 1, per_page: 15, total: 0, last_page: 1 };
 
 /**
  * Talks to /api/v1/users. The backend already scopes every response to the
@@ -20,9 +34,19 @@ export class UserService {
 
   private readonly usersState = signal<ManagedUser[]>([]);
   private readonly loadingState = signal(false);
+  private readonly metaState = signal<UserListMeta>(EMPTY_META);
+  private readonly assignableRolesState = signal<AssignableRole[]>([]);
 
   readonly users = this.usersState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
+  /** Pagination meta from the last list() call. */
+  readonly meta = this.metaState.asReadonly();
+  /**
+   * Roles the signed-in user is allowed to assign when creating/editing a
+   * user, as computed server-side. Populated by list(); drives the role
+   * `<select>` on the create/edit form instead of a hardcoded option list.
+   */
+  readonly assignableRoles = this.assignableRolesState.asReadonly();
 
   list(filters: UserListFilters = {}): Observable<ManagedUser[]> {
     this.loadingState.set(true);
@@ -36,14 +60,24 @@ export class UserService {
     if (filters.page) params['page'] = filters.page;
     if (filters.perPage) params['per_page'] = filters.perPage;
 
-    return this.api.get<ManagedUser[]>('users', params).pipe(
+    return this.api.getEnvelope<ManagedUser[]>('users', params).pipe(
       tap({
-        next: (users) => {
-          this.usersState.set(users);
+        next: (response) => {
+          this.usersState.set(response.data);
+          this.metaState.set({
+            current_page: Number(response.meta?.['current_page'] ?? 1),
+            per_page: Number(response.meta?.['per_page'] ?? filters.perPage ?? 15),
+            total: Number(response.meta?.['total'] ?? response.data.length),
+            last_page: Number(response.meta?.['last_page'] ?? 1),
+          });
+          this.assignableRolesState.set(
+            (response.meta?.['assignable_roles'] as AssignableRole[] | undefined) ?? [],
+          );
           this.loadingState.set(false);
         },
         error: () => this.loadingState.set(false),
       }),
+      map((response) => response.data),
     );
   }
 

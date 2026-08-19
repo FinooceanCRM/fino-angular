@@ -8,8 +8,10 @@ import {
 } from '@core/auth/permissions';
 import {
   AuthenticatedUser,
+  ChangePasswordPayload,
   LoginPayload,
   LoginResponse,
+  UpdatePreferencesPayload,
   UserRole,
 } from '@core/models/user.model';
 
@@ -87,6 +89,19 @@ export class AuthService {
         error: () => this.clear(),
       }),
       catchError(() => of(null)),
+    );
+  }
+
+  changePassword(payload: ChangePasswordPayload): Observable<null> {
+    return this.api.post<null>('auth/password', payload);
+  }
+
+  updatePreferences(payload: UpdatePreferencesPayload): Observable<AuthenticatedUser> {
+    return this.api.put<AuthenticatedUser>('auth/preferences', payload).pipe(
+      tap((user) => {
+        this.session.persistUser(user);
+        this.userState.set(user);
+      }),
     );
   }
 

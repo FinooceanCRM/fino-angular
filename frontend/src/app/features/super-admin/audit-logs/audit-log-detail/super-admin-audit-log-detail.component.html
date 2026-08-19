@@ -1,0 +1,62 @@
+@if (entry(); as entry) {
+  <app-page-header title="Audit Log Details" [subtitle]="'Entry #' + entry.id" />
+
+  <a mat-button routerLink="/super-admin/audit-logs" class="audit-detail__back">
+    <mat-icon>arrow_back</mat-icon>
+    Back to Audit Logs
+  </a>
+
+  <mat-card class="audit-detail__card">
+    <mat-card-content>
+      <div class="audit-detail__category">
+        <span class="audit-detail__category-icon"><mat-icon>{{ categoryIcon[entry.category] }}</mat-icon></span>
+        <div>
+          <span class="audit-detail__category-label">{{ categoryLabel[entry.category] }}</span>
+          <h2 class="audit-detail__description">{{ entry.description }}</h2>
+        </div>
+      </div>
+
+      <dl class="audit-detail__grid">
+        <div class="audit-detail__field">
+          <dt>Timestamp</dt>
+          <dd>{{ entry.timestamp | date: 'full' }}</dd>
+        </div>
+
+        <div class="audit-detail__field">
+          <dt>Actor</dt>
+          <dd>{{ entry.actor_name }} <span class="audit-detail__muted">· {{ entry.actor_role }}</span></dd>
+        </div>
+
+        <div class="audit-detail__field">
+          <dt>Action</dt>
+          <dd class="audit-detail__capitalize">{{ entry.action }}</dd>
+        </div>
+
+        <div class="audit-detail__field">
+          <dt>Entity type</dt>
+          <dd>{{ entry.entity_type }}</dd>
+        </div>
+
+        <div class="audit-detail__field">
+          <dt>Entity</dt>
+          <dd>{{ entry.entity_label }}</dd>
+        </div>
+
+        <div class="audit-detail__field">
+          <dt>IP address</dt>
+          <dd>{{ entry.ip_address }}</dd>
+        </div>
+      </dl>
+
+      @if (relatedLink(); as link) {
+        <a mat-flat-button color="primary" class="audit-detail__related" [routerLink]="link.route" [queryParams]="link.queryParams">
+          {{ link.label }}
+          <mat-icon>arrow_forward</mat-icon>
+        </a>
+      }
+    </mat-card-content>
+  </mat-card>
+} @else {
+  <app-page-header title="Audit Log Details" />
+  <app-empty-state icon="search_off" message="This audit log entry could not be found." />
+}

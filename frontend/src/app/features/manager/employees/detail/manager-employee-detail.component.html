@@ -1,0 +1,63 @@
+@if (employee(); as row) {
+  <app-entity-header
+    [title]="row.name"
+    idLabel="Email"
+    [idValue]="row.email"
+    [statusLabel]="row.is_active ? 'Active' : 'Inactive'"
+    [statusColour]="row.is_active ? 'success' : 'default'"
+  >
+    <a mat-stroked-button routerLink="/manager/employees">
+      <mat-icon>arrow_back</mat-icon>
+      Back to directory
+    </a>
+    <button mat-stroked-button type="button" (click)="reassign()">
+      <mat-icon>swap_horiz</mat-icon>
+      Reassign
+    </button>
+    <button mat-stroked-button type="button" (click)="editEmployee()">
+      <mat-icon>edit</mat-icon>
+      Edit
+    </button>
+    <button mat-flat-button [color]="row.is_active ? 'warn' : 'primary'" type="button" (click)="toggleActive()">
+      <mat-icon>{{ row.is_active ? 'block' : 'check_circle' }}</mat-icon>
+      {{ row.is_active ? 'Deactivate' : 'Activate' }}
+    </button>
+  </app-entity-header>
+
+  <div class="employee-detail__columns">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Profile</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="employee-detail__grid">
+        <div><span class="employee-detail__label">Phone</span><strong>{{ row.phone ?? '—' }}</strong></div>
+        <div><span class="employee-detail__label">Joined</span><strong>{{ row.created_at | date: 'mediumDate' }}</strong></div>
+        <div><span class="employee-detail__label">Employee ID</span><strong>#{{ row.id }}</strong></div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Team hierarchy</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="employee-detail__grid">
+        <div>
+          <span class="employee-detail__label">Reports to</span>
+          <strong>{{ relationshipManager()?.name ?? 'Unassigned' }}</strong>
+        </div>
+        <div>
+          <span class="employee-detail__label">Manager</span>
+          <strong>{{ team.manager()?.name ?? '—' }}</strong>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <h2 class="employee-detail__section-title">Performance</h2>
+  <app-manager-team-performance-cards [userId]="row.id" />
+
+  <h2 class="employee-detail__section-title">Activity</h2>
+  <app-manager-team-activity [names]="[row.name]" />
+} @else {
+  <app-empty-state icon="person_off" message="This employee could not be found." />
+}

@@ -1,0 +1,30 @@
+<app-page-header title="Assigned Bankers" subtitle="Bankers currently handling one or more of your team's leads" />
+
+@if (bankers.assignedBankers().length === 0) {
+  <app-empty-state icon="account_balance" message="No bankers are currently assigned to your team's leads." />
+} @else {
+  <mat-accordion class="assigned-bankers__accordion" multi>
+    @for (row of bankers.assignedBankers(); track row.banker.id) {
+      <mat-expansion-panel>
+        <mat-expansion-panel-header>
+          <mat-panel-title>{{ row.banker.name }}</mat-panel-title>
+          <mat-panel-description>
+            {{ bankers.bankNameFor(row.banker.id) }} · {{ row.leads.length }} lead(s)
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <mat-list>
+          @for (lead of row.leads; track lead.id) {
+            <mat-list-item>
+              <span matListItemTitle>{{ lead.reference }} — {{ lead.applicant_name }}</span>
+              <span matListItemLine>
+                {{ loanTypeLabel(lead.loan_type) }} ·
+                <app-status-pill [label]="lead.status_label" [colour]="lead.status_colour" />
+              </span>
+            </mat-list-item>
+          }
+        </mat-list>
+      </mat-expansion-panel>
+    }
+  </mat-accordion>
+}

@@ -10,9 +10,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (mode() === 'bar') {
-      <mat-progress-bar mode="indeterminate" />
+      <mat-progress-bar mode="indeterminate" class="app-animate-in" />
     } @else {
-      <div class="spinner-wrap">
+      <div class="spinner-wrap app-animate-in">
         <mat-spinner [diameter]="diameter()" />
         @if (message()) {
           <p class="message">{{ message() }}</p>
@@ -26,12 +26,12 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.75rem;
-        padding: 2rem;
+        gap: 0.85rem;
+        padding: 2.5rem;
       }
       .message {
         margin: 0;
-        opacity: 0.7;
+        color: var(--app-status-default-fg);
         font-size: 0.875rem;
       }
     `,

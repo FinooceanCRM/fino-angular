@@ -1,0 +1,23 @@
+<app-modal title="Assign banker" [showActions]="true">
+  <div class="assign-banker">
+    <p class="assign-banker__lead">
+      <strong>{{ data.lead.reference }}</strong> — {{ data.lead.applicant_name }}
+      ({{ data.lead.loan_type }} · {{ data.lead.loan_amount | number: '1.0-0' }})
+    </p>
+
+    <mat-form-field appearance="outline" class="assign-banker__select">
+      <mat-label>Banker</mat-label>
+      <mat-select [ngModel]="selectedId()" (ngModelChange)="selectedId.set($event)">
+        <mat-option [value]="null">Unassigned</mat-option>
+        @for (banker of data.bankers; track banker.id) {
+          <mat-option [value]="banker.id">{{ banker.name }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <button modal-actions mat-button type="button" (click)="dialogRef.close()">Cancel</button>
+  <button modal-actions mat-flat-button color="primary" type="button" (click)="confirm()">
+    Save assignment
+  </button>
+</app-modal>

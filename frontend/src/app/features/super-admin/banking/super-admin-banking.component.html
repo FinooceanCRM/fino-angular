@@ -1,0 +1,21 @@
+<app-page-header title="Banking" subtitle="Bank criteria, the matching engine, and banker assignment." />
+
+<div class="banking-overview">
+  @for (section of sections; track section.link) {
+    <a class="banking-overview__card" [routerLink]="section.link">
+      <mat-card>
+        <mat-card-content class="banking-overview__content">
+          <span class="banking-overview__icon">
+            <mat-icon>{{ section.icon }}</mat-icon>
+          </span>
+          <h2 class="banking-overview__title">{{ section.title }}</h2>
+          <p class="banking-overview__description">{{ section.description }}</p>
+          <span class="banking-overview__link">
+            Open
+            <mat-icon>arrow_forward</mat-icon>
+          </span>
+        </mat-card-content>
+      </mat-card>
+    </a>
+  }
+</div>

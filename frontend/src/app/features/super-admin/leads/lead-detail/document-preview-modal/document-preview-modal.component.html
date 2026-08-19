@@ -1,0 +1,27 @@
+<app-modal [title]="data.document.document_type">
+  <div class="doc-preview">
+    <div class="doc-preview__visual">
+      <mat-icon>{{ icon }}</mat-icon>
+      <span class="doc-preview__notice">No file storage in this build — showing metadata only.</span>
+    </div>
+
+    <dl class="doc-preview__meta">
+      <div>
+        <dt>File name</dt>
+        <dd>{{ data.document.file_name }}</dd>
+      </div>
+      <div>
+        <dt>Size</dt>
+        <dd>{{ data.document.file_size_kb }} KB</dd>
+      </div>
+      <div>
+        <dt>Uploaded by</dt>
+        <dd>{{ data.document.uploaded_by }}</dd>
+      </div>
+      <div>
+        <dt>Uploaded on</dt>
+        <dd>{{ data.document.uploaded_at | date: 'medium' }}</dd>
+      </div>
+    </dl>
+  </div>
+</app-modal>

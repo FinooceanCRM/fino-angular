@@ -1,0 +1,131 @@
+<form class="match-settings" [formGroup]="form" (ngSubmit)="save()">
+  <section class="match-settings__section">
+    <h3 class="match-settings__title">Eligibility</h3>
+    <div class="match-settings__grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Minimum CIBIL score</mat-label>
+        <input matInput type="number" min="300" max="900" formControlName="min_cibil_score" />
+        <mat-hint>Applicants scoring below this are treated as not eligible.</mat-hint>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Minimum match score</mat-label>
+        <input matInput type="number" min="0" max="100" formControlName="min_match_score" />
+        <mat-hint>Bank products scoring below this are excluded from matches.</mat-hint>
+      </mat-form-field>
+
+      <div class="match-settings__toggle">
+        <mat-slide-toggle formControlName="auto_run_on_create">
+          Automatically run the matching engine when a lead is created
+        </mat-slide-toggle>
+      </div>
+    </div>
+  </section>
+
+  <section class="match-settings__section" formGroupName="enabled_loan_types">
+    <h3 class="match-settings__title">Loan types</h3>
+    <p class="match-settings__hint">Only enabled loan types are offered to applicants and considered for matching.</p>
+    <div class="match-settings__checkbox-grid">
+      @for (type of loanTypes; track type.value) {
+        <mat-checkbox [formControlName]="type.value">{{ type.label }}</mat-checkbox>
+      }
+    </div>
+  </section>
+
+  <section class="match-settings__section">
+    <h3 class="match-settings__title">Loan amount limits</h3>
+    <div class="app-scroll-x">
+      <table class="match-settings__table" formArrayName="loan_amount_limits">
+        <thead>
+          <tr>
+            <th>Loan type</th>
+            <th>Minimum amount (₹)</th>
+            <th>Maximum amount (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of form.controls.loan_amount_limits.controls; track $index; let i = $index) {
+            <tr [formGroupName]="i">
+              <td>{{ loanTypeLabel(group.controls.loan_type.value) }}</td>
+              <td>
+                <mat-form-field appearance="outline" class="match-settings__table-field">
+                  <input matInput type="number" formControlName="min_amount" />
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-form-field appearance="outline" class="match-settings__table-field">
+                  <input matInput type="number" formControlName="max_amount" />
+                </mat-form-field>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="match-settings__section">
+    <div class="match-settings__section-header">
+      <h3 class="match-settings__title">City mapping</h3>
+      <button mat-stroked-button type="button" (click)="addCity()">
+        <mat-icon>add</mat-icon>
+        Add city
+      </button>
+    </div>
+    <p class="match-settings__hint">Cities where lead capture and matching are active, grouped by tier.</p>
+
+    <div class="app-scroll-x">
+      <table class="match-settings__table" formArrayName="city_mapping">
+        <thead>
+          <tr>
+            <th>City</th>
+            <th>State</th>
+            <th>Tier</th>
+            <th>Serviceable</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of cityRows.controls; track $index; let i = $index) {
+            <tr [formGroupName]="i">
+              <td>
+                <mat-form-field appearance="outline" class="match-settings__table-field">
+                  <input matInput formControlName="city" />
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-form-field appearance="outline" class="match-settings__table-field">
+                  <input matInput formControlName="state" />
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-form-field appearance="outline" class="match-settings__table-field">
+                  <mat-select formControlName="tier">
+                    @for (tier of tiers; track tier) {
+                      <mat-option [value]="tier">{{ tier }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+              </td>
+              <td>
+                <mat-slide-toggle formControlName="serviceable" />
+              </td>
+              <td>
+                <button mat-icon-button type="button" aria-label="Remove city" (click)="removeCity(i)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="match-settings__actions">
+    <button mat-flat-button color="primary" type="submit">
+      <mat-icon>save</mat-icon>
+      Save matching engine settings
+    </button>
+  </div>
+</form>

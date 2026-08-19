@@ -9,6 +9,7 @@ export interface NavItem {
 /** Profile route for the signed-in user's role, mirroring the original toolbar's role switch. */
 export function profileLink(auth: AuthService): string | null {
   if (auth.hasRole('connector')) return '/connector/profile';
+  if (auth.hasRole('banker')) return '/banker/profile';
   if (auth.hasRole('employee')) return '/employee/profile';
   if (auth.hasRole('relationship_manager')) return '/relationship-manager/profile';
   if (auth.hasRole('manager')) return '/manager/profile';
@@ -32,6 +33,7 @@ export function roleNavItems(auth: AuthService): NavItem[] {
   if (auth.hasRole('employee')) {
     return [
       { label: 'Employee dashboard', link: '/employee/dashboard', icon: 'dashboard' },
+      { label: 'My Leads', link: '/employee/leads', icon: 'assignment_ind' },
       ...profileItem,
       { label: 'My team', link: '/employee/team', icon: 'groups' },
     ];
@@ -55,6 +57,10 @@ export function roleNavItems(auth: AuthService): NavItem[] {
         icon: 'supervisor_account',
       },
       { label: 'Employees', link: '/manager/employees', icon: 'groups' },
+      // Bankers' "Send Request" / "Request Full Details" access requests
+      // land here for approval — the Access approvals tab is the real,
+      // API-backed one (the other Approval Center tabs are still mock data).
+      { label: 'Approvals', link: '/manager/approvals', icon: 'fact_check' },
       ...profileItem,
     ];
   }
@@ -64,7 +70,17 @@ export function roleNavItems(auth: AuthService): NavItem[] {
   }
 
   if (auth.hasRole('banker')) {
-    return [{ label: 'Banker dashboard', link: '/banker/dashboard', icon: 'dashboard' }];
+    return [
+      { label: 'Banker dashboard', link: '/banker/dashboard', icon: 'dashboard' },
+      // The four lead buckets (Matched/Priority/Assigned/My Submitted) live
+      // under this one entry via the bucket-nav strip on the page itself —
+      // access requests are now an action inside those buckets, not a
+      // separate nav item (see banker-lead-view-dialog + Request Full
+      // Details).
+      { label: 'My Leads', link: '/banker/leads', icon: 'assignment_ind' },
+      { label: 'Bank Criteria', link: '/banker/criteria', icon: 'rule' },
+      ...profileItem,
+    ];
   }
 
   return [{ label: 'Dashboard', link: '/dashboard', icon: 'dashboard' }];
@@ -78,3 +94,16 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { label: 'Reports', link: '/reports', icon: 'bar_chart' },
   { label: 'Notifications', link: '/notifications', icon: 'notifications' },
 ];
+
+/** Adds "Users" to the shared workspace items for roles with users.view; drops "Leads" for Bankers, who already have "My Leads" in their own section. */
+export function workspaceNavItems(auth: AuthService): NavItem[] {
+  const items = auth.hasRole('banker')
+    ? WORKSPACE_NAV_ITEMS.filter((item) => item.link !== '/leads')
+    : WORKSPACE_NAV_ITEMS;
+
+  if (!auth.can('users.view')) {
+    return items;
+  }
+
+  return [...items, { label: 'Users', link: '/users', icon: 'manage_accounts' }];
+}

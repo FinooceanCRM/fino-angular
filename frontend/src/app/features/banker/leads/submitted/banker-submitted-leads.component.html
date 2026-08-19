@@ -1,0 +1,59 @@
+<app-bucket-nav [links]="buckets" ariaLabel="Banker lead bucket" />
+
+<app-page-header title="My Submitted Leads" subtitle="Leads you submitted yourself." />
+
+@if (error(); as message) {
+  <p class="submitted-leads__error" role="alert">{{ message }}</p>
+}
+
+<div class="submitted-leads__toolbar">
+  <app-search-input
+    class="submitted-leads__search"
+    label="Search"
+    placeholder="Search by applicant or reference"
+    (search)="onSearch($event)"
+  />
+
+  <a mat-flat-button color="primary" routerLink="/leads/create">
+    <mat-icon>add</mat-icon>
+    Submit Lead
+  </a>
+</div>
+
+<app-table
+  [columns]="columns"
+  [rows]="rows()"
+  [loading]="loading()"
+  [length]="meta().total"
+  [pageIndex]="meta().current_page - 1"
+  [pageSize]="meta().per_page"
+  emptyMessage="You haven't submitted any leads yet."
+  itemLabel="leads"
+  (pageChange)="onPage($event)"
+>
+  <ng-template appTableCell="id" let-row>
+    {{ row.reference }}
+  </ng-template>
+
+  <ng-template appTableCell="first_name" let-row>
+    {{ firstName(row.applicant_name) }}
+  </ng-template>
+
+  <ng-template appTableCell="loan" let-row>
+    {{ loanTypeLabel(row.loan_type) }}
+  </ng-template>
+
+  <ng-template appTableCell="amount" let-row>
+    ₹{{ row.loan_amount | number: '1.0-0' }}
+  </ng-template>
+
+  <ng-template appTableCell="status" let-row>
+    <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+  </ng-template>
+
+  <ng-template #rowActions let-row>
+    <button mat-icon-button type="button" matTooltip="View" aria-label="View" (click)="view(row)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+  </ng-template>
+</app-table>

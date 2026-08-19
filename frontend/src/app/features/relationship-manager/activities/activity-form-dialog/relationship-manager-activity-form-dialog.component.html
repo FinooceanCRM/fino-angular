@@ -1,0 +1,40 @@
+<app-modal [title]="'Schedule ' + typeLabel" [showActions]="true">
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Title</mat-label>
+    <input matInput [ngModel]="title()" (ngModelChange)="title.set($event)" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Link to a lead (optional)</mat-label>
+    <mat-select [ngModel]="leadId()" (ngModelChange)="leadId.set($event)">
+      <mat-option [value]="null">None</mat-option>
+      @for (lead of myLeads(); track lead.id) {
+        <mat-option [value]="lead.id">{{ lead.reference }} — {{ lead.applicant_name }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Assigned to</mat-label>
+    <mat-select [ngModel]="assignedTo()" (ngModelChange)="assignedTo.set($event)">
+      @for (person of assignableTo(); track person) {
+        <mat-option [value]="person">{{ person }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Due date</mat-label>
+    <input matInput type="date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="field">
+    <mat-label>Notes (optional)</mat-label>
+    <textarea matInput rows="2" [ngModel]="notes()" (ngModelChange)="notes.set($event)"></textarea>
+  </mat-form-field>
+
+  <button modal-actions mat-button type="button" (click)="dialogRef.close()">Cancel</button>
+  <button modal-actions mat-flat-button color="primary" type="button" [disabled]="!canSubmit()" (click)="submit()">
+    Schedule
+  </button>
+</app-modal>

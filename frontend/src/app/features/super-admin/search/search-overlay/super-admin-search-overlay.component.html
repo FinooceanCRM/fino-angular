@@ -1,0 +1,64 @@
+<div class="search-overlay">
+  <div class="search-overlay__input-row">
+    <mat-icon class="search-overlay__search-icon">search</mat-icon>
+    <input
+      #searchInput
+      type="text"
+      class="search-overlay__input"
+      placeholder="Search leads, users, employees, connectors, bankers…"
+      autocomplete="off"
+      [value]="query()"
+      (input)="onInput(searchInput.value)"
+      (keydown)="onKeydown($event)"
+    />
+    <button mat-icon-button type="button" aria-label="Close search" (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <div class="search-overlay__body">
+    @if (!query().trim()) {
+      <p class="search-overlay__hint">
+        Start typing a name, email, phone or lead reference. Use
+        <kbd>↑</kbd><kbd>↓</kbd> to navigate and <kbd>Enter</kbd> to open.
+      </p>
+    } @else if (groups().length === 0) {
+      <app-empty-state icon="search_off" [message]="'No matches for “' + query() + '”.'" />
+    } @else {
+      @for (group of groups(); track group.type) {
+        <div class="search-overlay__group">
+          <span class="search-overlay__group-label">{{ group.label }}</span>
+          <ul class="search-overlay__list">
+            @for (item of group.items; track item.id) {
+              <li
+                class="search-overlay__item"
+                [class.search-overlay__item--active]="isActive(item)"
+                (mouseenter)="activeIndex.set(flatResults().indexOf(item))"
+                (click)="select(item)"
+              >
+                <span class="search-overlay__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+                <span class="search-overlay__text">
+                  <span class="search-overlay__title">{{ item.title }}</span>
+                  <span class="search-overlay__subtitle">{{ item.subtitle }}</span>
+                </span>
+                <span class="search-overlay__meta">{{ item.meta }}</span>
+              </li>
+            }
+          </ul>
+          @if (group.total > group.items.length) {
+            <button mat-button class="search-overlay__more" type="button" (click)="viewAll()">
+              +{{ group.total - group.items.length }} more {{ group.label.toLowerCase() }}
+            </button>
+          }
+        </div>
+      }
+    }
+  </div>
+
+  @if (totalCount() > 0) {
+    <button mat-button class="search-overlay__footer" type="button" (click)="viewAll()">
+      View all {{ totalCount() }} results
+      <mat-icon>arrow_forward</mat-icon>
+    </button>
+  }
+</div>

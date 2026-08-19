@@ -3,18 +3,22 @@
 namespace App\Providers;
 
 use App\Repositories\Contracts\BankCriteriaRepositoryInterface;
+use App\Repositories\Contracts\BankerRepositoryInterface;
 use App\Repositories\Contracts\ConnectorRepositoryInterface;
 use App\Repositories\Contracts\EmployeeRepositoryInterface;
 use App\Repositories\Contracts\LoanLeadRepositoryInterface;
 use App\Repositories\Contracts\ManagerRepositoryInterface;
 use App\Repositories\Contracts\RelationshipManagerRepositoryInterface;
+use App\Repositories\Contracts\TelecallerRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
 use App\Repositories\EloquentBankCriteriaRepository;
+use App\Repositories\EloquentBankerRepository;
 use App\Repositories\EloquentConnectorRepository;
 use App\Repositories\EloquentEmployeeRepository;
 use App\Repositories\EloquentLoanLeadRepository;
 use App\Repositories\EloquentManagerRepository;
 use App\Repositories\EloquentRelationshipManagerRepository;
+use App\Repositories\EloquentTelecallerRepository;
 use App\Repositories\EloquentUserRepository;
 use Illuminate\Support\ServiceProvider;
 
@@ -29,6 +33,8 @@ class RepositoryServiceProvider extends ServiceProvider
     public array $bindings = [
         UserRepositoryInterface::class => EloquentUserRepository::class,
         ConnectorRepositoryInterface::class => EloquentConnectorRepository::class,
+        BankerRepositoryInterface::class => EloquentBankerRepository::class,
+        TelecallerRepositoryInterface::class => EloquentTelecallerRepository::class,
         EmployeeRepositoryInterface::class => EloquentEmployeeRepository::class,
         RelationshipManagerRepositoryInterface::class => EloquentRelationshipManagerRepository::class,
         ManagerRepositoryInterface::class => EloquentManagerRepository::class,

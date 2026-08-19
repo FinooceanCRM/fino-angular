@@ -1,0 +1,61 @@
+.shell-container {
+  height: calc(100vh - 64px);
+  background: var(--mat-sys-surface);
+}
+
+.shell-sidenav {
+  width: 260px;
+  border-right: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+  display: flex;
+  flex-direction: column;
+  transition: width 150ms ease-in-out;
+
+  &.shell-sidenav--collapsed {
+    width: 76px;
+  }
+}
+
+.shell-sidenav__nav {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+
+.shell-sidenav__collapse-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  flex-shrink: 0;
+  border: none;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+  background: transparent;
+  color: var(--app-status-default-fg);
+  cursor: pointer;
+  padding: var(--app-space-3) var(--app-space-4);
+  font: inherit;
+  font-weight: 500;
+
+  &:hover {
+    background: var(--mat-sys-surface-container-high);
+    color: var(--mat-sys-on-surface);
+  }
+}
+
+.shell-content {
+  background: var(--mat-sys-surface);
+}
+
+.content-inner {
+  padding: var(--app-space-5);
+  max-width: 1180px;
+  margin: 0 auto;
+
+  @media (max-width: 600px) {
+    padding: var(--app-space-3);
+  }
+}
+
+.guest-content {
+  padding: 0;
+  max-width: none;
+}

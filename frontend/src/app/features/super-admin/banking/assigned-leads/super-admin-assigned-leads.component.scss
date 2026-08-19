@@ -1,0 +1,12 @@
+.assigned-leads__toolbar,
+.assigned-leads__table-card {
+  border-radius: var(--app-radius-md);
+  margin-bottom: var(--app-space-4);
+}
+
+.assigned-leads__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-3);
+  align-items: center;
+}

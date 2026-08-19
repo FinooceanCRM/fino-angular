@@ -1,0 +1,45 @@
+<mat-card class="team-hierarchy">
+  <mat-card-header>
+    <mat-card-title>{{ team.manager()?.name ?? 'You' }}</mat-card-title>
+    <mat-card-subtitle>Relationship Managers and the employees assigned to them</mat-card-subtitle>
+  </mat-card-header>
+  <mat-card-content>
+    @if (relationshipManagers().length === 0) {
+      <app-empty-state icon="diversity_3" message="No Relationship Managers report to you yet." />
+    } @else {
+      <ul class="team-hierarchy__tree">
+        @for (rm of relationshipManagers(); track rm.id) {
+          <li>
+            <div class="team-hierarchy__node">
+              <mat-icon>supervisor_account</mat-icon>
+              <span class="team-hierarchy__name">{{ rm.name }}</span>
+              <app-status-pill [label]="rm.is_active ? 'Active' : 'Inactive'" [colour]="rm.is_active ? 'success' : 'default'" />
+            </div>
+
+            @if (employeesFor(rm.id).length === 0) {
+              <ul class="team-hierarchy__tree">
+                <li class="team-hierarchy__muted">No employees assigned.</li>
+              </ul>
+            } @else {
+              <ul class="team-hierarchy__tree">
+                @for (employee of employeesFor(rm.id); track employee.id) {
+                  <li>
+                    <div class="team-hierarchy__node">
+                      <mat-icon>person</mat-icon>
+                      <span>{{ employee.name }}</span>
+                      <span class="team-hierarchy__muted">{{ employee.email }}</span>
+                      <app-status-pill
+                        [label]="employee.is_active ? 'Active' : 'Inactive'"
+                        [colour]="employee.is_active ? 'success' : 'default'"
+                      />
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </mat-card-content>
+</mat-card>

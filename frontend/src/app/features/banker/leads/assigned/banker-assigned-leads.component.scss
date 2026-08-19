@@ -1,0 +1,14 @@
+.assigned-leads__error {
+  margin: 0 0 var(--app-space-4, 16px);
+  padding: var(--app-space-3, 12px) var(--app-space-4, 16px);
+  border-radius: var(--app-radius-md, 12px);
+  background: var(--app-status-warn-bg, #f8dfd8);
+  color: var(--app-status-warn-fg, #a3341f);
+  font-size: 0.875rem;
+}
+
+.assigned-leads__search {
+  display: block;
+  max-width: 340px;
+  margin-bottom: var(--app-space-4, 16px);
+}

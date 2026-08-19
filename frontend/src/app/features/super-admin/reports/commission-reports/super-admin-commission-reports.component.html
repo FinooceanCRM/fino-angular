@@ -1,0 +1,71 @@
+<div class="report-page__header">
+  <app-page-header title="Commission Reports" subtitle="Accrual, payout and connector/affiliate split from the accounting ledger." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<mat-card class="report-page__range">
+  <mat-card-content>
+    <form class="report-page__range-form" [formGroup]="range">
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="from" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="to" />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<div class="report-page__summary">
+  <app-stat-card icon="payments" [value]="'₹' + (summary().totalAccrued | number: '1.0-0')" label="Total accrued" accent="primary" />
+  <app-stat-card icon="hub" [value]="'₹' + (summary().connectorAccrued | number: '1.0-0')" label="Connector share" accent="accent" />
+  <app-stat-card icon="campaign" [value]="'₹' + (summary().affiliateAccrued | number: '1.0-0')" label="Affiliate share" />
+  <app-stat-card icon="task_alt" [value]="'₹' + (summary().totalPaid | number: '1.0-0')" label="Paid out" />
+</div>
+
+<div class="report-page__charts">
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Commission by type</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="typeBreakdown()" valuePrefix="₹" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Top connectors</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="topConnectors()" valuePrefix="₹" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Commission accrued per week</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-trend-chart [points]="trend()" accent="tertiary" valuePrefix="₹" />
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<mat-card class="report-page__table-card">
+  <mat-card-header>
+    <mat-card-title>Ledger entries in range</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="filteredLedger()" emptyMessage="No ledger entries in the selected range.">
+      <ng-template appTableCell="date" let-row>{{ row.date | date: 'mediumDate' }}</ng-template>
+      <ng-template appTableCell="debit" let-row>{{ row.debit ? '₹' + (row.debit | number: '1.0-0') : '—' }}</ng-template>
+      <ng-template appTableCell="credit" let-row>{{ row.credit ? '₹' + (row.credit | number: '1.0-0') : '—' }}</ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

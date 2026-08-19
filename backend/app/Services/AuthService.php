@@ -55,4 +55,27 @@ class AuthService extends BaseService
     {
         $user->tokens()->delete();
     }
+
+    public function updatePassword(User $user, string $currentPassword, string $newPassword): void
+    {
+        if (! Hash::check($currentPassword, $user->password)) {
+            throw new DomainException('The current password is incorrect.', 422, [
+                'current_password' => ['The current password is incorrect.'],
+            ]);
+        }
+
+        // The `password` cast is 'hashed' (see User::casts()), so assigning
+        // the plain value here hashes it automatically on save.
+        $user->update(['password' => $newPassword]);
+    }
+
+    /**
+     * @param array<string, bool> $preferences
+     */
+    public function updatePreferences(User $user, array $preferences): User
+    {
+        $user->update($preferences);
+
+        return $user->fresh() ?? $user;
+    }
 }

@@ -1,0 +1,55 @@
+.reports__tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--app-space-4);
+  margin-bottom: var(--app-space-4);
+}
+
+.reports__card {
+  margin-bottom: var(--app-space-4);
+  border-radius: var(--app-radius-md);
+}
+
+.reports__bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.reports__bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 40px;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.reports__bar-label {
+  font-size: 0.85rem;
+  text-transform: capitalize;
+  color: var(--app-status-default-fg);
+}
+
+.reports__bar-track {
+  height: 10px;
+  border-radius: var(--app-radius-pill);
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.reports__bar-fill {
+  height: 100%;
+  border-radius: var(--app-radius-pill);
+  transition: width 0.3s ease;
+}
+
+.reports__bar-count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .reports__bar-row {
+    grid-template-columns: 100px 1fr 32px;
+  }
+}

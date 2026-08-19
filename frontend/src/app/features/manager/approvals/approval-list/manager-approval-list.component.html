@@ -1,0 +1,134 @@
+<mat-drawer-container class="approval-list__container" [hasBackdrop]="true">
+  <app-details-drawer
+    [title]="selected()?.title ?? 'Review'"
+    [opened]="selected() !== undefined"
+    [showActions]="selected()?.status === 'pending'"
+    (openedChange)="!$event && closeReview()"
+  >
+    @if (selected(); as row) {
+      <p class="approval-list__drawer-subtitle">{{ row.subtitle }}</p>
+
+      @if (leadReference(row); as ref) {
+        <a class="approval-list__lead-link" [routerLink]="['/manager/leads', row.leadId!]">{{ ref }}</a>
+      }
+
+      <div class="approval-list__meta">
+        <app-status-pill
+          [label]="row.status === 'pending' ? 'Pending' : row.status === 'approved' ? 'Approved' : 'Rejected'"
+          [colour]="statusColour(row.status)"
+        />
+        <span>Requested by {{ row.requestedBy }} ({{ row.requestedByRole }}) · {{ row.requestedAt | date: 'medium' }}</span>
+      </div>
+
+      @if (row.decidedBy) {
+        <p class="approval-list__decision">
+          {{ row.status === 'approved' ? 'Approved' : 'Rejected' }} by {{ row.decidedBy }} on
+          {{ row.decidedAt | date: 'medium' }}
+          @if (row.decisionRemarks) {
+            — "{{ row.decisionRemarks }}"
+          }
+        </p>
+      }
+
+      <h3 class="approval-list__section-title">Comments</h3>
+      @if (row.comments.length === 0) {
+        <p class="approval-list__muted">No comments yet.</p>
+      } @else {
+        <ul class="approval-list__comments">
+          @for (comment of row.comments; track comment.id) {
+            <li>
+              <span class="approval-list__comment-author">{{ comment.author }}</span>
+              <span class="approval-list__comment-time">{{ comment.created_at | date: 'medium' }}</span>
+              <p class="approval-list__comment-body">{{ comment.body }}</p>
+            </li>
+          }
+        </ul>
+      }
+
+      <mat-form-field appearance="outline" class="approval-list__comment-field">
+        <mat-label>Add a comment</mat-label>
+        <textarea matInput rows="2" [ngModel]="commentDraft()" (ngModelChange)="commentDraft.set($event)"></textarea>
+      </mat-form-field>
+      <button mat-stroked-button type="button" [disabled]="!commentDraft().trim()" (click)="addComment()">
+        <mat-icon>add_comment</mat-icon>
+        Add comment
+      </button>
+    }
+
+    @if (selected()?.status === 'pending') {
+      <ng-container drawer-actions>
+        <button mat-button type="button" (click)="reject(selected()!)">Reject</button>
+        <button mat-flat-button color="primary" type="button" (click)="approve(selected()!)">
+          Approve
+        </button>
+      </ng-container>
+    }
+  </app-details-drawer>
+
+  <mat-drawer-content>
+    <mat-card class="approval-list__toolbar">
+      <mat-card-content class="approval-list__toolbar-row">
+        <mat-form-field appearance="outline" class="approval-list__status">
+          <mat-label>Status</mat-label>
+          <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+            <mat-option value="pending">Pending</mat-option>
+            <mat-option value="all">All</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="approval-list__table-card">
+      <mat-card-content>
+        <app-table
+          [columns]="columns"
+          [rows]="rows()"
+          emptyMessage="Nothing waiting on you here."
+          itemLabel="requests"
+        >
+          <ng-template appTableCell="title" let-row>
+            <span class="approval-list__title">{{ row.title }}</span>
+            <span class="approval-list__subtitle">
+              {{ row.subtitle }}
+              @if (leadReference(row); as ref) {
+                · {{ ref }}
+              }
+            </span>
+          </ng-template>
+
+          <ng-template appTableCell="requestedAt" let-row>
+            {{ row.requestedAt | date: 'mediumDate' }}
+          </ng-template>
+
+          <ng-template appTableCell="status" let-row>
+            <app-status-pill
+              [label]="row.status === 'pending' ? 'Pending' : row.status === 'approved' ? 'Approved' : 'Rejected'"
+              [colour]="statusColour(row.status)"
+            />
+          </ng-template>
+
+          <ng-template #rowActions let-row>
+            <button mat-icon-button type="button" matTooltip="Review" aria-label="Review" (click)="review(row)">
+              <mat-icon>rate_review</mat-icon>
+            </button>
+            @if (row.status === 'pending') {
+              <button mat-icon-button type="button" matTooltip="Reject" aria-label="Reject" (click)="reject(row)">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                color="primary"
+                matTooltip="Approve"
+                aria-label="Approve"
+                (click)="approve(row)"
+              >
+                <mat-icon>check</mat-icon>
+              </button>
+            }
+          </ng-template>
+        </app-table>
+      </mat-card-content>
+    </mat-card>
+  </mat-drawer-content>
+</mat-drawer-container>

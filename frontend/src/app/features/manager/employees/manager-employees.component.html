@@ -1,0 +1,24 @@
+<app-page-header title="Employees" subtitle="Employees belonging to your Relationship Managers" />
+
+<mat-tab-group>
+  <mat-tab label="Directory">
+    <div class="manager-employees__tab-body">
+      <app-manager-team-table role="employee" />
+    </div>
+  </mat-tab>
+  <mat-tab label="Team Hierarchy">
+    <div class="manager-employees__tab-body">
+      <app-manager-team-hierarchy />
+    </div>
+  </mat-tab>
+  <mat-tab label="Performance">
+    <div class="manager-employees__tab-body">
+      <app-manager-team-performance role="employee" />
+    </div>
+  </mat-tab>
+  <mat-tab label="Activity">
+    <div class="manager-employees__tab-body">
+      <app-manager-team-activity [names]="employeeNames()" />
+    </div>
+  </mat-tab>
+</mat-tab-group>

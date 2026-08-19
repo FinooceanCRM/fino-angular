@@ -1,0 +1,79 @@
+<app-bucket-nav [links]="buckets" ariaLabel="Banker lead bucket" />
+
+<app-page-header
+  title="Matched Leads"
+  subtitle="Leads scored at least 10% against your bank criteria that aren't assigned to anyone yet."
+/>
+
+@if (error(); as message) {
+  <p class="matched-leads__error" role="alert">{{ message }}</p>
+}
+
+<div class="matched-leads__filters">
+  <app-search-input
+    class="matched-leads__search"
+    label="Search"
+    placeholder="Search by applicant or reference"
+    (search)="onSearch($event)"
+  />
+
+  <mat-form-field appearance="outline" class="matched-leads__loan-type">
+    <mat-label>Loan type</mat-label>
+    <mat-select (selectionChange)="onLoanTypeChange($event.value)">
+      <mat-option value="">All loan types</mat-option>
+      @for (type of loanTypes(); track type.value) {
+        <mat-option [value]="type.value">{{ type.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+</div>
+
+<app-table
+  [columns]="columns"
+  [rows]="rows()"
+  [loading]="loading()"
+  [length]="meta().total"
+  [pageIndex]="meta().current_page - 1"
+  [pageSize]="meta().per_page"
+  emptyMessage="No leads currently match your bank criteria."
+  itemLabel="leads"
+  (pageChange)="onPage($event)"
+>
+  <ng-template appTableCell="id" let-row>
+    {{ row.reference }}
+  </ng-template>
+
+  <ng-template appTableCell="first_name" let-row>
+    {{ firstName(row.applicant_name) }}
+  </ng-template>
+
+  <ng-template appTableCell="loan" let-row>
+    {{ loanTypeLabel(row.loan_type) }}
+  </ng-template>
+
+  <ng-template appTableCell="amount" let-row>
+    ₹{{ row.loan_amount | number: '1.0-0' }}
+  </ng-template>
+
+  <ng-template #rowActions let-row>
+    <button mat-icon-button type="button" matTooltip="View" aria-label="View" (click)="view(row)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+    @if (hasRequested(row)) {
+      <button mat-icon-button type="button" disabled matTooltip="Requested" aria-label="Requested">
+        <mat-icon>how_to_reg</mat-icon>
+      </button>
+    } @else {
+      <button
+        mat-icon-button
+        type="button"
+        color="primary"
+        matTooltip="Send request"
+        aria-label="Send request"
+        (click)="requestAccess(row)"
+      >
+        <mat-icon>add_moderator</mat-icon>
+      </button>
+    }
+  </ng-template>
+</app-table>

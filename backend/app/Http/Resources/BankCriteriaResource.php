@@ -31,6 +31,7 @@ class BankCriteriaResource extends JsonResource
             'interest_rate' => $this->interest_rate !== null ? (float) $this->interest_rate : null,
             'eligibility_rules' => $this->eligibility_rules ?? [],
             'is_active' => (bool) $this->is_active,
+            'banker_id' => $this->banker_id,
             'created_at' => optional($this->created_at)->toIso8601String(),
             'updated_at' => optional($this->updated_at)->toIso8601String(),
         ];

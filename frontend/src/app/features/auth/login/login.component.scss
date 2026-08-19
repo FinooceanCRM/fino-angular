@@ -1,0 +1,108 @@
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: calc(100vh - 64px);
+}
+
+.login__hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--app-space-4);
+  padding: var(--app-space-6);
+  color: var(--mat-sys-on-primary);
+  background:
+    radial-gradient(circle at 20% 100%, rgba(255, 255, 255, 0.12), transparent 55%),
+    linear-gradient(135deg, var(--mat-sys-primary) 0%, var(--mat-sys-tertiary) 100%);
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.login__brand-icon {
+  font-size: 2.5rem;
+  height: 2.5rem;
+  width: 2.5rem;
+}
+
+.login__brand-name {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.login__tagline {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0;
+}
+
+.login__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--app-space-5);
+  background: var(--mat-sys-surface);
+}
+
+.login__card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--mat-sys-surface-container);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-md);
+  padding: var(--app-space-6) var(--app-space-5);
+  position: relative;
+}
+
+.login__progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: var(--app-radius-lg) var(--app-radius-lg) 0 0;
+  overflow: hidden;
+}
+
+.login__title {
+  margin: 0 0 var(--app-space-5);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.login__submit {
+  margin-top: var(--app-space-2);
+  height: 44px;
+}
+
+.login__error {
+  margin: var(--app-space-2) 0 0;
+  color: var(--app-status-warn-fg);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .login__hero {
+    padding: var(--app-space-5);
+  }
+}

@@ -1,0 +1,75 @@
+<div class="report-page__header">
+  <app-page-header title="User Reports" subtitle="Role mix, active vs. inactive split, and the new-signups trend." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<mat-card class="report-page__range">
+  <mat-card-content>
+    <form class="report-page__range-form" [formGroup]="range">
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="from" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="to" />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<div class="report-page__summary">
+  <app-stat-card icon="groups" [value]="summary().total" label="Total users" accent="primary" />
+  <app-stat-card icon="person_add" [value]="summary().newInRange" label="New in range" accent="accent" />
+  <app-stat-card icon="task_alt" [value]="summary().active" label="Active" />
+  <app-stat-card icon="block" [value]="summary().inactive" label="Inactive" />
+</div>
+
+<div class="report-page__charts">
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Users by role</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="roleBreakdown()" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Active vs. inactive</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="statusBreakdown()" />
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>New users per week</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-trend-chart [points]="trend()" accent="tertiary" />
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<mat-card class="report-page__table-card">
+  <mat-card-header>
+    <mat-card-title>New users in range</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="newUsers()" emptyMessage="No new users in the selected range.">
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.is_active ? 'Active' : 'Inactive'"
+          [colour]="row.is_active ? 'success' : 'default'"
+        />
+      </ng-template>
+      <ng-template appTableCell="created_at" let-row>{{ row.created_at | date: 'mediumDate' }}</ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

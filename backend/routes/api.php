@@ -2,18 +2,22 @@
 
 use App\Http\Controllers\Api\V1\Auth\AuthController;
 use App\Http\Controllers\Api\V1\BankCriteriaController;
+use App\Http\Controllers\Api\V1\BankerController;
 use App\Http\Controllers\Api\V1\ConnectorController;
 use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\HealthController;
+use App\Http\Controllers\Api\V1\LeadAccessRequestController;
 use App\Http\Controllers\Api\V1\LeadController;
+use App\Http\Controllers\Api\V1\LeadFollowUpController;
 use App\Http\Controllers\Api\V1\ManagerController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\RelationshipManagerController;
 use App\Http\Controllers\Api\V1\ReportController;
+use App\Http\Controllers\Api\V1\SuperAdminController;
+use App\Http\Controllers\Api\V1\TelecallerController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
-
 
 /*
 |--------------------------------------------------------------------------
@@ -31,6 +35,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::middleware(['auth:sanctum', 'auth.active'])->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
+        Route::post('auth/password', [AuthController::class, 'updatePassword'])->name('auth.password.update');
+        Route::put('auth/preferences', [AuthController::class, 'updatePreferences'])->name('auth.preferences.update');
 
         // Connector module (Phase 5). Independent of the reporting hierarchy.
         Route::prefix('connectors')->name('connectors.')
@@ -39,6 +45,31 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('dashboard', [ConnectorController::class, 'dashboard'])->name('dashboard');
                 Route::get('profile', [ConnectorController::class, 'profile'])->name('profile.show');
                 Route::put('profile', [ConnectorController::class, 'updateProfile'])->name('profile.update');
+            });
+
+        // Super Admin dashboard. Platform-wide, unscoped.
+        Route::prefix('super-admin')->name('super-admin.')
+            ->middleware('role:super_admin')
+            ->group(function (): void {
+                Route::get('dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
+            });
+
+        // Banker module. Independent of the reporting hierarchy, like Connector.
+        Route::prefix('bankers')->name('bankers.')
+            ->middleware('role:banker')
+            ->group(function (): void {
+                Route::get('dashboard', [BankerController::class, 'dashboard'])->name('dashboard');
+                Route::get('profile', [BankerController::class, 'profile'])->name('profile.show');
+                Route::put('profile', [BankerController::class, 'updateProfile'])->name('profile.update');
+            });
+
+        // Telecaller module. Independent of the reporting hierarchy, like Connector and Banker.
+        Route::prefix('telecallers')->name('telecallers.')
+            ->middleware('role:telecaller')
+            ->group(function (): void {
+                Route::get('dashboard', [TelecallerController::class, 'dashboard'])->name('dashboard');
+                Route::get('profile', [TelecallerController::class, 'profile'])->name('profile.show');
+                Route::put('profile', [TelecallerController::class, 'updateProfile'])->name('profile.update');
             });
 
         // Employee module (Phase 6). Self-scoped; leaf of the reporting hierarchy.
@@ -92,8 +123,33 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('{lead}/assign', [LeadController::class, 'assign'])->whereNumber('lead')->name('assign');
             Route::post('{lead}/status', [LeadController::class, 'updateStatus'])->whereNumber('lead')->name('status');
             Route::post('{lead}/match', [LeadController::class, 'match'])->whereNumber('lead')->name('match');
+            Route::post('{lead}/pd-complete', [LeadController::class, 'completePd'])->whereNumber('lead')->name('pd-complete');
             Route::get('{lead}/documents', [DocumentController::class, 'index'])->whereNumber('lead')->name('documents.index');
             Route::post('{lead}/documents', [DocumentController::class, 'store'])->whereNumber('lead')->name('documents.store');
+            Route::get('{lead}/access-requests', [LeadAccessRequestController::class, 'forLead'])
+                ->whereNumber('lead')->name('access-requests.index');
+            Route::post('{lead}/access-requests', [LeadAccessRequestController::class, 'store'])
+                ->whereNumber('lead')->name('access-requests.store');
+            Route::get('{lead}/follow-ups', [LeadFollowUpController::class, 'index'])
+                ->whereNumber('lead')->name('follow-ups.index');
+            Route::post('{lead}/follow-ups', [LeadFollowUpController::class, 'store'])
+                ->whereNumber('lead')->name('follow-ups.store');
+        });
+
+        // Banker follow-up completion — separate prefix since it acts on the
+        // follow-up itself, not a lead (same shape as access-requests below).
+        Route::prefix('follow-ups')->name('follow-ups.')->group(function (): void {
+            Route::post('{follow_up}/complete', [LeadFollowUpController::class, 'complete'])
+                ->whereNumber('follow_up')->name('complete');
+        });
+
+        // Banker access-request approve/reject workflow.
+        Route::prefix('access-requests')->name('access-requests.')->group(function (): void {
+            Route::get('/', [LeadAccessRequestController::class, 'pending'])->name('pending');
+            Route::post('{access_request}/approve', [LeadAccessRequestController::class, 'approve'])
+                ->whereNumber('access_request')->name('approve');
+            Route::post('{access_request}/reject', [LeadAccessRequestController::class, 'reject'])
+                ->whereNumber('access_request')->name('reject');
         });
 
         Route::prefix('documents')->name('documents.')->group(function (): void {
@@ -119,7 +175,6 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         });
 
         Route::get('reports/dashboard', [ReportController::class, 'dashboard'])->name('reports.dashboard');
-
 
         Route::prefix('users')->name('users.')->group(function (): void {
             Route::get('/', [UserController::class, 'index'])

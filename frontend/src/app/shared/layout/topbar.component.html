@@ -1,0 +1,51 @@
+<mat-toolbar color="primary" class="topbar">
+  @if (auth.isAuthenticated()) {
+    <button
+      mat-icon-button
+      type="button"
+      class="topbar__menu"
+      (click)="menuToggle.emit()"
+      aria-label="Toggle navigation"
+    >
+      <mat-icon>menu</mat-icon>
+    </button>
+  }
+
+  <a routerLink="/" class="topbar__brand">
+    <mat-icon class="topbar__brand-icon">account_balance</mat-icon>
+    <span class="topbar__brand-name">{{ appName }}</span>
+  </a>
+
+  @if (auth.isAuthenticated()) {
+    <form class="topbar__search" (ngSubmit)="search()">
+      <mat-icon class="topbar__search-icon">search</mat-icon>
+      <input
+        class="topbar__search-input"
+        type="search"
+        name="search"
+        placeholder="Search leads by name, phone or reference…"
+        [(ngModel)]="searchTerm"
+      />
+    </form>
+  }
+
+  <span class="topbar__spacer"></span>
+
+  @if (auth.isAuthenticated()) {
+    <button
+      mat-icon-button
+      type="button"
+      class="topbar__help"
+      matTooltip="Help & support"
+      aria-label="Help & support"
+    >
+      <mat-icon>help_outline</mat-icon>
+    </button>
+    <app-notification-icon />
+    <app-user-menu />
+  } @else {
+    <a mat-button routerLink="/auth/login" routerLinkActive="active" class="topbar__signin">
+      Sign in
+    </a>
+  }
+</mat-toolbar>

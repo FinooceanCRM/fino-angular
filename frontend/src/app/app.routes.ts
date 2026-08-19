@@ -1,7 +1,6 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from '@core/guards/auth.guard';
-import { permissionGuard } from '@core/guards/permission.guard';
 
 export const routes: Routes = [
   {
@@ -97,16 +96,11 @@ export const routes: Routes = [
       import('@features/reports/reports.routes').then((m) => m.reportsRoutes),
   },
   {
-    // Permission-protected area. Screens land here in a later phase; the
-    // access-control wiring is complete already.
+    // User management (list/create/edit/detail). Each sub-route carries its
+    // own permission requirement.
     path: 'users',
-    canActivate: [authGuard, permissionGuard],
-    data: { permissions: ['users.view'] },
-    title: 'Users — FINOOCEAN',
-    loadComponent: () =>
-      import('@shared/components/placeholder.component').then(
-        (m) => m.PlaceholderComponent,
-      ),
+    loadChildren: () =>
+      import('@features/users/users.routes').then((m) => m.usersRoutes),
   },
   {
     path: 'unauthorized',

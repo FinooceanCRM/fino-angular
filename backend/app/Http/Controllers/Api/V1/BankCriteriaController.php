@@ -21,7 +21,7 @@ class BankCriteriaController extends BaseApiController
     {
         $this->authorize('viewAny', BankCriteria::class);
 
-        $paginator = $this->banks->paginate([
+        $paginator = $this->banks->paginate($request->user(), [
             'search' => $request->query('search'),
             'loan_type' => $request->query('loan_type'),
             'is_active' => $request->query('is_active'),
@@ -50,7 +50,7 @@ class BankCriteriaController extends BaseApiController
     {
         $this->authorize('create', BankCriteria::class);
 
-        $created = $this->banks->create($request->validated());
+        $created = $this->banks->create($request->user(), $request->validated());
 
         return $this->respondCreated(
             (new BankCriteriaResource($created))->resolve($request),
@@ -62,7 +62,7 @@ class BankCriteriaController extends BaseApiController
     {
         $this->authorize('update', $bank);
 
-        $updated = $this->banks->update($bank, $request->validated());
+        $updated = $this->banks->update($request->user(), $bank, $request->validated());
 
         return $this->respondSuccess(
             (new BankCriteriaResource($updated))->resolve($request),

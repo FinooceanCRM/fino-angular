@@ -1,0 +1,46 @@
+<div class="report-page__header">
+  <app-page-header title="Banker Reports" subtitle="Leads handled by the bankers engaged with your pipeline." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<mat-card class="report-page__range">
+  <mat-card-content>
+    <form class="report-page__range-form" [formGroup]="range">
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="from" />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="to" />
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<div class="report-page__summary">
+  <app-stat-card icon="account_balance" [value]="summary().bankers" label="Bankers engaged" accent="primary" />
+  <app-stat-card icon="assignment" [value]="summary().total" label="Leads handled" accent="accent" />
+  <app-stat-card icon="trending_up" [value]="summary().avgConversion + '%'" label="Avg. conversion rate" />
+</div>
+
+<mat-card class="report-page__chart-card report-page__chart-card--full">
+  <mat-card-header>
+    <mat-card-title>Leads handled by banker</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <app-horizontal-bar-list [data]="barData()" />
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="report-page__table-card">
+  <mat-card-header>
+    <mat-card-title>Banker breakdown</mat-card-title>
+  </mat-card-header>
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="rows()" emptyMessage="No bankers have leads in the selected range." />
+  </mat-card-content>
+</mat-card>

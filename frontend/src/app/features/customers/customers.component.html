@@ -1,0 +1,88 @@
+<div class="customers__header">
+  <app-page-header title="Customer Management" subtitle="Customers linked to your leads." />
+  <button mat-flat-button color="primary" type="button" (click)="addCustomer()">
+    <mat-icon>add</mat-icon>
+    Add customer
+  </button>
+</div>
+
+<mat-card class="customers__toolbar">
+  <mat-card-content>
+    <div class="customers__filters">
+      <mat-form-field appearance="outline" class="customers__search">
+        <mat-label>Search</mat-label>
+        <input matInput [ngModel]="search()" (ngModelChange)="search.set($event)" placeholder="Name, email or phone" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <mat-option value="all">All statuses</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="prospect">Prospect</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Segment</mat-label>
+        <mat-select [ngModel]="segmentFilter()" (ngModelChange)="segmentFilter.set($event)">
+          <mat-option value="all">All segments</mat-option>
+          <mat-option value="Retail">Retail</mat-option>
+          <mat-option value="SME">SME</mat-option>
+          <mat-option value="Corporate">Corporate</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="customers__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="pagedCustomers()"
+      emptyMessage="No customers match the current filters."
+      [length]="filteredCustomers().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      itemLabel="customers"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="name" let-row>
+        <div class="customers__name-cell">
+          <span class="customers__avatar">{{ initials(row) }}</span>
+          <span class="customers__name">{{ row.name }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="contact" let-row>
+        <div class="customers__contact">
+          <span>{{ row.email }}</span>
+          <span class="customers__contact-sub">{{ row.phone }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="linked_leads" let-row>
+        <span class="customers__chip">{{ row.linked_lead_ids.length }} lead{{ row.linked_lead_ids.length === 1 ? '' : 's' }}</span>
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="statusLabel(row)" [colour]="statusColour(row)" />
+      </ng-template>
+
+      <ng-template appTableCell="created_at" let-row>
+        {{ row.created_at | date: 'mediumDate' }}
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <a mat-icon-button class="row-action row-action--view" [routerLink]="['/customers', row.id]" matTooltip="View profile" aria-label="View customer profile">
+          <mat-icon>visibility</mat-icon>
+        </a>
+        <button mat-icon-button class="row-action row-action--edit" type="button" matTooltip="Edit" aria-label="Edit customer" (click)="edit(row)">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

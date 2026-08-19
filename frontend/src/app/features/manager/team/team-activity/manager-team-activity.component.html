@@ -1,0 +1,13 @@
+@if (entries().length === 0) {
+  <app-empty-state icon="history" message="No recorded activity for this team yet." />
+} @else {
+  <mat-card class="team-activity__card">
+    <mat-card-header>
+      <mat-card-title>Recent activity</mat-card-title>
+      <mat-card-subtitle>Actions taken by or on behalf of your team, most recent first</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <app-timeline [entries]="entries()" />
+    </mat-card-content>
+  </mat-card>
+}

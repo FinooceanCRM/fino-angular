@@ -19,18 +19,21 @@ class BankCriteriaPolicy
         return $actor->is_active;
     }
 
+    /** Super Admin manages every bank's criteria; a Banker manages their own. */
     public function create(User $actor): bool
     {
-        return $actor->roleEnum() === UserRole::SuperAdmin;
+        return in_array($actor->roleEnum(), [UserRole::SuperAdmin, UserRole::Banker], true);
     }
 
     public function update(User $actor, BankCriteria $criteria): bool
     {
-        return $actor->roleEnum() === UserRole::SuperAdmin;
+        return $actor->roleEnum() === UserRole::SuperAdmin
+            || ($actor->roleEnum() === UserRole::Banker && $criteria->banker_id === $actor->id);
     }
 
     public function delete(User $actor, BankCriteria $criteria): bool
     {
-        return $actor->roleEnum() === UserRole::SuperAdmin;
+        return $actor->roleEnum() === UserRole::SuperAdmin
+            || ($actor->roleEnum() === UserRole::Banker && $criteria->banker_id === $actor->id);
     }
 }

@@ -1,0 +1,148 @@
+@if (customer(); as data) {
+  <app-entity-header [title]="data.name" idLabel="Segment" [idValue]="data.segment" [statusLabel]="statusLabel()" [statusColour]="statusColour()">
+    <a mat-stroked-button routerLink="/customers">
+      <mat-icon>arrow_back</mat-icon>
+      Back to customers
+    </a>
+    <button mat-flat-button color="primary" type="button" (click)="edit()">
+      <mat-icon>edit</mat-icon>
+      Edit
+    </button>
+  </app-entity-header>
+
+  <mat-card class="profile__contact">
+    <mat-card-content class="profile__contact-grid">
+      <div class="profile__field">
+        <mat-icon>mail</mat-icon>
+        <span><span class="profile__label">Email</span><strong>{{ data.email }}</strong></span>
+      </div>
+      <div class="profile__field">
+        <mat-icon>call</mat-icon>
+        <span><span class="profile__label">Phone</span><strong>{{ data.phone }}</strong></span>
+      </div>
+      <div class="profile__field">
+        <mat-icon>event</mat-icon>
+        <span><span class="profile__label">Customer since</span><strong>{{ data.created_at | date: 'mediumDate' }}</strong></span>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <div class="profile__columns">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Linked leads</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        @if (linkedLeads().length > 0) {
+          <ul class="linked-leads">
+            @for (lead of linkedLeads(); track lead.id) {
+              <li>
+                <span class="linked-leads__ref">{{ lead.reference }}</span>
+                <span class="linked-leads__loan">{{ loanTypeLabel(lead.loan_type) }} · {{ lead.loan_amount | currency: 'INR' : 'symbol' : '1.0-0' }}</span>
+                <app-status-pill [label]="lead.status_label" [colour]="lead.status_colour" />
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state icon="assignment" message="No leads linked yet." />
+        }
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Notes</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <div class="notes__add">
+          <mat-form-field appearance="outline" class="notes__field">
+            <mat-label>Add a note</mat-label>
+            <textarea matInput rows="2" [ngModel]="noteText()" (ngModelChange)="noteText.set($event)"></textarea>
+          </mat-form-field>
+          <button mat-stroked-button type="button" [disabled]="!noteText().trim()" (click)="addNote()">
+            <mat-icon>add</mat-icon>
+            Add note
+          </button>
+        </div>
+
+        @if (notes().length > 0) {
+          <ul class="notes__list">
+            @for (note of notes(); track note.id) {
+              <li>
+                <p class="notes__text">{{ note.text }}</p>
+                <p class="notes__meta">{{ note.author }} · {{ note.created_at | date: 'mediumDate' }}</p>
+              </li>
+            }
+          </ul>
+        } @else {
+          <app-empty-state icon="edit_note" message="No notes yet." />
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <mat-card class="profile__documents">
+    <mat-card-header>
+      <mat-card-title>Documents</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <mat-form-field appearance="outline" class="documents__type">
+        <mat-label>Document type</mat-label>
+        <mat-select [ngModel]="documentType()" (ngModelChange)="documentType.set($event)">
+          @for (type of documentTypes; track type.value) {
+            <mat-option [value]="type.value">{{ type.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <div
+        class="dropzone"
+        [class.dropzone--active]="dragging()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave()"
+        (drop)="onDrop($event)"
+      >
+        <mat-icon>cloud_upload</mat-icon>
+        <p>
+          Drag a file here or
+          <label class="dropzone__browse">
+            browse
+            <input type="file" (change)="onFileSelected($event)" hidden />
+          </label>
+        </p>
+        <p class="dropzone__hint">Mock upload — no file is actually stored in this demo.</p>
+      </div>
+
+      @if (documents().length > 0) {
+        <ul class="documents__list">
+          @for (doc of documents(); track doc.id) {
+            <li>
+              <mat-icon>description</mat-icon>
+              <div class="documents__body">
+                <span class="documents__title">{{ documentTypeLabel(doc.document_type) }} — {{ doc.file_name }}</span>
+                <span class="documents__meta">
+                  <app-status-pill [label]="docStatusLabel(doc.status)" [colour]="docStatusColour(doc.status)" />
+                  {{ doc.uploaded_at | date: 'mediumDate' }}
+                </span>
+              </div>
+              <button mat-button type="button" (click)="preview(doc.id)">Preview</button>
+            </li>
+          }
+        </ul>
+      } @else {
+        <app-empty-state icon="folder_off" message="No documents uploaded yet." />
+      }
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="profile__activity">
+    <mat-card-header>
+      <mat-card-title>Activity History</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-timeline [entries]="activity()" />
+    </mat-card-content>
+  </mat-card>
+} @else {
+  <app-empty-state icon="search_off" message="This customer could not be found." />
+}

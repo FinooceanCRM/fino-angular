@@ -1,0 +1,56 @@
+.lead-form__card {
+  border-radius: var(--app-radius-md);
+}
+
+.lead-form__stepper {
+  background: transparent;
+}
+
+.lead-form__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--app-space-3);
+  padding-top: var(--app-space-4);
+}
+
+.lead-form__span-2 {
+  grid-column: 1 / -1;
+}
+
+.lead-form__title {
+  margin: var(--app-space-4) 0 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.lead-form__hint {
+  margin: var(--app-space-4) 0 0;
+  color: var(--app-status-default-fg);
+}
+
+.lead-form__step-actions {
+  display: flex;
+  gap: var(--app-space-3);
+  align-items: center;
+  margin-top: var(--app-space-4);
+}
+
+.lead-form__review {
+  display: grid;
+  gap: var(--app-space-3);
+  padding-top: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.lead-form__review-label {
+  display: block;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-status-default-fg);
+  margin-bottom: var(--app-space-1);
+}
+
+.lead-form__notice {
+  margin-bottom: var(--app-space-4);
+}

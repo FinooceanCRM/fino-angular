@@ -1,0 +1,7 @@
+.follow-ups__tabs {
+  margin-top: var(--app-space-4);
+
+  ::ng-deep .mat-mdc-tab-body-content {
+    padding-top: var(--app-space-4);
+  }
+}

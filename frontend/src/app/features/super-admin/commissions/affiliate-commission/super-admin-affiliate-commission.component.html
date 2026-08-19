@@ -1,0 +1,59 @@
+<div class="commission-page__header">
+  <app-page-header title="Affiliate Commission" subtitle="Referral partners outside the connector hierarchy." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<div class="commission-page__summary">
+  <app-stat-card icon="groups" [value]="summary().totalAffiliates" label="Total affiliates" accent="primary" />
+  <app-stat-card icon="link" [value]="summary().totalReferrals" label="Total referrals" accent="accent" />
+  <app-stat-card icon="payments" [value]="'₹' + (summary().totalEarned | number: '1.0-0')" label="Commission earned" />
+  <app-stat-card icon="trending_up" [value]="summary().conversionRate + '%'" label="Conversion rate" />
+</div>
+
+<mat-card class="commission-page__toolbar">
+  <mat-card-content>
+    <form class="commission-page__filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Name, email or referral code" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Tier</mat-label>
+        <mat-select formControlName="tier">
+          <mat-option value="">All tiers</mat-option>
+          <mat-option value="Gold">Gold</mat-option>
+          <mat-option value="Silver">Silver</mat-option>
+          <mat-option value="Bronze">Bronze</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="commission-page__table-card">
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="filteredRows()" emptyMessage="No affiliates match the current filters.">
+      <ng-template appTableCell="tier" let-row>
+        <app-status-pill
+          [label]="row.tier"
+          [colour]="row.tier === 'Gold' ? 'success' : row.tier === 'Silver' ? 'primary' : 'default'"
+        />
+      </ng-template>
+
+      <ng-template appTableCell="earned" let-row>
+        ₹{{ row.commission_earned | number: '1.0-0' }} ({{ row.commission_rate }}%)
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.status === 'active' ? 'Active' : 'Inactive'"
+          [colour]="row.status === 'active' ? 'success' : 'default'"
+        />
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

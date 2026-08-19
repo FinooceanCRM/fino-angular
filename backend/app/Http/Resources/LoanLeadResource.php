@@ -2,7 +2,11 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\UserRole;
+use App\Models\LeadAccessRequest;
 use App\Models\LoanLead;
+use App\Models\User;
+use App\Services\LeadAccessRequestService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -17,14 +21,28 @@ class LoanLeadResource extends JsonResource
     public function toArray(Request $request): array
     {
         $status = $this->statusEnum();
+        $actor = $request->user();
+        $isBanker = $actor?->roleEnum() === UserRole::Banker;
+        $fullAccess = ! $isBanker || LeadAccessRequest::grantsFullAccess($this->id, $actor->id);
+
+        $details = $this->details;
+        if ($isBanker && ! $fullAccess && is_array($details)) {
+            foreach (['alternative_phone', 'current_address', 'landmark'] as $key) {
+                if (array_key_exists($key, $details)) {
+                    $details[$key] = null;
+                }
+            }
+        }
 
         return [
             'id' => $this->id,
             'reference' => $this->reference,
             'applicant_name' => $this->applicant_name,
-            'applicant_email' => $this->applicant_email,
-            'applicant_phone' => $this->applicant_phone,
+            'applicant_email' => $isBanker && ! $fullAccess ? null : $this->applicant_email,
+            'applicant_phone' => $isBanker && ! $fullAccess ? null : $this->applicant_phone,
             'loan_type' => $this->loan_type,
+            'department' => $this->department?->value,
+            'department_label' => $this->department?->label(),
             'loan_amount' => (float) $this->loan_amount,
             'tenure_months' => $this->tenure_months,
             'monthly_income' => $this->monthly_income !== null ? (float) $this->monthly_income : null,
@@ -37,14 +55,31 @@ class LoanLeadResource extends JsonResource
             'status_label' => $status->label(),
             'status_colour' => $status->colour(),
             'notes' => $this->notes,
+            'details' => $details,
             'connector' => $this->userSummary($this->whenLoaded('connector')),
             'assigned_employee' => $this->userSummary($this->whenLoaded('assignedEmployee')),
             'assigned_relationship_manager' => $this->userSummary($this->whenLoaded('assignedRelationshipManager')),
             'assigned_manager' => $this->userSummary($this->whenLoaded('assignedManager')),
+            'assigned_banker' => $this->userSummary($this->whenLoaded('assignedBanker')),
             'created_by' => $this->userSummary($this->whenLoaded('creator')),
             'updated_by' => $this->userSummary($this->whenLoaded('updater')),
+            'pd_completed_at' => optional($this->pd_completed_at)->toIso8601String(),
+            'pd_completed_by' => $this->userSummary($this->whenLoaded('pdCompletedBy')),
             'created_at' => optional($this->created_at)->toIso8601String(),
             'updated_at' => optional($this->updated_at)->toIso8601String(),
+            // Banker-workspace-only flags. `full_access` is meaningful (and
+            // always true) for every other role too, so the frontend can
+            // gate purely off this field without knowing whose role it is.
+            'full_access' => $fullAccess,
+            'match_score' => $isBanker
+                ? app(LeadAccessRequestService::class)->matchScoreFor($actor, $this->resource)
+                : null,
+            // Mirrors LoanLeadPolicy::changeStatus()/assign() so the
+            // frontend can hide the Change Status / Assign forms for
+            // whoever can't actually use them (e.g. an Employee once the
+            // lead has been reassigned) without re-deriving the policy.
+            'can_change_status' => $actor !== null && $actor->can('changeStatus', $this->resource),
+            'can_assign' => $actor !== null && $actor->can('assign', $this->resource),
         ];
     }
 
@@ -53,7 +88,7 @@ class LoanLeadResource extends JsonResource
      */
     private function userSummary(mixed $user): ?array
     {
-        if (! $user instanceof \App\Models\User) {
+        if (! $user instanceof User) {
             return null;
         }
 
@@ -61,7 +96,7 @@ class LoanLeadResource extends JsonResource
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
-            'role' => $user->role instanceof \App\Enums\UserRole ? $user->role->value : (string) $user->role,
+            'role' => $user->role instanceof UserRole ? $user->role->value : (string) $user->role,
         ];
     }
 }

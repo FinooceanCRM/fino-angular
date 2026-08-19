@@ -2,11 +2,13 @@
 
 namespace App\Services;
 
+use App\Enums\LeadStatus;
 use App\Enums\UserRole;
 use App\Exceptions\DomainException;
 use App\Models\Connector;
 use App\Models\User;
 use App\Repositories\Contracts\ConnectorRepositoryInterface;
+use App\Repositories\Contracts\LoanLeadRepositoryInterface;
 
 /**
  * Business rules for the Connector module.
@@ -18,6 +20,7 @@ class ConnectorService extends BaseService
 {
     public function __construct(
         private readonly ConnectorRepositoryInterface $connectors,
+        private readonly LoanLeadRepositoryInterface $leads,
     ) {
     }
 
@@ -103,6 +106,21 @@ class ConnectorService extends BaseService
                 'status' => $user->is_active ? 'Active' : 'Inactive',
                 'profile_complete' => $this->isProfileComplete($profile),
             ],
+            'stats' => $this->statsFor($user),
+        ];
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function statsFor(User $user): array
+    {
+        $statusCounts = $this->leads->statusCounts($user);
+
+        return [
+            'leads_submitted' => array_sum($statusCounts),
+            'approved_leads' => (int) ($statusCounts[LeadStatus::Approved->value] ?? 0),
+            'in_progress_leads' => (int) ($statusCounts[LeadStatus::InProgress->value] ?? 0),
         ];
     }
 

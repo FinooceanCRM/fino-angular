@@ -1,0 +1,49 @@
+<app-page-header title="Search" subtitle="Leads, Users, Employees, Connectors and Bankers — one search across the platform." />
+
+<mat-form-field appearance="outline" class="search-results__field">
+  <mat-label>Search</mat-label>
+  <input
+    matInput
+    [(ngModel)]="queryText"
+    (keydown.enter)="submit()"
+    placeholder="Search by name, email, phone or lead reference"
+  />
+  <mat-icon matPrefix>search</mat-icon>
+</mat-form-field>
+
+<mat-chip-listbox
+  class="search-results__filters"
+  [value]="activeType()"
+  (change)="setType($event.value)"
+  aria-label="Filter by category"
+>
+  <mat-chip-option value="">All ({{ totalCount() }})</mat-chip-option>
+  @for (type of types; track type) {
+    <mat-chip-option [value]="type">{{ typeLabel[type] }} ({{ counts()[type] }})</mat-chip-option>
+  }
+</mat-chip-listbox>
+
+@if (!term().trim()) {
+  <app-empty-state icon="search" message="Enter a search term to look across leads, users, employees, connectors and bankers." />
+} @else if (results().length === 0) {
+  <app-empty-state icon="search_off" [message]="'No matches for “' + term() + '”.'" />
+} @else {
+  <mat-card class="search-results__card">
+    <mat-card-content>
+      <ul class="search-results__list">
+        @for (item of results(); track item.id) {
+          <li class="search-results__item" (click)="select(item)">
+            <span class="search-results__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+            <span class="search-results__text">
+              <span class="search-results__title">{{ item.title }}</span>
+              <span class="search-results__subtitle">{{ item.subtitle }}</span>
+            </span>
+            <span class="search-results__category">{{ typeLabel[item.type] }}</span>
+            <span class="search-results__meta">{{ item.meta }}</span>
+            <mat-icon class="search-results__chevron">chevron_right</mat-icon>
+          </li>
+        }
+      </ul>
+    </mat-card-content>
+  </mat-card>
+}

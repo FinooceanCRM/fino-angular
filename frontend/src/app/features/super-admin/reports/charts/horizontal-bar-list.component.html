@@ -1,0 +1,20 @@
+@if (bars().length === 0) {
+  <p class="bar-list__empty">No data for the selected range.</p>
+} @else {
+  <div class="bar-list">
+    @for (bar of bars(); track bar.label) {
+      <div class="bar-list__row">
+        <span class="bar-list__label">{{ bar.label }}</span>
+        <div class="bar-list__track">
+          <div
+            class="bar-list__fill"
+            [style.width.%]="bar.percent"
+            [style.background]="bar.colour ?? 'var(--mat-sys-primary)'"
+            [title]="bar.label + ': ' + valuePrefix() + bar.value"
+          ></div>
+        </div>
+        <span class="bar-list__value">{{ valuePrefix() }}{{ bar.value | number: '1.0-0' }}</span>
+      </div>
+    }
+  </div>
+}

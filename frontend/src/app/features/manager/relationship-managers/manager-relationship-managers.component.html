@@ -1,0 +1,27 @@
+<app-page-header
+  title="Relationship Managers"
+  subtitle="Create, edit and reassign the Relationship Managers reporting to you"
+/>
+
+<mat-tab-group>
+  <mat-tab label="Directory">
+    <div class="manager-rm__tab-body">
+      <app-manager-team-table role="relationship_manager" />
+    </div>
+  </mat-tab>
+  <mat-tab label="Team Hierarchy">
+    <div class="manager-rm__tab-body">
+      <app-manager-team-hierarchy />
+    </div>
+  </mat-tab>
+  <mat-tab label="Performance">
+    <div class="manager-rm__tab-body">
+      <app-manager-team-performance role="relationship_manager" />
+    </div>
+  </mat-tab>
+  <mat-tab label="Activity">
+    <div class="manager-rm__tab-body">
+      <app-manager-team-activity [names]="rmNames()" />
+    </div>
+  </mat-tab>
+</mat-tab-group>

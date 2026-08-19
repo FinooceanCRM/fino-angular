@@ -1,0 +1,70 @@
+@if (rm(); as row) {
+  <app-entity-header
+    [title]="row.name"
+    idLabel="Email"
+    [idValue]="row.email"
+    [statusLabel]="row.is_active ? 'Active' : 'Inactive'"
+    [statusColour]="row.is_active ? 'success' : 'default'"
+  >
+    <a mat-stroked-button routerLink="/manager/relationship-managers">
+      <mat-icon>arrow_back</mat-icon>
+      Back to directory
+    </a>
+    <button mat-stroked-button type="button" (click)="editRm()">
+      <mat-icon>edit</mat-icon>
+      Edit
+    </button>
+    <button mat-flat-button [color]="row.is_active ? 'warn' : 'primary'" type="button" (click)="toggleActive()">
+      <mat-icon>{{ row.is_active ? 'block' : 'check_circle' }}</mat-icon>
+      {{ row.is_active ? 'Deactivate' : 'Activate' }}
+    </button>
+  </app-entity-header>
+
+  <div class="rm-detail__columns">
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Profile</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="rm-detail__grid">
+        <div><span class="rm-detail__label">Phone</span><strong>{{ row.phone ?? '—' }}</strong></div>
+        <div><span class="rm-detail__label">Joined</span><strong>{{ row.created_at | date: 'mediumDate' }}</strong></div>
+        <div><span class="rm-detail__label">Reports to</span><strong>{{ team.manager()?.name ?? '—' }}</strong></div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>{{ teamMembers().length }} employee(s)</mat-card-title>
+        <mat-card-subtitle>Employees assigned to this Relationship Manager</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (teamMembers().length === 0) {
+          <p class="rm-detail__muted">No employees assigned yet.</p>
+        } @else {
+          <mat-list>
+            @for (member of teamMembers(); track member.id) {
+              <mat-list-item>
+                <span matListItemTitle>{{ member.name }}</span>
+                <span matListItemLine>
+                  {{ member.email }} ·
+                  <app-status-pill
+                    [label]="member.is_active ? 'Active' : 'Inactive'"
+                    [colour]="member.is_active ? 'success' : 'default'"
+                  />
+                </span>
+              </mat-list-item>
+            }
+          </mat-list>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <h2 class="rm-detail__section-title">Performance</h2>
+  <app-manager-team-performance-cards [userId]="row.id" />
+
+  <h2 class="rm-detail__section-title">Activity</h2>
+  <app-manager-team-activity [names]="[row.name]" />
+} @else {
+  <app-empty-state icon="person_off" message="This Relationship Manager could not be found." />
+}

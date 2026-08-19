@@ -1,0 +1,112 @@
+.statistics-card {
+  border-radius: var(--app-radius-md);
+  box-shadow: var(--app-shadow-sm);
+  height: 100%;
+}
+
+.statistics-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.statistics-card__header {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.statistics-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--app-status-default-bg);
+  color: var(--app-status-default-fg);
+}
+
+.statistics-card--primary .statistics-card__icon {
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-primary);
+}
+
+.statistics-card--accent .statistics-card__icon {
+  background: var(--mat-sys-tertiary-container);
+  color: var(--mat-sys-tertiary);
+}
+
+.statistics-card--warn .statistics-card__icon {
+  background: var(--app-status-warn-bg);
+  color: var(--app-status-warn-fg);
+}
+
+.statistics-card__headline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.statistics-card__value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  color: var(--mat-sys-on-surface);
+}
+
+.statistics-card__title {
+  font-size: 0.85rem;
+  color: var(--app-status-default-fg);
+}
+
+.statistics-card__subtitle {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--app-status-default-fg);
+}
+
+.statistics-card__breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding-top: var(--app-space-2);
+  border-top: 1px solid var(--mat-sys-outline-variant);
+}
+
+.statistics-card__row {
+  display: grid;
+  grid-template-columns: 88px 1fr 32px;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.statistics-card__row-label {
+  font-size: 0.75rem;
+  color: var(--app-status-default-fg);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statistics-card__track {
+  height: 6px;
+  border-radius: var(--app-radius-pill);
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.statistics-card__fill {
+  height: 100%;
+  border-radius: var(--app-radius-pill);
+}
+
+.statistics-card__row-value {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}

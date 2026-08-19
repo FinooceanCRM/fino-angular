@@ -1,0 +1,110 @@
+@if (showHeader()) {
+  <app-task-bucket-nav />
+  <div class="tasks__header">
+    <app-page-header [title]="title()" [subtitle]="subtitle()" />
+    <button mat-flat-button color="primary" type="button" (click)="newTask()">
+      <mat-icon>add</mat-icon>
+      New {{ type() ?? 'task' }}
+    </button>
+  </div>
+} @else {
+  <div class="tasks__header tasks__header--embedded">
+    <button mat-stroked-button type="button" (click)="newTask()">
+      <mat-icon>add</mat-icon>
+      New {{ type() ?? 'task' }}
+    </button>
+  </div>
+}
+
+@if (showStats()) {
+  <div class="tasks__stats">
+    <app-stat-card icon="checklist" [value]="counts().open" label="Open" accent="primary" />
+    <app-stat-card icon="warning" [value]="counts().overdue" label="Overdue" accent="warn" />
+    <app-stat-card icon="today" [value]="counts().dueToday" label="Due today" accent="accent" />
+    <app-stat-card icon="task_alt" [value]="counts().completed" label="Completed" accent="default" />
+  </div>
+}
+
+<mat-card class="tasks__toolbar">
+  <mat-card-content>
+    <div class="tasks__filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <mat-option value="all">All statuses</mat-option>
+          <mat-option value="pending">Open</mat-option>
+          <mat-option value="completed">Completed</mat-option>
+          <mat-option value="cancelled">Cancelled</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Priority</mat-label>
+        <mat-select [ngModel]="priorityFilter()" (ngModelChange)="priorityFilter.set($event)">
+          <mat-option value="all">All priorities</mat-option>
+          <mat-option value="low">Low</mat-option>
+          <mat-option value="medium">Medium</mat-option>
+          <mat-option value="high">High</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Due</mat-label>
+        <mat-select [ngModel]="dueFilter()" (ngModelChange)="dueFilter.set($event)">
+          <mat-option value="all">Any time</mat-option>
+          <mat-option value="overdue">Overdue</mat-option>
+          <mat-option value="due_today">Due today</mat-option>
+          <mat-option value="upcoming">Upcoming</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="tasks__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns()"
+      [rows]="pagedTasks()"
+      emptyMessage="No tasks match the current filters."
+      [length]="filteredTasks().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      itemLabel="tasks"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="type" let-row>
+        <span class="type-cell"><mat-icon>{{ typeIcon(row) }}</mat-icon>{{ typeLabel(row) }}</span>
+      </ng-template>
+
+      <ng-template appTableCell="priority" let-row>
+        <span class="priority-dot" [class]="'priority-dot--' + row.priority">{{ priorityLabel(row) }}</span>
+      </ng-template>
+
+      <ng-template appTableCell="dueAt" let-row>
+        {{ row.dueAt | date: 'mediumDate' }}
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="statusLabel(row)" [colour]="statusColour(row)" />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <button mat-icon-button class="row-action row-action--view" type="button" matTooltip="View" aria-label="View task" (click)="view(row)">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        @if (row.status === 'pending') {
+          <button mat-icon-button class="row-action row-action--edit" type="button" matTooltip="Mark complete" aria-label="Mark complete" (click)="complete(row)">
+            <mat-icon>task_alt</mat-icon>
+          </button>
+          <button mat-icon-button class="row-action row-action--edit" type="button" matTooltip="Reschedule" aria-label="Reschedule" (click)="reschedule(row)">
+            <mat-icon>event</mat-icon>
+          </button>
+          <button mat-icon-button class="row-action row-action--delete" type="button" matTooltip="Cancel" aria-label="Cancel task" (click)="cancel(row)">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

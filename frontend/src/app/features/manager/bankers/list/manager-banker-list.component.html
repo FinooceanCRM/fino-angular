@@ -1,0 +1,52 @@
+<app-page-header title="Bankers" subtitle="Every banker on the platform, matched against your leads" />
+
+<mat-card class="banker-list__toolbar">
+  <mat-card-content>
+    <form class="banker-list__filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
+      <mat-form-field appearance="outline" class="banker-list__search">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Name or email" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="">All</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">
+        <mat-icon>filter_alt</mat-icon>
+        Apply
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="banker-list__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="pagedRows()"
+      emptyMessage="No bankers match the current filters."
+      [length]="filteredRows().length"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      itemLabel="bankers"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="bank" let-row>
+        {{ bankers.bankNameFor(row.id) }}
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.is_active ? 'Active' : 'Inactive'"
+          [colour]="row.is_active ? 'success' : 'default'"
+        />
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

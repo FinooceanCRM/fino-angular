@@ -1,0 +1,27 @@
+<app-page-header
+  title="Follow-ups"
+  subtitle="Scheduled calls, meetings, tasks and reminders across your leads and team"
+/>
+
+<mat-tab-group>
+  <mat-tab label="Calls">
+    <div class="rm-follow-ups__tab-body">
+      <app-relationship-manager-activity-list type="call" />
+    </div>
+  </mat-tab>
+  <mat-tab label="Meetings">
+    <div class="rm-follow-ups__tab-body">
+      <app-relationship-manager-activity-list type="meeting" />
+    </div>
+  </mat-tab>
+  <mat-tab label="Tasks">
+    <div class="rm-follow-ups__tab-body">
+      <app-relationship-manager-activity-list type="task" />
+    </div>
+  </mat-tab>
+  <mat-tab label="Reminders">
+    <div class="rm-follow-ups__tab-body">
+      <app-relationship-manager-activity-list type="reminder" />
+    </div>
+  </mat-tab>
+</mat-tab-group>

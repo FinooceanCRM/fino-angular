@@ -8,8 +8,10 @@ import { MatIconModule } from '@angular/material/icon';
   imports: [MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="empty-state">
-      <mat-icon class="icon">{{ icon() }}</mat-icon>
+    <div class="empty-state app-animate-in">
+      <span class="icon-badge">
+        <mat-icon class="icon">{{ icon() }}</mat-icon>
+      </span>
       <p class="message">{{ message() }}</p>
       <ng-content select="[empty-action]" />
     </div>
@@ -20,19 +22,29 @@ import { MatIconModule } from '@angular/material/icon';
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 0.5rem;
-        padding: 2.5rem 1rem;
+        gap: 0.75rem;
+        padding: 2.75rem 1rem;
         text-align: center;
       }
+      .icon-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--app-status-default-bg);
+      }
       .icon {
-        font-size: 2.5rem;
-        width: 2.5rem;
-        height: 2.5rem;
-        opacity: 0.5;
+        font-size: 1.75rem;
+        width: 1.75rem;
+        height: 1.75rem;
+        color: var(--app-status-default-fg);
       }
       .message {
         margin: 0;
-        opacity: 0.7;
+        color: var(--app-status-default-fg);
+        font-size: 0.9rem;
       }
     `,
   ],

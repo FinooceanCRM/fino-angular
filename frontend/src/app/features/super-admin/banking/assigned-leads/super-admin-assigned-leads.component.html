@@ -1,0 +1,49 @@
+<app-page-header title="Assigned Leads" subtitle="Assign or reassign the banker responsible for each lead." />
+
+<mat-card class="assigned-leads__toolbar">
+  <mat-card-content>
+    <form class="assigned-leads__filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Search by name or reference" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Banker</mat-label>
+        <mat-select formControlName="banker">
+          <mat-option value="">All leads</mat-option>
+          <mat-option value="assigned">Assigned</mat-option>
+          <mat-option value="unassigned">Unassigned</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="assigned-leads__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="filteredRows()"
+      emptyMessage="No leads match the current filters."
+    >
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+      </ng-template>
+
+      <ng-template appTableCell="banker" let-row>
+        @if (row.assigned_banker) {
+          <app-status-pill [label]="row.assigned_banker.name" colour="primary" />
+        } @else {
+          <app-status-pill label="Unassigned" colour="default" />
+        }
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <button mat-stroked-button type="button" (click)="assign(row)">
+          {{ row.assigned_banker ? 'Reassign' : 'Assign banker' }}
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

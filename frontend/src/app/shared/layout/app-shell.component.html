@@ -1,0 +1,38 @@
+<app-topbar (menuToggle)="sidenavOpened.set(!sidenavOpened())" />
+
+@if (auth.isAuthenticated()) {
+  <mat-sidenav-container class="shell-container">
+    <mat-sidenav
+      class="shell-sidenav"
+      [class.shell-sidenav--collapsed]="!isHandset() && railCollapsed()"
+      [mode]="isHandset() ? 'over' : 'side'"
+      [opened]="sidenavOpened()"
+    >
+      <app-sidebar class="shell-sidenav__nav" [collapsed]="!isHandset() && railCollapsed()" />
+
+      @if (!isHandset()) {
+        <button
+          type="button"
+          class="shell-sidenav__collapse-toggle"
+          (click)="railCollapsed.set(!railCollapsed())"
+        >
+          <mat-icon>{{ railCollapsed() ? 'chevron_right' : 'chevron_left' }}</mat-icon>
+          @if (!railCollapsed()) {
+            <span>Collapse</span>
+          }
+        </button>
+      }
+    </mat-sidenav>
+
+    <mat-sidenav-content class="shell-content">
+      <main class="content-inner">
+        <app-breadcrumb />
+        <router-outlet />
+      </main>
+    </mat-sidenav-content>
+  </mat-sidenav-container>
+} @else {
+  <main class="content-inner guest-content">
+    <router-outlet />
+  </main>
+}

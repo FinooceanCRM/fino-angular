@@ -1,0 +1,54 @@
+<div class="commission-page__header">
+  <app-page-header title="Payouts" subtitle="The payout queue and payment history for connectors and affiliates." />
+  <button mat-stroked-button type="button" (click)="export()">
+    <mat-icon>download</mat-icon>
+    Export CSV
+  </button>
+</div>
+
+<div class="commission-page__summary">
+  <app-stat-card icon="receipt_long" [value]="summary().totalCount" label="Total payouts" accent="primary" />
+  <app-stat-card icon="hourglass_top" [value]="'₹' + (summary().pendingAmount | number: '1.0-0')" label="Pending amount" accent="accent" />
+  <app-stat-card icon="task_alt" [value]="'₹' + (summary().paidThisMonth | number: '1.0-0')" label="Paid — last 30 days" />
+  <app-stat-card icon="error_outline" [value]="summary().failedCount" label="Failed" />
+</div>
+
+<mat-card class="commission-page__toolbar">
+  <mat-card-content>
+    <div class="commission-page__filters">
+      <mat-button-toggle-group [value]="view()" (change)="view.set($event.value)">
+        <mat-button-toggle value="all">All</mat-button-toggle>
+        <mat-button-toggle value="queue">Pending queue</mat-button-toggle>
+        <mat-button-toggle value="history">Payment history</mat-button-toggle>
+        <mat-button-toggle value="failed">Failed</mat-button-toggle>
+      </mat-button-toggle-group>
+
+      <mat-form-field appearance="outline" class="commission-page__search">
+        <mat-label>Search</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Payee or reference" />
+      </mat-form-field>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="commission-page__table-card">
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="filteredRows()" emptyMessage="No payouts match the current filters.">
+      <ng-template appTableCell="amount" let-row> ₹{{ row.amount | number: '1.0-0' }} </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="row.status" [colour]="colourFor(row.status)" />
+      </ng-template>
+
+      <ng-template appTableCell="requested_at" let-row>
+        {{ row.requested_at | date: 'mediumDate' }}
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        @if (row.status === 'pending' || row.status === 'processing') {
+          <button mat-stroked-button type="button" (click)="markPaid(row)">Mark as paid</button>
+        }
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

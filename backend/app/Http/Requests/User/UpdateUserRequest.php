@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\User;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use App\Http\Requests\BaseFormRequest;
 use App\Models\User;
@@ -33,6 +34,7 @@ class UpdateUserRequest extends BaseFormRequest
             'manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'relationship_manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'employee_id' => ['prohibited'],
+            'department' => ['nullable', Rule::in(Department::values())],
             'phone' => ['nullable', 'string', 'max:32'],
             'is_active' => ['nullable', 'boolean'],
         ];

@@ -152,7 +152,19 @@ class LeadWorkflowTest extends TestCase
 
         $response->assertOk();
         $this->assertSame(1, $response->json('data.matched'));
-        $this->assertDatabaseCount('lead_matches', 1);
+
+        // Every evaluated bank is stored so the UI can show a percentage-wise
+        // breakdown, not just the ones that fully qualify.
+        $this->assertDatabaseCount('lead_matches', 2);
+        $this->assertDatabaseHas('lead_matches', [
+            'loan_lead_id' => $lead->id,
+            'status' => 'matched',
+            'match_score' => 100,
+        ]);
+        $this->assertDatabaseHas('lead_matches', [
+            'loan_lead_id' => $lead->id,
+            'status' => 'partial',
+        ]);
     }
 
     public function test_only_super_admin_can_create_bank_criteria(): void

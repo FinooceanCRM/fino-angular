@@ -20,6 +20,7 @@ export interface BankCriteria {
   interest_rate: number | null;
   eligibility_rules: EligibilityRule[];
   is_active: boolean;
+  banker_id: number | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -34,5 +35,6 @@ export interface BankCriteriaPayload {
   min_credit_score?: number | null;
   employment_type?: string | null;
   interest_rate?: number | null;
+  eligibility_rules?: EligibilityRule[];
   is_active: boolean;
 }

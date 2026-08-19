@@ -1,0 +1,99 @@
+<div class="notif-page__header">
+  <app-page-header title="Notifications" [subtitle]="subtitle()" />
+  <button mat-stroked-button type="button" (click)="markAllRead()">
+    <mat-icon>done_all</mat-icon>
+    Mark all as read
+  </button>
+</div>
+
+<div class="notif-page__summary">
+  <app-stat-card icon="notifications" [value]="summary().total" label="Total notifications" accent="primary" />
+  <app-stat-card icon="mark_email_unread" [value]="summary().unread" label="Unread" accent="accent" />
+  <app-stat-card icon="today" [value]="summary().today" label="Today" />
+</div>
+
+<mat-card class="notif-page__toolbar">
+  <mat-card-content>
+    <form class="notif-page__filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Search notifications" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Category</mat-label>
+        <mat-select formControlName="category">
+          <mat-option value="">All categories</mat-option>
+          @for (entry of categories; track entry[0]) {
+            <mat-option [value]="entry[0]">{{ entry[1] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <label class="notif-page__unread-toggle">
+        <input type="checkbox" formControlName="unreadOnly" />
+        Unread only
+      </label>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+@if (filteredItems().length === 0) {
+  <app-empty-state icon="notifications_none" message="No notifications match the current filters." />
+} @else {
+  @if (todayItems().length > 0) {
+    <h2 class="notif-page__section-title">Today</h2>
+    <mat-card class="notif-page__list-card">
+      <mat-card-content>
+        <ul class="notif-list">
+          @for (item of todayItems(); track item.id) {
+            <li class="notif-list__item" [class.notif-list__item--unread]="!item.is_read">
+              <span class="notif-list__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+              <span class="notif-list__body">
+                <span class="notif-list__title">
+                  {{ item.title }}
+                  <span class="notif-list__category">{{ categoryLabel[item.category] }}</span>
+                </span>
+                <span class="notif-list__text">{{ item.body }}</span>
+              </span>
+              <span class="notif-list__meta">
+                <span class="notif-list__time">{{ item.created_at | date: 'short' }}</span>
+                @if (!item.is_read) {
+                  <button mat-button (click)="markRead(item)">Mark read</button>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (earlierItems().length > 0) {
+    <h2 class="notif-page__section-title">Earlier</h2>
+    <mat-card class="notif-page__list-card">
+      <mat-card-content>
+        <ul class="notif-list">
+          @for (item of earlierItems(); track item.id) {
+            <li class="notif-list__item" [class.notif-list__item--unread]="!item.is_read">
+              <span class="notif-list__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+              <span class="notif-list__body">
+                <span class="notif-list__title">
+                  {{ item.title }}
+                  <span class="notif-list__category">{{ categoryLabel[item.category] }}</span>
+                </span>
+                <span class="notif-list__text">{{ item.body }}</span>
+              </span>
+              <span class="notif-list__meta">
+                <span class="notif-list__time">{{ item.created_at | date: 'medium' }}</span>
+                @if (!item.is_read) {
+                  <button mat-button (click)="markRead(item)">Mark read</button>
+                }
+              </span>
+            </li>
+          }
+        </ul>
+      </mat-card-content>
+    </mat-card>
+  }
+}

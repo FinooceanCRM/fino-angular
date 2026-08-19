@@ -1,0 +1,44 @@
+.audit-log__toolbar,
+.audit-log__table-card {
+  border-radius: var(--app-radius-md);
+  margin-top: var(--app-space-4);
+  margin-bottom: var(--app-space-4);
+}
+
+.audit-log__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-3);
+  align-items: center;
+}
+
+.audit-log__actor,
+.audit-log__entity {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+
+  span {
+    color: var(--app-status-default-fg);
+    font-size: 0.78rem;
+  }
+}
+
+.audit-log__action {
+  text-transform: capitalize;
+  font-size: 0.85rem;
+}
+
+.audit-log__category {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--mat-sys-primary);
+  background: var(--mat-sys-primary-container);
+  padding: 2px 8px;
+  border-radius: var(--app-radius-pill);
+  white-space: nowrap;
+}

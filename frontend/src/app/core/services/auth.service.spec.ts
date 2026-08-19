@@ -19,8 +19,14 @@ const user: AuthenticatedUser = {
   manager_id: null,
   relationship_manager_id: null,
   employee_id: null,
+  department: null,
+  department_label: null,
   phone: null,
   is_active: true,
+  email_notifications: true,
+  sms_notifications: true,
+  notify_on_assignment: true,
+  notify_on_approval: true,
   created_at: null,
 };
 

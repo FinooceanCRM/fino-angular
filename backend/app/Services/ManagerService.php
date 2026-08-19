@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use App\Exceptions\DomainException;
 use App\Models\Employee;
@@ -199,7 +200,16 @@ class ManagerService extends BaseService
     {
         $this->assertManager($user);
 
-        return $this->transaction(function () use ($user, $attributes): User {
+        // Department lives at the RM level: one Manager runs Personal Loan,
+        // Home Loan and Mortgage Loan at once, each handled by a different
+        // RM, so the RM's department is chosen explicitly here rather than
+        // inherited from the Manager (who has none of their own).
+        $department = $attributes['department'] ?? null;
+        if (! is_string($department) || Department::tryFrom($department) === null) {
+            throw new DomainException('A department must be assigned.', 422);
+        }
+
+        return $this->transaction(function () use ($user, $attributes, $department): User {
             $rm = User::query()->create([
                 'name' => $attributes['name'],
                 'email' => $attributes['email'],
@@ -209,6 +219,7 @@ class ManagerService extends BaseService
                 'manager_id' => $user->id,
                 'relationship_manager_id' => null,
                 'employee_id' => null,
+                'department' => $department,
                 'is_active' => (bool) ($attributes['is_active'] ?? true),
             ]);
 

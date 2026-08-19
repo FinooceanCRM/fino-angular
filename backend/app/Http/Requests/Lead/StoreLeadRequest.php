@@ -26,11 +26,8 @@ class StoreLeadRequest extends BaseFormRequest
             'city' => ['required', 'string', 'max:128'],
             'state' => ['required', 'string', 'max:128'],
             'pincode' => ['nullable', 'string', 'max:12'],
-            'connector_id' => ['nullable', 'integer', 'exists:users,id'],
-            'assigned_employee_id' => ['nullable', 'integer', 'exists:users,id'],
-            'assigned_relationship_manager_id' => ['nullable', 'integer', 'exists:users,id'],
-            'assigned_manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'notes' => ['nullable', 'string', 'max:5000'],
+            'details' => ['nullable', 'array'],
         ];
     }
 }

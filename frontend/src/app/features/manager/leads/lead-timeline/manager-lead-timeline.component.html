@@ -1,0 +1,26 @@
+@if (lead(); as data) {
+  <app-entity-header
+    [title]="data.applicant_name"
+    idLabel="Reference"
+    [idValue]="data.reference"
+    [statusLabel]="data.status_label"
+    [statusColour]="data.status_colour"
+  >
+    <a mat-stroked-button [routerLink]="[basePath(), data.id]">
+      <mat-icon>arrow_back</mat-icon>
+      Back to lead
+    </a>
+  </app-entity-header>
+
+  <mat-card class="lead-timeline__card">
+    <mat-card-header>
+      <mat-card-title>Status timeline</mat-card-title>
+      <mat-card-subtitle>Every status change recorded on this lead, oldest first</mat-card-subtitle>
+    </mat-card-header>
+    <mat-card-content>
+      <app-timeline [entries]="entries()" />
+    </mat-card-content>
+  </mat-card>
+} @else {
+  <app-empty-state icon="search_off" message="This lead could not be found." />
+}

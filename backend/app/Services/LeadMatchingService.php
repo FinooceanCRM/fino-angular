@@ -16,9 +16,10 @@ use App\Repositories\Contracts\BankCriteriaRepositoryInterface;
  */
 class LeadMatchingService extends BaseService
 {
-    public function __construct(private readonly BankCriteriaRepositoryInterface $criteria)
-    {
-    }
+    /** A lead must score at least this much against a banker's own criteria to appear in their Matched Leads. */
+    public const MATCHED_LEADS_MIN_SCORE = 10;
+
+    public function __construct(private readonly BankCriteriaRepositoryInterface $criteria) {}
 
     /**
      * Evaluate the lead and persist matching banks.
@@ -31,15 +32,13 @@ class LeadMatchingService extends BaseService
 
         $this->transaction(function () use ($lead, $results): void {
             foreach ($results as $result) {
-                if (! $result['eligible']) {
-                    continue;
-                }
-
                 LeadMatch::query()->updateOrCreate(
                     ['loan_lead_id' => $lead->id, 'bank_criteria_id' => $result['bank_criteria_id']],
                     [
                         'match_score' => $result['score'],
-                        'status' => 'matched',
+                        'status' => $result['eligible']
+                            ? 'matched'
+                            : ($result['score'] > 0 ? 'partial' : 'rejected'),
                         'reasons' => $result['reasons'],
                     ],
                 );
@@ -137,8 +136,8 @@ class LeadMatchingService extends BaseService
             'min_loan_amount' => (float) $bank->min_loan_amount,
             'max_loan_amount' => $max,
             'eligible' => $eligible,
-            'score' => $eligible ? min(100, $score) : 0,
-            'reasons' => $eligible ? $reasons : $failures,
+            'score' => min(100, $score),
+            'reasons' => [...$reasons, ...$failures],
         ];
     }
 
@@ -155,7 +154,7 @@ class LeadMatchingService extends BaseService
     /**
      * A rule is `{ field, operator, value, label? }`.
      *
-     * @param array<string, mixed> $rule
+     * @param  array<string, mixed>  $rule
      * @return array{0: bool, 1: string}
      */
     private function applyRule(LoanLead $lead, array $rule): array

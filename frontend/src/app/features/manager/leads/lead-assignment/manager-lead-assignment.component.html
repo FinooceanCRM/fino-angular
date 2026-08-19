@@ -1,0 +1,78 @@
+@if (lead(); as data) {
+  <app-entity-header
+    [title]="data.applicant_name"
+    idLabel="Reference"
+    [idValue]="data.reference"
+    [statusLabel]="data.status_label"
+    [statusColour]="data.status_colour"
+  >
+    <a mat-stroked-button [routerLink]="['/manager/leads', data.id]">
+      <mat-icon>arrow_back</mat-icon>
+      Back to lead
+    </a>
+  </app-entity-header>
+
+  <div class="lead-assignment__columns">
+    <mat-card class="lead-assignment__form-card">
+      <mat-card-header>
+        <mat-card-title>Reassign this lead</mat-card-title>
+        <mat-card-subtitle>
+          Currently assigned to {{ currentAssignee()?.name ?? 'no one' }}.
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <form [formGroup]="form" (ngSubmit)="reassign()">
+          <mat-form-field appearance="outline" class="lead-assignment__field">
+            <mat-label>Assign to</mat-label>
+            <mat-select formControlName="assigneeId">
+              @for (person of assignableStaff(); track person.id) {
+                <mat-option [value]="person.id">{{ person.name }} — {{ person.role_label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="lead-assignment__field">
+            <mat-label>Remarks (optional)</mat-label>
+            <textarea matInput rows="3" formControlName="remarks"></textarea>
+          </mat-form-field>
+
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+            <mat-icon>person_add</mat-icon>
+            Reassign lead
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="lead-assignment__history-card">
+      <mat-card-header>
+        <mat-card-title>Assignment history</mat-card-title>
+        <mat-card-subtitle>Every handoff recorded on this lead, most recent first</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @if (history().length === 0) {
+          <app-empty-state icon="person_off" message="This lead has not been assigned to anyone yet." />
+        } @else {
+          <ul class="lead-assignment__history">
+            @for (entry of history(); track entry.id) {
+              <li class="lead-assignment__history-item">
+                <span class="lead-assignment__history-name">{{ entry.assignee?.name ?? 'Unassigned' }}</span>
+                <span class="lead-assignment__history-meta">
+                  {{ entry.created_at | date: 'medium' }}
+                  @if (entry.assigned_by) {
+                    · by {{ entry.assigned_by.name }}
+                  }
+                </span>
+                @if (entry.remarks) {
+                  <span class="lead-assignment__history-remarks">"{{ entry.remarks }}"</span>
+                }
+              </li>
+            }
+          </ul>
+        }
+      </mat-card-content>
+    </mat-card>
+  </div>
+} @else {
+  <app-empty-state icon="search_off" message="This lead could not be found." />
+}

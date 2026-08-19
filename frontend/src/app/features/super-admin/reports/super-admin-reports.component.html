@@ -1,0 +1,21 @@
+<app-page-header title="Reports" subtitle="Lead, user, commission and performance reporting." />
+
+<div class="reports-overview">
+  @for (section of sections; track section.link) {
+    <a class="reports-overview__card" [routerLink]="section.link">
+      <mat-card>
+        <mat-card-content class="reports-overview__content">
+          <span class="reports-overview__icon">
+            <mat-icon>{{ section.icon }}</mat-icon>
+          </span>
+          <h2 class="reports-overview__title">{{ section.title }}</h2>
+          <p class="reports-overview__description">{{ section.description }}</p>
+          <span class="reports-overview__link">
+            Open
+            <mat-icon>arrow_forward</mat-icon>
+          </span>
+        </mat-card-content>
+      </mat-card>
+    </a>
+  }
+</div>

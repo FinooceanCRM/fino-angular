@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -10,13 +11,20 @@ use Illuminate\Support\Facades\Hash;
 /**
  * Test users (Phase 8 hierarchy).
  *
+ * Department lives at the Relationship Manager level, not the Manager: one
+ * Manager runs Personal Loan, Home Loan and Mortgage Loan simultaneously,
+ * split across three separate RMs (one RM per department). Employees
+ * inherit their department from their own RM.
+ *
  * Super Admin
  * ├── Manager One
- * │   ├── RM One   ── Employee One, Employee Two
- * │   └── RM Two   ── Employee Three, Employee Four
+ * │   ├── RM One (PL)   ── Employee One
+ * │   ├── RM Two (HL)   ── Employee Two
+ * │   └── RM Three (ML) ── Employee Three
  * └── Manager Two
- *     ├── RM Three ── Employee Five, Employee Six
- *     └── RM Four  ── Employee Seven, Employee Eight
+ *     ├── RM Four (PL)  ── Employee Four
+ *     ├── RM Five (HL)  ── Employee Five
+ *     └── RM Six (ML)   ── Employee Six
  *
  * Connectors sit completely outside the reporting hierarchy.
  */
@@ -26,7 +34,14 @@ class UserSeeder extends Seeder
 
     /** @var array<int, string> */
     private const EMPLOYEE_WORDS = [
-        'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight',
+        'One', 'Two', 'Three', 'Four', 'Five', 'Six',
+    ];
+
+    /** @var array<int, Department> */
+    private const RM_DEPARTMENTS = [
+        Department::PersonalLoan,
+        Department::HomeLoan,
+        Department::MortgageLoan,
     ];
 
     public function run(): void
@@ -43,32 +58,42 @@ class UserSeeder extends Seeder
         $relationshipManagers = [
             ['RM One', 'rm1@finoocean.test', $manager1],
             ['RM Two', 'rm2@finoocean.test', $manager1],
-            ['RM Three', 'rm3@finoocean.test', $manager2],
+            ['RM Three', 'rm3@finoocean.test', $manager1],
             ['RM Four', 'rm4@finoocean.test', $manager2],
+            ['RM Five', 'rm5@finoocean.test', $manager2],
+            ['RM Six', 'rm6@finoocean.test', $manager2],
         ];
 
         $employeeNumber = 1;
-        foreach ($relationshipManagers as [$name, $email, $manager]) {
+        foreach ($relationshipManagers as $index => [$name, $email, $manager]) {
+            $department = self::RM_DEPARTMENTS[$index % 3];
+
             $rm = $this->make($name, $email, UserRole::RelationshipManager, [
                 'manager_id' => $manager->id,
+                'department' => $department->value,
             ]);
 
-            // Two employees per Relationship Manager.
-            for ($i = 0; $i < 2; $i++) {
-                $word = self::EMPLOYEE_WORDS[$employeeNumber - 1];
+            $word = self::EMPLOYEE_WORDS[$employeeNumber - 1];
+            $this->make("Employee {$word}", "employee{$employeeNumber}@finoocean.test", UserRole::Employee, [
+                'manager_id' => $manager->id,
+                'relationship_manager_id' => $rm->id,
+                'department' => $rm->department?->value,
+            ]);
 
-                $this->make("Employee {$word}", "employee{$employeeNumber}@finoocean.test", UserRole::Employee, [
-                    'manager_id' => $manager->id,
-                    'relationship_manager_id' => $rm->id,
-                ]);
-
-                $employeeNumber++;
-            }
+            $employeeNumber++;
         }
 
         // Independent roles.
         $this->make('Connector One', 'connector1@finoocean.test', UserRole::Connector);
         $this->make('Connector Two', 'connector2@finoocean.test', UserRole::Connector);
+        $this->make('Banker One', 'banker1@finoocean.test', UserRole::Banker);
+        $this->make('Banker Two', 'banker2@finoocean.test', UserRole::Banker);
+        $this->make('Telecaller One', 'telecaller1@finoocean.test', UserRole::Telecaller, [
+            'department' => Department::PersonalLoan->value,
+        ]);
+        $this->make('Telecaller Two', 'telecaller2@finoocean.test', UserRole::Telecaller, [
+            'department' => Department::HomeLoan->value,
+        ]);
     }
 
     /**

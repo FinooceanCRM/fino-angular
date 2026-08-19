@@ -1,0 +1,58 @@
+<app-bucket-nav [links]="buckets" ariaLabel="Banker lead bucket" />
+
+<app-page-header
+  title="Assigned Leads"
+  subtitle="Leads you have full access to — contact details, documents and status updates are unlocked."
+/>
+
+@if (error(); as message) {
+  <p class="assigned-leads__error" role="alert">{{ message }}</p>
+}
+
+<app-search-input
+  class="assigned-leads__search"
+  label="Search"
+  placeholder="Search by applicant or reference"
+  (search)="onSearch($event)"
+/>
+
+<app-table
+  [columns]="columns"
+  [rows]="rows()"
+  [loading]="loading()"
+  [length]="meta().total"
+  [pageIndex]="meta().current_page - 1"
+  [pageSize]="meta().per_page"
+  emptyMessage="No assigned leads yet."
+  itemLabel="leads"
+  (pageChange)="onPage($event)"
+>
+  <ng-template appTableCell="first_name" let-row>
+    {{ firstName(row.applicant_name) }}
+  </ng-template>
+
+  <ng-template appTableCell="loan" let-row>
+    {{ loanTypeLabel(row.loan_type) }}
+  </ng-template>
+
+  <ng-template appTableCell="amount" let-row>
+    ₹{{ row.loan_amount | number: '1.0-0' }}
+  </ng-template>
+
+  <ng-template appTableCell="status" let-row>
+    <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+  </ng-template>
+
+  <ng-template appTableCell="assigned_by" let-row>
+    {{ assignedBy(row) }}
+  </ng-template>
+
+  <ng-template #rowActions let-row>
+    <button mat-icon-button type="button" matTooltip="View" aria-label="View" (click)="view(row)">
+      <mat-icon>visibility</mat-icon>
+    </button>
+    <a mat-icon-button [routerLink]="['/leads', row.id]" matTooltip="Update" aria-label="Update">
+      <mat-icon>edit</mat-icon>
+    </a>
+  </ng-template>
+</app-table>

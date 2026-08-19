@@ -1,0 +1,49 @@
+<app-page-header title="Banker Performance" subtitle="How the bankers engaged with your team's leads are performing" />
+
+@if (ranked().length === 0) {
+  <app-empty-state icon="trending_up" message="No bankers are engaged with your team's leads yet." />
+} @else {
+  <div class="banker-performance__stats">
+    <app-stat-card icon="assignment_turned_in" [value]="totals().leadsHandled" label="Leads handled" accent="primary" />
+    <app-stat-card icon="paid" [value]="totals().disbursed" label="Leads disbursed" accent="accent" />
+    <app-stat-card icon="percent" [value]="totals().avgConversion + '%'" label="Avg. conversion rate" />
+  </div>
+
+  <mat-card class="banker-performance__table-card">
+    <mat-card-header>
+      <mat-card-title>Ranked by leads handled</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="app-scroll-x">
+        <table class="banker-performance__table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Banker</th>
+              <th>Bank</th>
+              <th>Leads handled</th>
+              <th>Approved</th>
+              <th>Disbursed</th>
+              <th>Rejected</th>
+              <th>Conversion</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of ranked(); track row.id; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.bank }}</td>
+                <td>{{ row.leadsHandled }}</td>
+                <td>{{ row.approved }}</td>
+                <td>{{ row.disbursed }}</td>
+                <td>{{ row.rejected }}</td>
+                <td>{{ row.conversionRatePct }}%</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}

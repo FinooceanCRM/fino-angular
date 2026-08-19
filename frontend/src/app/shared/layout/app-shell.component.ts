@@ -1,6 +1,7 @@
 import { Breakpoints, BreakpointObserver } from '@angular/cdk/layout';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { RouterOutlet } from '@angular/router';
 import { map } from 'rxjs';
@@ -20,50 +21,17 @@ import { TopbarComponent } from './topbar.component';
 @Component({
   selector: 'app-shell',
   standalone: true,
-  imports: [MatSidenavModule, RouterOutlet, TopbarComponent, SidebarComponent, BreadcrumbComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <app-topbar (menuToggle)="sidenavOpened.set(!sidenavOpened())" />
-
-    @if (auth.isAuthenticated()) {
-      <mat-sidenav-container class="shell-container">
-        <mat-sidenav
-          class="shell-sidenav"
-          [mode]="isHandset() ? 'over' : 'side'"
-          [opened]="sidenavOpened()"
-        >
-          <app-sidebar />
-        </mat-sidenav>
-
-        <mat-sidenav-content>
-          <main class="content-inner">
-            <app-breadcrumb />
-            <router-outlet />
-          </main>
-        </mat-sidenav-content>
-      </mat-sidenav-container>
-    } @else {
-      <main class="content-inner guest-content">
-        <router-outlet />
-      </main>
-    }
-  `,
-  styles: [
-    `
-      .shell-container {
-        height: calc(100vh - 64px);
-      }
-      .shell-sidenav {
-        width: 260px;
-        border-right: 1px solid var(--mat-sys-outline-variant);
-      }
-      .content-inner {
-        padding: 1.5rem;
-        max-width: 1100px;
-        margin: 0 auto;
-      }
-    `,
+  imports: [
+    MatIconModule,
+    MatSidenavModule,
+    RouterOutlet,
+    TopbarComponent,
+    SidebarComponent,
+    BreadcrumbComponent,
   ],
+  templateUrl: './app-shell.component.html',
+  styleUrl: './app-shell.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppShellComponent {
   protected readonly auth = inject(AuthService);
@@ -75,4 +43,12 @@ export class AppShellComponent {
   );
 
   protected readonly sidenavOpened = signal(true);
+
+  // Desktop-only icon rail toggle ("Collapse" in the approved mockups); the
+  // handset overlay sidenav always shows full labels since it already opens
+  // and closes on demand via the topbar menu button. Tablet-width viewports
+  // (docked, not overlay, but narrower than a full desktop) start collapsed
+  // to leave more room for content — still a plain toggle from there, not
+  // continuously re-driven by resize, so it never fights a manual choice.
+  protected readonly railCollapsed = signal(this.breakpointObserver.isMatched('(max-width: 1024px)'));
 }

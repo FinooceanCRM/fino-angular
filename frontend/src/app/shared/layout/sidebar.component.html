@@ -1,0 +1,43 @@
+<mat-nav-list class="sidebar-nav" [class.sidebar-nav--collapsed]="collapsed()">
+  @if (!collapsed()) {
+    <span class="sidebar-nav__section">Workspace</span>
+  }
+
+  @for (item of roleItems(); track item.link) {
+    <a
+      mat-list-item
+      [routerLink]="item.link"
+      routerLinkActive="active-link"
+      class="sidebar-nav__item"
+      [matTooltip]="collapsed() ? item.label : ''"
+      matTooltipPosition="right"
+    >
+      <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+      @if (!collapsed()) {
+        <span matListItemTitle>{{ item.label }}</span>
+      }
+    </a>
+  }
+
+  <mat-divider class="sidebar-nav__divider" />
+
+  @if (!collapsed()) {
+    <span class="sidebar-nav__section">Loans</span>
+  }
+
+  @for (item of workspaceItems(); track item.link) {
+    <a
+      mat-list-item
+      [routerLink]="item.link"
+      routerLinkActive="active-link"
+      class="sidebar-nav__item"
+      [matTooltip]="collapsed() ? item.label : ''"
+      matTooltipPosition="right"
+    >
+      <mat-icon matListItemIcon>{{ item.icon }}</mat-icon>
+      @if (!collapsed()) {
+        <span matListItemTitle>{{ item.label }}</span>
+      }
+    </a>
+  }
+</mat-nav-list>

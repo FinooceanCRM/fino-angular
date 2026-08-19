@@ -1,0 +1,27 @@
+.commission-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+  flex-wrap: wrap;
+}
+
+.commission-page__summary {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin: var(--app-space-4) 0;
+}
+
+.commission-page__toolbar,
+.commission-page__table-card {
+  border-radius: var(--app-radius-md);
+  margin-bottom: var(--app-space-4);
+}
+
+.commission-page__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-3);
+  align-items: center;
+}

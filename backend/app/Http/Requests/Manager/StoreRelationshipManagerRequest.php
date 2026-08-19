@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests\Manager;
 
+use App\Enums\Department;
 use App\Http\Requests\BaseFormRequest;
 use App\Models\Manager;
+use Illuminate\Validation\Rule;
 
 class StoreRelationshipManagerRequest extends BaseFormRequest
 {
@@ -29,6 +31,8 @@ class StoreRelationshipManagerRequest extends BaseFormRequest
             'password' => ['required', 'string', 'min:8', 'max:100'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:20'],
             'is_active' => ['sometimes', 'boolean'],
+            // Each RM runs exactly one of the Manager's departments (PL/HL/ML).
+            'department' => ['required', Rule::in(Department::values())],
 
             'designation' => ['sometimes', 'nullable', 'string', 'max:150'],
             'branch' => ['sometimes', 'nullable', 'string', 'max:150'],

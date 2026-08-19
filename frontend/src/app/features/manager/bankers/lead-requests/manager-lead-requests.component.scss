@@ -1,0 +1,17 @@
+.lead-requests__toolbar,
+.lead-requests__table-card {
+  border-radius: var(--app-radius-md);
+  margin-bottom: var(--app-space-4);
+}
+
+.lead-requests__filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.lead-requests__search {
+  flex: 1 1 220px;
+  min-width: 180px;
+}

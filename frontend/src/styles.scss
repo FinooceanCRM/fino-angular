@@ -11,6 +11,66 @@ html {
       density: 0,
     )
   );
+
+  // Pin the generated Material palette to the approved mockup spec
+  // (Material Design 3, azure #1B6EF3 / cyan #00838F / off-white #F7F9FC)
+  // instead of trusting the stock azure/cyan tone generation exactly.
+  --mat-sys-primary: #1b6ef3;
+  --mat-sys-on-primary: #ffffff;
+  --mat-sys-primary-container: #dce7ff;
+  --mat-sys-on-primary-container: #0a3d8f;
+  --mat-sys-tertiary: #00838f;
+  --mat-sys-on-tertiary: #ffffff;
+  --mat-sys-tertiary-container: #cdf0f4;
+  --mat-sys-on-tertiary-container: #003c40;
+  --mat-sys-surface: #f7f9fc;
+  --mat-sys-on-surface: #1a2130;
+  --mat-sys-surface-container: #ffffff;
+  --mat-sys-surface-container-high: #eef2fa;
+  --mat-sys-surface-container-highest: #e6ebf5;
+  --mat-sys-outline: #c3cadb;
+  --mat-sys-outline-variant: #dde2ee;
+
+  // App-level design tokens. Angular Material's --mat-sys-* set covers
+  // component theming; these cover layout rhythm shared across every
+  // component's own stylesheet.
+  --app-space-1: 4px;
+  --app-space-2: 8px;
+  --app-space-3: 12px;
+  --app-space-4: 16px;
+  --app-space-5: 24px;
+  --app-space-6: 32px;
+  --app-space-7: 48px;
+
+  --app-radius-sm: 8px;
+  --app-radius-md: 12px;
+  --app-radius-lg: 16px;
+  --app-radius-pill: 999px;
+
+  --app-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --app-shadow-md: 0 4px 8px rgba(16, 24, 40, 0.06), 0 2px 4px rgba(16, 24, 40, 0.08);
+  --app-shadow-lg: 0 8px 16px rgba(16, 24, 40, 0.08), 0 4px 6px rgba(16, 24, 40, 0.06);
+
+  // Motion tokens — one easing curve and three durations used everywhere a
+  // transition or entrance animation is added, so motion feels of a piece
+  // rather than each component inventing its own timing.
+  --app-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --app-duration-fast: 120ms;
+  --app-duration-base: 200ms;
+  --app-duration-slow: 320ms;
+
+  // Semantic status colours, independent of the brand accent — used by
+  // app-status-pill and anything else encoding lead/document/request state.
+  --app-status-default-fg: #4b5565;
+  --app-status-default-bg: #eef1f6;
+  --app-status-primary-fg: #0a3d8f;
+  --app-status-primary-bg: #dce7ff;
+  --app-status-accent-fg: #7a4b00;
+  --app-status-accent-bg: #fbe8cc;
+  --app-status-success-fg: #0f6b3f;
+  --app-status-success-bg: #d9f2e3;
+  --app-status-warn-fg: #a3341f;
+  --app-status-warn-bg: #f8dfd8;
 }
 
 html,
@@ -20,4 +80,138 @@ body {
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
   font-family: Roboto, 'Helvetica Neue', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+// Wide content (tables, etc.) scrolls inside its own container instead of
+// the page body — every component that renders a table wraps it in
+// something carrying this class.
+.app-scroll-x {
+  overflow-x: auto;
+}
+
+// Circular, coloured icon-button used for row actions (view/edit/delete) in
+// table row-action templates across list pages.
+.row-action {
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 50%;
+
+  &.row-action--view,
+  &.row-action--edit {
+    color: var(--mat-sys-primary);
+    border-color: var(--mat-sys-primary-container);
+  }
+
+  &.row-action--delete {
+    color: var(--app-status-warn-fg);
+    border-color: var(--app-status-warn-bg);
+  }
+}
+
+// Baseline table look shared by every app-table / hand-rolled mat-table list.
+.mat-mdc-table {
+  .mat-mdc-header-cell {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--app-status-default-fg);
+  }
+
+  .mat-mdc-row {
+    transition: background-color var(--app-duration-fast) var(--app-ease);
+  }
+
+  .mat-mdc-row:hover {
+    background: var(--mat-sys-surface-container-high);
+  }
+}
+
+// Every mat-card gets a smooth transition for free, so any hover/elevation
+// change a component opts into (see .app-hover-lift) never looks abrupt.
+.mat-mdc-card {
+  transition: box-shadow var(--app-duration-base) var(--app-ease), transform var(--app-duration-base) var(--app-ease);
+}
+
+// Opt-in lift for genuinely clickable cards (e.g. a card wrapping a
+// routerLink) — never applied to static content cards, so hover affordance
+// only ever appears where something is actually clickable.
+.app-hover-lift {
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: var(--app-shadow-lg);
+    transform: translateY(-2px);
+  }
+}
+
+// Sharper, on-brand focus ring (replaces the browser default outline) for
+// keyboard navigation, without relying on :hover-only affordances.
+:focus-visible {
+  outline: 2px solid var(--mat-sys-primary);
+  outline-offset: 2px;
+}
+
+// Every MatDialog in the app (app-modal and any dialog opened directly)
+// gets the same rounded shape and never shows a scrollbar of its own. The
+// dialog surface is rendered into the CDK overlay, outside any component's
+// style encapsulation, so this has to live here rather than in
+// modal.component.ts — a per-component styleUrl can't reach it.
+.mat-mdc-dialog-container {
+  --mat-dialog-container-shape: var(--app-radius-lg);
+
+  .mdc-dialog__surface {
+    border-radius: var(--app-radius-lg);
+    // Clips content to the rounded shape instead of letting a stray
+    // horizontal overflow (e.g. one long unbroken word) square off a
+    // corner or spawn its own scrollbar.
+    overflow: hidden;
+  }
+}
+
+.mat-mdc-dialog-content {
+  overflow-x: hidden !important;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+@keyframes app-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Applied to a grid/list's children; pair with .app-stagger > * for a
+// staggered entrance instead of everything fading in at once.
+.app-animate-in {
+  animation: app-fade-in-up var(--app-duration-slow) var(--app-ease) both;
+}
+
+.app-stagger > * {
+  animation: app-fade-in-up var(--app-duration-slow) var(--app-ease) both;
+}
+
+@for $i from 1 through 12 {
+  .app-stagger > *:nth-child(#{$i}) {
+    animation-delay: #{($i - 1) * 40}ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

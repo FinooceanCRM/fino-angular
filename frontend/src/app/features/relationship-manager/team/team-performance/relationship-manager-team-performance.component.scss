@@ -1,0 +1,29 @@
+.team-performance__stats {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  margin-bottom: var(--app-space-4);
+}
+
+.team-performance__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+
+  th,
+  td {
+    padding: var(--app-space-2) var(--app-space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+    white-space: nowrap;
+  }
+
+  th {
+    color: var(--app-status-default-fg);
+    font-weight: 600;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}

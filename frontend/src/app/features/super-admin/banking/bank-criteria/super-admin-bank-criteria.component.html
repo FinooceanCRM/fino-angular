@@ -1,0 +1,114 @@
+<div class="bank-criteria__header">
+  <app-page-header title="Bank Criteria" subtitle="Products the matching engine evaluates leads against." />
+  <button mat-flat-button color="primary" type="button" (click)="showForm.set(!showForm())">
+    <mat-icon>add</mat-icon>
+    Add bank product
+  </button>
+</div>
+
+@if (showForm()) {
+  <mat-card class="bank-criteria__form-card">
+    <mat-card-header>
+      <mat-card-title>New bank product</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form class="bank-criteria__form-grid" [formGroup]="form" (ngSubmit)="create()">
+        <mat-form-field appearance="outline">
+          <mat-label>Bank name</mat-label>
+          <input matInput formControlName="bank_name" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Product name</mat-label>
+          <input matInput formControlName="product_name" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Loan type</mat-label>
+          <mat-select formControlName="loan_type">
+            @for (type of loanTypes; track type.value) {
+              <mat-option [value]="type.value">{{ type.label }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum amount</mat-label>
+          <input matInput type="number" formControlName="min_loan_amount" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Maximum amount</mat-label>
+          <input matInput type="number" formControlName="max_loan_amount" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum monthly income</mat-label>
+          <input matInput type="number" formControlName="min_monthly_income" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum credit score</mat-label>
+          <input matInput type="number" formControlName="min_credit_score" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Interest rate (%)</mat-label>
+          <input matInput type="number" formControlName="interest_rate" />
+        </mat-form-field>
+        <mat-checkbox formControlName="is_active">Active</mat-checkbox>
+        <div class="bank-criteria__form-actions">
+          <button mat-button type="button" (click)="showForm.set(false)">Cancel</button>
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">Save product</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}
+
+<mat-card class="bank-criteria__toolbar">
+  <mat-card-content>
+    <div class="bank-criteria__filters">
+      <mat-form-field appearance="outline" class="bank-criteria__search">
+        <mat-label>Search</mat-label>
+        <input matInput [formControl]="searchControl" placeholder="Search by bank or product" />
+      </mat-form-field>
+
+      <mat-chip-listbox
+        [(ngModel)]="activeFilter"
+        [ngModelOptions]="{ standalone: true }"
+        aria-label="Filter by loan type"
+      >
+        <mat-chip-option value="">All types</mat-chip-option>
+        @for (type of loanTypes; track type.value) {
+          <mat-chip-option [value]="type.value">{{ type.label }}</mat-chip-option>
+        }
+      </mat-chip-listbox>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="bank-criteria__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="filteredRows()"
+      emptyMessage="No bank criteria match the current filters."
+    >
+      <ng-template appTableCell="amount" let-row>
+        {{ row.min_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }} –
+        {{ row.max_loan_amount ? (row.max_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0') : 'no cap' }}
+      </ng-template>
+
+      <ng-template appTableCell="income" let-row>
+        {{ row.min_monthly_income | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}/mo
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill
+          [label]="row.is_active ? 'Active' : 'Inactive'"
+          [colour]="row.is_active ? 'success' : 'default'"
+        />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <button mat-stroked-button type="button" class="bank-criteria__toggle" (click)="toggle(row)">
+          {{ row.is_active ? 'Deactivate' : 'Activate' }}
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

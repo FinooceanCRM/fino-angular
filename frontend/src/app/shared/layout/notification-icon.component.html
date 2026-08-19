@@ -1,0 +1,70 @@
+<button
+  mat-icon-button
+  type="button"
+  [matMenuTriggerFor]="menu"
+  matTooltip="Notifications"
+  [attr.aria-label]="'Notifications, ' + unreadCount() + ' unread'"
+>
+  @if (unreadCount() > 0) {
+    <mat-icon [matBadge]="unreadCount()" matBadgeColor="warn" matBadgeSize="small">notifications</mat-icon>
+  } @else {
+    <mat-icon>notifications</mat-icon>
+  }
+</button>
+
+<mat-menu #menu="matMenu" xPosition="before" class="notif-dropdown-panel">
+  <div class="notif-dropdown">
+    <div class="notif-dropdown__header">
+      <span class="notif-dropdown__title">Notifications</span>
+      @if (unreadCount() > 0) {
+        <button mat-button type="button" (click)="markAllRead(); $event.stopPropagation()">Mark all read</button>
+      }
+    </div>
+
+    <mat-chip-listbox
+      class="notif-dropdown__filters"
+      [value]="activeCategory()"
+      (change)="setCategory($event.value)"
+      aria-label="Filter by category"
+    >
+      <mat-chip-option value="">All</mat-chip-option>
+      @for (entry of categories; track entry[0]) {
+        <mat-chip-option [value]="entry[0]">{{ entry[1] }}</mat-chip-option>
+      }
+    </mat-chip-listbox>
+
+    <ul class="notif-dropdown__list">
+      @for (item of visibleItems(); track item.id) {
+        <li
+          class="notif-dropdown__item"
+          [class.notif-dropdown__item--unread]="!item.is_read"
+          (click)="markRead(item, $event)"
+        >
+          <span class="notif-dropdown__icon"><mat-icon>{{ notificationIcon(item.type) }}</mat-icon></span>
+          <span class="notif-dropdown__body">
+            <span class="notif-dropdown__item-title">{{ item.title }}</span>
+            @if (item.body) {
+              <span class="notif-dropdown__item-text">{{ item.body }}</span>
+            }
+            <span class="notif-dropdown__item-meta">
+              <span class="notif-dropdown__category">{{ categoryLabel[notificationCategory(item.type)] }}</span>
+              @if (item.created_at) {
+                <span class="notif-dropdown__time">{{ item.created_at | date: 'short' }}</span>
+              }
+            </span>
+          </span>
+          @if (!item.is_read) {
+            <span class="notif-dropdown__dot" aria-hidden="true"></span>
+          }
+        </li>
+      } @empty {
+        <li class="notif-dropdown__empty">No notifications in this category.</li>
+      }
+    </ul>
+
+    <a mat-button class="notif-dropdown__footer" routerLink="/notifications">
+      View all notifications
+      <mat-icon>arrow_forward</mat-icon>
+    </a>
+  </div>
+</mat-menu>

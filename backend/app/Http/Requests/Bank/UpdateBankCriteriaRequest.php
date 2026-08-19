@@ -27,6 +27,7 @@ class UpdateBankCriteriaRequest extends BaseFormRequest
             'interest_rate' => ['nullable', 'numeric', 'min:0', 'max:99.99'],
             'eligibility_rules' => ['nullable', 'array'],
             'is_active' => ['boolean'],
+            'banker_id' => ['nullable', 'integer', 'exists:users,id'],
         ];
     }
 }

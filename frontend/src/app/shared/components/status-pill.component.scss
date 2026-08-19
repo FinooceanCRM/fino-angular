@@ -1,0 +1,50 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  padding: var(--app-space-1) var(--app-space-3);
+  border-radius: var(--app-radius-pill);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  width: fit-content;
+  transition: background-color var(--app-duration-base) var(--app-ease), color var(--app-duration-base) var(--app-ease);
+}
+
+.pill__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.pill__label {
+  color: inherit;
+}
+
+:host.pill--default {
+  color: var(--app-status-default-fg);
+  background: var(--app-status-default-bg);
+}
+
+:host.pill--primary {
+  color: var(--app-status-primary-fg);
+  background: var(--app-status-primary-bg);
+}
+
+:host.pill--accent {
+  color: var(--app-status-accent-fg);
+  background: var(--app-status-accent-bg);
+}
+
+:host.pill--success {
+  color: var(--app-status-success-fg);
+  background: var(--app-status-success-bg);
+}
+
+:host.pill--warn {
+  color: var(--app-status-warn-fg);
+  background: var(--app-status-warn-bg);
+}

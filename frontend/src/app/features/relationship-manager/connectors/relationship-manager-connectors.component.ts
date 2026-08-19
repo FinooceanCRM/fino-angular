@@ -1,30 +1,24 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  OnInit,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTableModule } from '@angular/material/table';
 
 import { AssignedConnector } from '@core/models/relationship-manager.model';
 import { RelationshipManagerService } from '@core/services/relationship-manager.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { StatusPillComponent } from '@shared/components/status-pill.component';
+import { TableCellDirective } from '@shared/components/table-cell.directive';
+import { TableColumn, TableComponent } from '@shared/components/table.component';
 
 @Component({
   selector: 'app-relationship-manager-connectors',
   standalone: true,
   imports: [
     MatCardModule,
-    MatChipsModule,
-    MatIconModule,
     MatProgressBarModule,
-    MatTableModule,
     PageHeaderComponent,
+    StatusPillComponent,
+    TableCellDirective,
+    TableComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -38,12 +32,12 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     }
 
     @if (error(); as message) {
-      <mat-card class="error-card">
+      <mat-card class="notice">
         <mat-card-content>{{ message }}</mat-card-content>
       </mat-card>
     }
 
-    <mat-card class="card">
+    <mat-card class="table-card">
       <mat-card-header>
         <mat-card-title>{{ total() }} connector(s)</mat-card-title>
         <mat-card-subtitle>
@@ -52,64 +46,29 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
         </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        @if (connectors().length === 0 && !loading()) {
-          <p class="muted">No connectors are assigned to you yet.</p>
-        } @else {
-          <table mat-table [dataSource]="connectors()" class="full-width">
-            <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef>Name</th>
-              <td mat-cell *matCellDef="let row">{{ row.name ?? '—' }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="company">
-              <th mat-header-cell *matHeaderCellDef>Company</th>
-              <td mat-cell *matCellDef="let row">{{ row.company_name ?? '—' }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="contact">
-              <th mat-header-cell *matHeaderCellDef>Contact person</th>
-              <td mat-cell *matCellDef="let row">{{ row.contact_person ?? '—' }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="email">
-              <th mat-header-cell *matHeaderCellDef>Email</th>
-              <td mat-cell *matCellDef="let row">{{ row.email ?? '—' }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="city">
-              <th mat-header-cell *matHeaderCellDef>City</th>
-              <td mat-cell *matCellDef="let row">{{ row.city ?? '—' }}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Status</th>
-              <td mat-cell *matCellDef="let row">
-                <mat-chip [highlighted]="row.is_active">
-                  {{ row.is_active ? 'Active' : 'Inactive' }}
-                </mat-chip>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="columns"></tr>
-            <tr mat-row *matRowDef="let row; columns: columns"></tr>
-          </table>
-        }
+        <app-table
+          [columns]="columns"
+          [rows]="connectors()"
+          [loading]="loading()"
+          emptyMessage="No connectors are assigned to you yet."
+          itemLabel="connectors"
+        >
+          <ng-template appTableCell="status" let-row>
+            <app-status-pill
+              [label]="row.is_active ? 'Active' : 'Inactive'"
+              [colour]="row.is_active ? 'success' : 'default'"
+            />
+          </ng-template>
+        </app-table>
       </mat-card-content>
     </mat-card>
   `,
   styles: [
     `
-      .card {
-        margin-top: 1rem;
-      }
-      .full-width {
-        width: 100%;
-      }
-      .muted {
-        opacity: 0.75;
-      }
-      .error-card {
-        margin-top: 1rem;
+      .table-card,
+      .notice {
+        margin-top: var(--app-space-4);
+        border-radius: var(--app-radius-md);
       }
     `,
   ],
@@ -117,14 +76,15 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
 export class RelationshipManagerConnectorsComponent implements OnInit {
   private readonly relationshipManagers = inject(RelationshipManagerService);
 
-  protected readonly columns = [
-    'name',
-    'company',
-    'contact',
-    'email',
-    'city',
-    'status',
+  protected readonly columns: TableColumn<AssignedConnector>[] = [
+    { key: 'name', label: 'Name', formatter: (row) => row.name ?? '—' },
+    { key: 'company', label: 'Company', formatter: (row) => row.company_name ?? '—' },
+    { key: 'contact', label: 'Contact person', formatter: (row) => row.contact_person ?? '—' },
+    { key: 'email', label: 'Email', formatter: (row) => row.email ?? '—' },
+    { key: 'city', label: 'City', formatter: (row) => row.city ?? '—' },
+    { key: 'status', label: 'Status' },
   ];
+
   protected readonly connectors = signal<AssignedConnector[]>([]);
   protected readonly total = signal(0);
   protected readonly loading = signal(false);

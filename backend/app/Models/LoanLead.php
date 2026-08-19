@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\Department;
 use App\Enums\LeadStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,6 +21,7 @@ class LoanLead extends Model
         'applicant_email',
         'applicant_phone',
         'loan_type',
+        'department',
         'loan_amount',
         'tenure_months',
         'monthly_income',
@@ -35,7 +37,11 @@ class LoanLead extends Model
         'assigned_employee_id',
         'assigned_relationship_manager_id',
         'assigned_manager_id',
+        'assigned_banker_id',
+        'pd_completed_at',
+        'pd_completed_by',
         'notes',
+        'details',
     ];
 
     protected function casts(): array
@@ -46,6 +52,9 @@ class LoanLead extends Model
             'tenure_months' => 'integer',
             'credit_score' => 'integer',
             'status' => LeadStatus::class,
+            'department' => Department::class,
+            'pd_completed_at' => 'datetime',
+            'details' => 'array',
         ];
     }
 
@@ -86,6 +95,16 @@ class LoanLead extends Model
         return $this->belongsTo(User::class, 'assigned_manager_id');
     }
 
+    public function assignedBanker(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_banker_id');
+    }
+
+    public function pdCompletedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pd_completed_by');
+    }
+
     public function assignments(): HasMany
     {
         return $this->hasMany(LeadAssignment::class);
@@ -104,5 +123,15 @@ class LoanLead extends Model
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
+    }
+
+    public function accessRequests(): HasMany
+    {
+        return $this->hasMany(LeadAccessRequest::class);
+    }
+
+    public function followUps(): HasMany
+    {
+        return $this->hasMany(LeadFollowUp::class);
     }
 }

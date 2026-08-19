@@ -1,0 +1,44 @@
+<form class="notif-settings" [formGroup]="form" (ngSubmit)="save()">
+  <section class="notif-settings__section">
+    <h3 class="notif-settings__title">Delivery channels</h3>
+    <div class="notif-settings__grid">
+      <div class="notif-settings__toggle">
+        <mat-slide-toggle formControlName="email_enabled">Email notifications</mat-slide-toggle>
+      </div>
+      <div class="notif-settings__toggle">
+        <mat-slide-toggle formControlName="sms_enabled">SMS notifications</mat-slide-toggle>
+      </div>
+      <div class="notif-settings__toggle">
+        <mat-slide-toggle formControlName="push_enabled">In-app notifications</mat-slide-toggle>
+      </div>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Digest frequency</mat-label>
+        <mat-select formControlName="digest_frequency">
+          @for (entry of digestFrequencies; track entry[0]) {
+            <mat-option [value]="entry[0]">{{ entry[1] }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </section>
+
+  <section class="notif-settings__section" formGroupName="category_channels">
+    <h3 class="notif-settings__title">Category routing</h3>
+    <p class="notif-settings__hint">Which notification categories are active. Turning a category off suppresses it across every enabled channel.</p>
+    <div class="notif-settings__checkbox-grid">
+      @for (entry of categories; track entry[0]) {
+        <div class="notif-settings__toggle">
+          <mat-slide-toggle [formControlName]="entry[0]">{{ entry[1] }}</mat-slide-toggle>
+        </div>
+      }
+    </div>
+  </section>
+
+  <div class="notif-settings__actions">
+    <button mat-flat-button color="primary" type="submit">
+      <mat-icon>save</mat-icon>
+      Save notification settings
+    </button>
+  </div>
+</form>

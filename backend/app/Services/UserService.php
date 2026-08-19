@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use App\Exceptions\DomainException;
 use App\Models\User;
@@ -49,6 +50,7 @@ class UserService extends BaseService
         $attributes = array_merge([
             'manager_id' => $target->manager_id,
             'relationship_manager_id' => $target->relationship_manager_id,
+            'department' => $target->department?->value,
         ], $attributes);
 
         if (array_key_exists('role', $attributes) && $attributes['role'] !== null) {
@@ -106,11 +108,25 @@ class UserService extends BaseService
         $attributes['role'] = $role->value;
         $attributes['employee_id'] = null;
 
-        // Connectors are independent of the reporting hierarchy.
-        if ($role === UserRole::Connector) {
+        // Connectors and Bankers are independent of the reporting hierarchy
+        // and of departments.
+        if ($role === UserRole::Connector || $role === UserRole::Banker) {
             $attributes['manager_id'] = null;
             $attributes['relationship_manager_id'] = null;
             $attributes['employee_id'] = null;
+            $attributes['department'] = null;
+
+            return $attributes;
+        }
+
+        // Telecallers are independent of the reporting hierarchy too, but
+        // (per the department matrix) still belong to exactly one
+        // department, chosen explicitly at creation like a Manager's.
+        if ($role === UserRole::Telecaller) {
+            $attributes['manager_id'] = null;
+            $attributes['relationship_manager_id'] = null;
+            $attributes['employee_id'] = null;
+            $attributes['department'] = $this->requireDepartment($attributes);
 
             return $attributes;
         }
@@ -171,6 +187,36 @@ class UserService extends BaseService
             }
         }
 
+        // Department lives at the Relationship Manager level, not the
+        // Manager: one Manager oversees Personal Loan, Home Loan and
+        // Mortgage Loan simultaneously, split across separate RMs (one RM
+        // per department). A Manager therefore has no department of their
+        // own (null); an RM's department is chosen explicitly at creation
+        // (it is the entry point); an Employee inherits it from their RM.
+        // manager_id / relationship_manager_id are already finalised and
+        // validated above by this point.
+        if ($role === UserRole::Manager) {
+            $attributes['department'] = null;
+        } elseif ($role === UserRole::RelationshipManager) {
+            $attributes['department'] = $this->requireDepartment($attributes);
+        } elseif ($role === UserRole::Employee) {
+            $attributes['department'] = User::query()->find((int) $attributes['relationship_manager_id'])?->department?->value;
+        }
+
         return $attributes;
+    }
+
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    private function requireDepartment(array $attributes): string
+    {
+        $department = $attributes['department'] ?? null;
+
+        if (! is_string($department) || Department::tryFrom($department) === null) {
+            throw new DomainException('A department must be assigned.', 422);
+        }
+
+        return $department;
     }
 }

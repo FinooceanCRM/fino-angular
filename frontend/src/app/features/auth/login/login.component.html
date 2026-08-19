@@ -1,0 +1,64 @@
+<div class="login">
+  <section class="login__hero">
+    <div class="login__brand">
+      <mat-icon class="login__brand-icon">account_balance</mat-icon>
+      <span class="login__brand-name">{{ appName }}</span>
+    </div>
+    <p class="login__tagline">Lending, simplified</p>
+  </section>
+
+  <section class="login__panel">
+    <div class="login__card">
+      @if (auth.loading()) {
+        <mat-progress-bar mode="indeterminate" class="login__progress" />
+      }
+
+      <h1 class="login__title">Sign in to your account</h1>
+
+      <form class="login__form" [formGroup]="form" (ngSubmit)="submit()">
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput type="email" formControlName="email" autocomplete="username" />
+          @if (form.controls.email.touched && form.controls.email.invalid) {
+            <mat-error>Enter a valid email address.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+          />
+          <button
+            mat-icon-button
+            matSuffix
+            type="button"
+            (click)="showPassword.set(!showPassword())"
+            [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+          >
+            <mat-icon>{{ showPassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          @if (form.controls.password.touched && form.controls.password.invalid) {
+            <mat-error>Password must be at least 8 characters.</mat-error>
+          }
+        </mat-form-field>
+
+        <button
+          mat-flat-button
+          type="submit"
+          class="login__submit"
+          [disabled]="form.invalid || auth.loading()"
+        >
+          Sign in
+        </button>
+
+        @if (error()) {
+          <p class="login__error" role="alert">{{ error() }}</p>
+        }
+      </form>
+    </div>
+  </section>
+</div>

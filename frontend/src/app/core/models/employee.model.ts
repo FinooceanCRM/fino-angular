@@ -80,6 +80,11 @@ export interface EmployeeDashboard {
     profile_complete: boolean;
   };
   quick_actions: EmployeeQuickAction[];
+  stats: {
+    leads_assigned: number;
+    pending_documents: number;
+    approved_leads: number;
+  };
 }
 
 export interface EmployeeTeam {
