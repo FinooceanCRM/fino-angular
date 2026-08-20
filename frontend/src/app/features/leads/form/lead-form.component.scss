@@ -54,3 +54,108 @@
 .lead-form__notice {
   margin-bottom: var(--app-space-4);
 }
+
+.lead-form__documents {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--app-space-3);
+  padding-top: var(--app-space-4);
+}
+
+.lead-form__document-card {
+  border-radius: var(--app-radius-md);
+}
+
+.lead-form__document-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-2);
+  margin-bottom: var(--app-space-3);
+}
+
+.lead-form__document-card-title {
+  font-weight: 600;
+}
+
+.lead-form__document-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--app-space-1);
+  padding: var(--app-space-5) var(--app-space-3);
+  border: 2px dashed var(--mat-sys-outline);
+  border-radius: var(--app-radius-md);
+  background: var(--mat-sys-surface-container-high);
+  cursor: pointer;
+  text-align: center;
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.lead-form__document-dropzone--busy {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.lead-form__document-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+}
+
+.lead-form__document-file {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  padding: var(--app-space-2) var(--app-space-3);
+  border: 1px solid var(--mat-sys-outline);
+  border-radius: var(--app-radius-md);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.lead-form__document-filename {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.85rem;
+}
+
+.lead-form__document-replace {
+  position: relative;
+  display: inline-block;
+  margin-top: var(--app-space-2);
+  color: var(--mat-sys-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.lead-form__document-progress {
+  margin-top: var(--app-space-2);
+}
+
+.lead-form__document-error {
+  margin: var(--app-space-2) 0 0;
+  color: var(--mat-sys-error, #b3261e);
+  font-size: 0.8rem;
+}
+
+.lead-form__review-documents {
+  display: grid;
+  gap: var(--app-space-2);
+  margin-top: var(--app-space-1);
+}
+
+.lead-form__review-document {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  flex-wrap: wrap;
+}

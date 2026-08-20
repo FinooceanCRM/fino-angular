@@ -78,6 +78,8 @@ export class ManagerLeadStatusTableComponent {
   readonly scopeToEmployeeId = input<number | null>(null);
   /** When set, further restricts the bucket to leads matched to this Banker — the Banker-scoped "My Leads" view. */
   readonly scopeToBankerId = input<number | null>(null);
+  /** When set, further restricts the bucket to leads created by this user — the Telecaller-scoped "My Submitted Leads" view. */
+  readonly scopeToCreatedBy = input<number | null>(null);
   /** Row-action "View" and the reassign pool both key off this — lets the same component serve both the Manager and RM route trees. */
   readonly basePath = input('/manager/leads');
   /** Employees can see who a lead is assigned to but can't reassign it — hides the select column, bulk bar and row reassign action. */
@@ -150,10 +152,11 @@ export class ManagerLeadStatusTableComponent {
       const rmId = this.scopeToRelationshipManagerId();
       const employeeId = this.scopeToEmployeeId();
       const bankerId = this.scopeToBankerId();
+      const createdBy = this.scopeToCreatedBy();
       const page = this.pageIndex();
       const size = this.pageSize();
 
-      this.load(f, bucket, rmId, employeeId, bankerId, page, size);
+      this.load(f, bucket, rmId, employeeId, bankerId, createdBy, page, size);
     });
   }
 
@@ -163,6 +166,7 @@ export class ManagerLeadStatusTableComponent {
     rmId: number | null,
     employeeId: number | null,
     bankerId: number | null,
+    createdBy: number | null,
     page: number,
     size: number,
   ): void {
@@ -184,6 +188,7 @@ export class ManagerLeadStatusTableComponent {
         assigned_relationship_manager_id: rmId ?? undefined,
         assigned_employee_id: employeeId ?? undefined,
         assigned_banker_id: bankerId ?? undefined,
+        created_by: createdBy ?? undefined,
         page: page + 1,
         per_page: size,
       })
@@ -332,6 +337,7 @@ export class ManagerLeadStatusTableComponent {
       this.scopeToRelationshipManagerId(),
       this.scopeToEmployeeId(),
       this.scopeToBankerId(),
+      this.scopeToCreatedBy(),
       this.pageIndex(),
       this.pageSize(),
     );

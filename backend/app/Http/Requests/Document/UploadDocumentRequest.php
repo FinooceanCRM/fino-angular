@@ -20,9 +20,24 @@ class UploadDocumentRequest extends BaseFormRequest
         // else may leave one but isn't forced to.
         $remarksRequired = $this->user()?->roleEnum() === UserRole::Employee;
 
+        // KYC identity scans (Aadhaar front/back, PAN) are always photos or a
+        // single-page scan, so they're held to a tighter file contract than
+        // the general document upload (which also accepts spreadsheets/docs
+        // for things like bank statements): images or PDF only, 5 MB cap.
+        $isIdentityDocument = in_array(
+            $this->input('document_type'),
+            array_map(static fn (DocumentType $t): string => $t->value, DocumentType::leadCreationRequiredTypes()),
+            true,
+        );
+
         return [
             'document_type' => ['required', Rule::in(DocumentType::values())],
-            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,jpg,jpeg,png,webp,doc,docx,xls,xlsx'],
+            'file' => [
+                'required',
+                'file',
+                $isIdentityDocument ? 'max:5120' : 'max:10240',
+                $isIdentityDocument ? 'mimes:pdf,jpg,jpeg,png' : 'mimes:pdf,jpg,jpeg,png,webp,doc,docx,xls,xlsx',
+            ],
             'remarks' => [$remarksRequired ? 'required' : 'nullable', 'string', 'max:2000'],
         ];
     }

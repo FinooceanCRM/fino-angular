@@ -78,6 +78,11 @@ class LoanLeadPolicy
      * moved to a different Employee, or handed elsewhere and back — the
      * assigned Employee drops to documents-only and status becomes
      * read-only for them; see {@see self::uploadDocument()}.
+     *
+     * A Telecaller may change status only on leads she personally
+     * submitted — her PD-queue leads (employee-generated, not her own)
+     * stay status-read-only for her; see {@see self::completePd()} for the
+     * dedicated PD action instead.
      */
     public function changeStatus(User $actor, LoanLead $lead): bool
     {
@@ -94,6 +99,10 @@ class LoanLeadPolicy
                 && ! LeadAssignment::wasReassignedAwayFrom($lead->id, UserRole::Employee);
         }
 
+        if ($actor->roleEnum() === UserRole::Telecaller) {
+            return $lead->created_by === $actor->id;
+        }
+
         return $actor->roleEnum() === UserRole::Banker
             && $lead->assigned_banker_id === $actor->id
             && LeadAccessRequest::grantsFullAccess($lead->id, $actor->id);
@@ -104,9 +113,18 @@ class LoanLeadPolicy
         return ! in_array($actor->roleEnum(), [UserRole::Connector, UserRole::Banker, UserRole::Telecaller], true);
     }
 
+    /**
+     * The lead's own creator may always attach documents to it — most
+     * visibly, so the Attach Documents step of lead creation works for
+     * every role, not just the ones {@see self::update()} already covers
+     * (e.g. a Banker isn't granted full access to their own brand-new lead
+     * until later, but must still be able to attach it during creation).
+     */
     public function uploadDocument(User $actor, LoanLead $lead): bool
     {
-        return $this->update($actor, $lead) || $actor->roleEnum() === UserRole::Connector;
+        return $this->update($actor, $lead)
+            || $actor->roleEnum() === UserRole::Connector
+            || $lead->created_by === $actor->id;
     }
 
     /**

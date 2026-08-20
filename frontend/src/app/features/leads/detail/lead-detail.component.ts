@@ -163,6 +163,15 @@ export class LeadDetailComponent implements OnInit {
    */
   protected readonly canChangeStatus = computed(() => this.detail()?.lead.can_change_status ?? false);
   protected readonly isEmployee = computed(() => this.auth.hasRole('employee'));
+  /**
+   * Once a Connector submits a lead, their view narrows to Overview + the
+   * status timeline: no Assign, no status changes, no Bank matches, no
+   * Documents. Mirrors LoanLeadPolicy — a Connector can never assign() or
+   * changeStatus() a lead, and loses uploadDocument() the moment it moves
+   * past new/assigned — but hides those tabs outright rather than leaving
+   * them visible-but-broken.
+   */
+  protected readonly isConnector = computed(() => this.auth.hasRole('connector'));
 
   protected readonly historyEntries = computed(() =>
     (this.detail()?.status_history ?? []).map((entry) => ({
@@ -241,7 +250,7 @@ export class LeadDetailComponent implements OnInit {
     // `accessRequests` to resolve `hasFullAccess()` first, and only fire
     // when they're actually going to be allowed; every other role (always
     // "full access") fires them immediately, same as before.
-    if (!this.isBanker()) {
+    if (!this.isBanker() && !this.isConnector()) {
       this.loadDocuments();
     }
 

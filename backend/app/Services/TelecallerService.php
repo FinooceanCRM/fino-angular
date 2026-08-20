@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Exceptions\DomainException;
 use App\Models\Telecaller;
 use App\Models\User;
+use App\Repositories\Contracts\LoanLeadRepositoryInterface;
 use App\Repositories\Contracts\TelecallerRepositoryInterface;
 
 /**
@@ -18,8 +19,11 @@ use App\Repositories\Contracts\TelecallerRepositoryInterface;
  */
 class TelecallerService extends BaseService
 {
-    public function __construct(private readonly TelecallerRepositoryInterface $telecallers)
-    {
+    public function __construct(
+        private readonly TelecallerRepositoryInterface $telecallers,
+        private readonly LoanLeadRepositoryInterface $leads,
+        private readonly TelecallerFollowUpService $followUps,
+    ) {
     }
 
     /** Profile for the given telecaller user, auto-provisioned on first read. */
@@ -67,9 +71,9 @@ class TelecallerService extends BaseService
     }
 
     /**
-     * Dashboard payload: welcome card, user information, role information
-     * and account status. Lead-related stats are added once the PD
-     * workflow (telecaller lead visibility) is wired up.
+     * Dashboard payload: welcome card, user information, role information,
+     * account status, her own submitted-lead stats, her PD queue counts and
+     * her pending follow-ups.
      *
      * @return array<string, mixed>
      */
@@ -105,7 +109,82 @@ class TelecallerService extends BaseService
                 'status' => $user->is_active ? 'Active' : 'Inactive',
                 'profile_complete' => $this->isProfileComplete($profile),
             ],
+            'submitted_leads' => $this->submittedLeadStats($user),
+            'recent_leads' => $this->recentLeads($user),
+            'pd_queue' => $this->pdQueueStats($user),
+            'pending_follow_ups' => $this->pendingFollowUps($user),
         ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function submittedLeadStats(User $user): array
+    {
+        $statusCounts = $this->leads->statusCounts($user, ['created_by' => $user->id]);
+
+        return [
+            'total' => array_sum($statusCounts),
+            'by_status' => $statusCounts,
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function recentLeads(User $user): array
+    {
+        return $this->leads->visibleQuery($user)
+            ->where('created_by', $user->id)
+            ->orderByDesc('created_at')
+            ->limit(5)
+            ->get(['id', 'reference', 'applicant_name', 'loan_amount', 'status', 'created_at'])
+            ->map(static fn ($lead): array => [
+                'id' => $lead->id,
+                'reference' => $lead->reference,
+                'applicant_name' => $lead->applicant_name,
+                'loan_amount' => $lead->loan_amount,
+                'status' => $lead->statusEnum()->value,
+                'status_label' => $lead->statusEnum()->label(),
+                'created_at' => $lead->created_at?->toIso8601String(),
+            ])
+            ->all();
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function pdQueueStats(User $user): array
+    {
+        $query = $this->leads->visibleQuery($user)->where('department', $user->department?->value)
+            ->whereHas('creator', function ($q): void {
+                $q->where('role', UserRole::Employee->value);
+            });
+
+        return [
+            'pending' => (clone $query)->whereNull('pd_completed_at')->count(),
+            'completed' => (clone $query)->whereNotNull('pd_completed_at')->count(),
+        ];
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function pendingFollowUps(User $user): array
+    {
+        return $this->followUps->pendingForActor($user, 5)
+            ->map(static fn ($followUp): array => [
+                'id' => $followUp->id,
+                'type' => $followUp->type,
+                'notes' => $followUp->notes,
+                'next_follow_up_at' => optional($followUp->next_follow_up_at)->toIso8601String(),
+                'lead' => $followUp->loanLead ? [
+                    'id' => $followUp->loanLead->id,
+                    'reference' => $followUp->loanLead->reference,
+                    'applicant_name' => $followUp->loanLead->applicant_name,
+                ] : null,
+            ])
+            ->all();
     }
 
     private function isProfileComplete(Telecaller $profile): bool

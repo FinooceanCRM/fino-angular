@@ -1,0 +1,160 @@
+@if (error(); as message) {
+  <p class="lead-panel__error" role="alert">{{ message }}</p>
+}
+
+@if (lead(); as data) {
+  <div class="lead-panel__grid">
+    @if (canCompletePd() || canChangeStatus()) {
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Telecaller actions</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (canCompletePd()) {
+            <button mat-flat-button color="primary" type="button" (click)="completePd()">
+              <mat-icon>call_end</mat-icon>
+              Mark PD complete
+            </button>
+          }
+
+          @if (canChangeStatus()) {
+            <form class="lead-panel__inline-form" [formGroup]="statusForm" (ngSubmit)="changeStatus()">
+              <mat-form-field appearance="outline">
+                <mat-label>Status</mat-label>
+                <mat-select formControlName="status">
+                  @for (status of statuses(); track status.value) {
+                    <mat-option [value]="status.value">{{ status.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Remarks</mat-label>
+                <input matInput formControlName="remarks" />
+              </mat-form-field>
+              <button mat-stroked-button type="submit">Update status</button>
+            </form>
+          } @else {
+            <p class="lead-panel__muted">Status is read-only for this lead.</p>
+          }
+        </mat-card-content>
+      </mat-card>
+    }
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Documents</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          @for (item of documents(); track item.id) {
+            <mat-list-item>
+              <mat-icon matListItemIcon>description</mat-icon>
+              <span matListItemTitle>{{ item.original_name }}</span>
+              <span matListItemLine>{{ item.document_type_label }} · {{ item.status }}</span>
+              <div matListItemMeta class="lead-panel__doc-actions">
+                <button mat-icon-button type="button" aria-label="Download" (click)="download(item)">
+                  <mat-icon>download</mat-icon>
+                </button>
+                <button mat-icon-button type="button" aria-label="Remove" (click)="removeDocument(item)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </mat-list-item>
+          } @empty {
+            <p class="lead-panel__muted">No documents uploaded yet.</p>
+          }
+        </mat-list>
+
+        <form class="lead-panel__inline-form" [formGroup]="documentForm" (ngSubmit)="upload()">
+          <mat-form-field appearance="outline">
+            <mat-label>Document type</mat-label>
+            <mat-select formControlName="document_type">
+              @for (type of documentTypes(); track type.value) {
+                <mat-option [value]="type.value">{{ type.label }}</mat-option>
+              } @empty {
+                <mat-option value="aadhaar">Aadhaar</mat-option>
+                <mat-option value="pan_card">PAN card</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <input type="file" (change)="onFileSelected($event)" />
+          <mat-form-field appearance="outline">
+            <mat-label>Remarks</mat-label>
+            <input matInput formControlName="remarks" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit">
+            <mat-icon>upload</mat-icon>
+            Upload
+          </button>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="lead-panel__span-2">
+      <mat-card-header>
+        <mat-card-title>Follow-ups &amp; notes</mat-card-title>
+        <mat-card-subtitle>Calls, meetings, reminders and notes you've logged on this lead.</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <form class="lead-panel__inline-form" [formGroup]="followUpForm" (ngSubmit)="logFollowUp()">
+          <mat-form-field appearance="outline">
+            <mat-label>Type</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="call">Call</mat-option>
+              <mat-option value="meeting">Meeting</mat-option>
+              <mat-option value="reminder">Reminder</mat-option>
+              <mat-option value="note">Note</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="lead-panel__notes-field">
+            <mat-label>Notes</mat-label>
+            <input matInput formControlName="notes" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Next follow-up date</mat-label>
+            <input matInput type="date" formControlName="next_follow_up_at" />
+          </mat-form-field>
+          <button mat-flat-button color="primary" type="submit">Log</button>
+        </form>
+
+        <mat-list>
+          @for (item of followUps(); track item.id) {
+            <mat-list-item class="lead-panel__follow-up">
+              <mat-icon matListItemIcon>
+                @switch (item.type) {
+                  @case ('call') { call }
+                  @case ('meeting') { groups }
+                  @case ('reminder') { alarm }
+                  @default { sticky_note_2 }
+                }
+              </mat-icon>
+              <span matListItemTitle>{{ item.notes || '(no notes)' }}</span>
+              <span matListItemLine>
+                Logged {{ item.created_at | date: 'medium' }}
+                @if (item.next_follow_up_at) {
+                  · Next follow-up {{ item.next_follow_up_at | date: 'mediumDate' }}
+                }
+                @if (item.completed_at) {
+                  · Completed {{ item.completed_at | date: 'medium' }}
+                }
+              </span>
+              @if (!item.completed_at) {
+                <div matListItemMeta class="lead-panel__follow-up-actions">
+                  <input type="date" #resched />
+                  <button mat-button type="button" (click)="rescheduleFollowUp(item, resched.value)">
+                    Reschedule
+                  </button>
+                  <button mat-button color="primary" type="button" (click)="completeFollowUp(item)">
+                    Mark complete
+                  </button>
+                </div>
+              }
+            </mat-list-item>
+          } @empty {
+            <p class="lead-panel__muted">No follow-ups logged yet.</p>
+          }
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

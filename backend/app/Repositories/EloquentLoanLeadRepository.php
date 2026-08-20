@@ -26,7 +26,8 @@ use Illuminate\Database\Eloquent\Builder;
  * Employee     -> leads assigned to them (cascaded onto their own creations at Lead::create time)
  * Connector    -> leads they submitted
  * Banker       -> leads assigned to them, plus leads matched against their own bank_criteria
- * Telecaller   -> employee-generated leads in their own department (the PD call queue)
+ * Telecaller   -> employee-generated leads in their own department (the PD call queue),
+ *                 plus every lead they personally submitted ("My Submitted Leads")
  */
 class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
 {
@@ -80,14 +81,20 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
                         $bq->where('banker_id', $actor->id);
                     });
             }),
-            // A telecaller's PD call queue: employee-submitted leads in
-            // their own department. Assignment cascades don't reach
-            // Telecaller (it sits outside the hierarchy), so this is scoped
-            // by department + creator role rather than an assigned_* column.
-            UserRole::Telecaller => $query->where('department', $actor->department?->value)
-                ->whereHas('creator', function (Builder $q): void {
-                    $q->where('role', UserRole::Employee->value);
-                }),
+            // A telecaller sees two populations: her PD call queue
+            // (employee-submitted leads in her own department — assignment
+            // cascades don't reach Telecaller since it sits outside the
+            // hierarchy, so this is scoped by department + creator role
+            // rather than an assigned_* column), plus every lead she
+            // personally submitted, regardless of department.
+            UserRole::Telecaller => $query->where(function (Builder $q) use ($actor): void {
+                $q->where(function (Builder $pd) use ($actor): void {
+                    $pd->where('department', $actor->department?->value)
+                        ->whereHas('creator', function (Builder $cq): void {
+                            $cq->where('role', UserRole::Employee->value);
+                        });
+                })->orWhere('created_by', $actor->id);
+            }),
         };
     }
 
@@ -147,6 +154,10 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
             $query->where('connector_id', (int) $filters['connector_id']);
         }
 
+        if (! empty($filters['created_by'])) {
+            $query->where('created_by', (int) $filters['created_by']);
+        }
+
         if (! empty($filters['min_amount'])) {
             $query->where('loan_amount', '>=', (float) $filters['min_amount']);
         }
@@ -200,12 +211,19 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
     }
 
     /**
+     * @param  array<string, mixed>  $filters
      * @return array<string, int>
      */
-    public function statusCounts(User $actor): array
+    public function statusCounts(User $actor, array $filters = []): array
     {
+        $query = $this->visibleQuery($actor);
+
+        if (! empty($filters['created_by'])) {
+            $query->where('created_by', (int) $filters['created_by']);
+        }
+
         /** @var array<string, int> $counts */
-        $counts = $this->visibleQuery($actor)
+        $counts = $query
             ->select('status')
             ->selectRaw('count(*) as aggregate')
             ->groupBy('status')

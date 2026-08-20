@@ -14,6 +14,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         $values = implode(',', array_map(
             static fn (string $value): string => "'{$value}'",
             UserRole::values(),
@@ -24,6 +28,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         $values = implode(',', array_map(
             static fn (string $value): string => "'{$value}'",
             array_values(array_filter(UserRole::values(), static fn (string $v): bool => $v !== UserRole::Banker->value)),

@@ -255,6 +255,7 @@ export interface LeadFilters {
   assigned_relationship_manager_id?: number | string;
   assigned_banker_id?: number | string;
   connector_id?: number | string;
+  created_by?: number | string;
   min_amount?: number | string;
   max_amount?: number | string;
   created_from?: string;

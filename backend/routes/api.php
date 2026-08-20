@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\RelationshipManagerController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SuperAdminController;
 use App\Http\Controllers\Api\V1\TelecallerController;
+use App\Http\Controllers\Api\V1\TelecallerFollowUpController;
 use App\Http\Controllers\Api\V1\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -70,6 +71,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('dashboard', [TelecallerController::class, 'dashboard'])->name('dashboard');
                 Route::get('profile', [TelecallerController::class, 'profile'])->name('profile.show');
                 Route::put('profile', [TelecallerController::class, 'updateProfile'])->name('profile.update');
+                Route::get('follow-ups', [TelecallerFollowUpController::class, 'pending'])->name('follow-ups.index');
             });
 
         // Employee module (Phase 6). Self-scoped; leaf of the reporting hierarchy.
@@ -134,6 +136,10 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 ->whereNumber('lead')->name('follow-ups.index');
             Route::post('{lead}/follow-ups', [LeadFollowUpController::class, 'store'])
                 ->whereNumber('lead')->name('follow-ups.store');
+            Route::get('{lead}/telecaller-follow-ups', [TelecallerFollowUpController::class, 'index'])
+                ->whereNumber('lead')->name('telecaller-follow-ups.index');
+            Route::post('{lead}/telecaller-follow-ups', [TelecallerFollowUpController::class, 'store'])
+                ->whereNumber('lead')->name('telecaller-follow-ups.store');
         });
 
         // Banker follow-up completion — separate prefix since it acts on the
@@ -141,6 +147,15 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::prefix('follow-ups')->name('follow-ups.')->group(function (): void {
             Route::post('{follow_up}/complete', [LeadFollowUpController::class, 'complete'])
                 ->whereNumber('follow_up')->name('complete');
+        });
+
+        // Telecaller follow-up completion/reschedule — separate table/prefix
+        // from the Banker log above, kept fully independent.
+        Route::prefix('telecaller-follow-ups')->name('telecaller-follow-ups.')->group(function (): void {
+            Route::post('{follow_up}/complete', [TelecallerFollowUpController::class, 'complete'])
+                ->whereNumber('follow_up')->name('complete');
+            Route::post('{follow_up}/reschedule', [TelecallerFollowUpController::class, 'reschedule'])
+                ->whereNumber('follow_up')->name('reschedule');
         });
 
         // Banker access-request approve/reject workflow.

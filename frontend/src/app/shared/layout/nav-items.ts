@@ -10,6 +10,7 @@ export interface NavItem {
 export function profileLink(auth: AuthService): string | null {
   if (auth.hasRole('connector')) return '/connector/profile';
   if (auth.hasRole('banker')) return '/banker/profile';
+  if (auth.hasRole('telecaller')) return '/telecaller/profile';
   if (auth.hasRole('employee')) return '/employee/profile';
   if (auth.hasRole('relationship_manager')) return '/relationship-manager/profile';
   if (auth.hasRole('manager')) return '/manager/profile';
@@ -83,6 +84,16 @@ export function roleNavItems(auth: AuthService): NavItem[] {
     ];
   }
 
+  if (auth.hasRole('telecaller')) {
+    return [
+      { label: 'Telecaller dashboard', link: '/telecaller/dashboard', icon: 'dashboard' },
+      { label: 'My Submitted Leads', link: '/telecaller/leads', icon: 'assignment_ind' },
+      { label: 'PD Queue', link: '/telecaller/leads/pd-queue', icon: 'call' },
+      { label: 'Follow-ups', link: '/telecaller/follow-ups', icon: 'event_repeat' },
+      ...profileItem,
+    ];
+  }
+
   return [{ label: 'Dashboard', link: '/dashboard', icon: 'dashboard' }];
 }
 
@@ -95,11 +106,22 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { label: 'Notifications', link: '/notifications', icon: 'notifications' },
 ];
 
-/** Adds "Users" to the shared workspace items for roles with users.view; drops "Leads" for Bankers, who already have "My Leads" in their own section. */
+/**
+ * Adds "Users" to the shared workspace items for roles with users.view; drops
+ * "Leads" for Bankers, who already have "My Leads" in their own section; and
+ * drops "Documents" for Connectors, who lose document access on a lead the
+ * moment it's submitted (see lead-detail.component.ts `isConnector`).
+ */
 export function workspaceNavItems(auth: AuthService): NavItem[] {
-  const items = auth.hasRole('banker')
-    ? WORKSPACE_NAV_ITEMS.filter((item) => item.link !== '/leads')
-    : WORKSPACE_NAV_ITEMS;
+  let items = WORKSPACE_NAV_ITEMS;
+
+  if (auth.hasRole('banker')) {
+    items = items.filter((item) => item.link !== '/leads');
+  }
+
+  if (auth.hasRole('connector')) {
+    items = items.filter((item) => item.link !== '/documents');
+  }
 
   if (!auth.can('users.view')) {
     return items;

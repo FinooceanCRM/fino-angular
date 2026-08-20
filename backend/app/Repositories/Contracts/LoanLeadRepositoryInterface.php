@@ -34,7 +34,8 @@ interface LoanLeadRepositoryInterface
     /**
      * Status counts for the actor's visible leads.
      *
+     * @param array<string, mixed> $filters
      * @return array<string, int>
      */
-    public function statusCounts(User $actor): array;
+    public function statusCounts(User $actor, array $filters = []): array;
 }

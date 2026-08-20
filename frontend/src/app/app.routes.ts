@@ -66,6 +66,14 @@ export const routes: Routes = [
       import('@features/banker/banker.routes').then((m) => m.bankerRoutes),
   },
   {
+    // Telecaller module. Independent of the reporting hierarchy, like Connector and Banker.
+    path: 'telecaller',
+    loadChildren: () =>
+      import('@features/telecaller/telecaller.routes').then(
+        (m) => m.telecallerRoutes,
+      ),
+  },
+  {
     // Loan management workflow (Phase 9).
     path: 'leads',
     loadChildren: () =>

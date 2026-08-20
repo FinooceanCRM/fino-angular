@@ -22,13 +22,13 @@
         Edit
       </a>
     }
-    @if (canAssign()) {
+    @if (!isConnector() && canAssign()) {
       <button mat-stroked-button type="button" (click)="selectedTab.set(workflowTab)">
         <mat-icon>person_add</mat-icon>
         Assign
       </button>
     }
-    @if (!isBanker() || hasFullAccess()) {
+    @if (!isConnector() && (!isBanker() || hasFullAccess())) {
       <button
         mat-stroked-button
         color="warn"
@@ -194,68 +194,99 @@
             }
           </mat-card>
         }
+
+        @if (!isConnector()) {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">Documents</h3>
+            @if (isBanker() && !hasFullAccess()) {
+              <p class="lead-detail__muted">
+                Documents unlock once a Manager approves full access to this lead. Request it from the Bank matches
+                tab.
+              </p>
+            } @else if (documents().length === 0) {
+              <p class="lead-detail__muted">No documents attached yet.</p>
+            } @else {
+              <ul class="document-list">
+                @for (document of documents(); track document.id) {
+                  <li class="document-list__item">
+                    <span class="document-list__icon"><mat-icon>description</mat-icon></span>
+                    <span class="document-list__body">
+                      <span class="document-list__title">{{ document.document_type_label }}</span>
+                      <span class="document-list__subtitle">
+                        {{ document.original_name }} · attached {{ document.created_at | date: 'mediumDate' }}
+                      </span>
+                    </span>
+                    <app-status-pill label="Attached" colour="success" />
+                  </li>
+                }
+              </ul>
+            }
+          </mat-card>
+        }
       </div>
     </mat-tab>
 
     <mat-tab label="Workflow">
       <div class="lead-detail__tab-body">
-        @if (canChangeStatus()) {
-          <mat-card class="lead-detail__form-card">
-            <h3 class="lead-detail__section-title">Change status</h3>
-            <form class="lead-detail__inline-form" [formGroup]="statusForm" (ngSubmit)="changeStatus()">
-              <mat-form-field appearance="outline">
-                <mat-label>Change status</mat-label>
-                <mat-select formControlName="status">
-                  @for (status of statuses(); track status.value) {
-                    <mat-option [value]="status.value">{{ status.label }}</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Remarks</mat-label>
-                <input matInput formControlName="remarks" />
-              </mat-form-field>
-              <button mat-flat-button color="primary" type="submit">Update status</button>
-            </form>
-          </mat-card>
-        } @else {
-          <mat-card class="lead-detail__form-card">
-            <h3 class="lead-detail__section-title">Change status</h3>
-            @if (isBanker()) {
-              <p class="lead-detail__muted">
-                Status updates unlock once a Manager approves full access to this lead. Request it from the Bank
-                matches tab.
-              </p>
-            } @else if (isEmployee()) {
-              <p class="lead-detail__muted">
-                This lead has been reassigned, so status is read-only for you now. You can still attach supporting
-                documents — with a remark on each upload — from the Documents tab.
-              </p>
-            } @else {
-              <p class="lead-detail__muted">You don't have permission to change this lead's status.</p>
-            }
-          </mat-card>
-        }
+        @if (!isConnector()) {
+          @if (canChangeStatus()) {
+            <mat-card class="lead-detail__form-card">
+              <h3 class="lead-detail__section-title">Change status</h3>
+              <form class="lead-detail__inline-form" [formGroup]="statusForm" (ngSubmit)="changeStatus()">
+                <mat-form-field appearance="outline">
+                  <mat-label>Change status</mat-label>
+                  <mat-select formControlName="status">
+                    @for (status of statuses(); track status.value) {
+                      <mat-option [value]="status.value">{{ status.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Remarks</mat-label>
+                  <input matInput formControlName="remarks" />
+                </mat-form-field>
+                <button mat-flat-button color="primary" type="submit">Update status</button>
+              </form>
+            </mat-card>
+          } @else {
+            <mat-card class="lead-detail__form-card">
+              <h3 class="lead-detail__section-title">Change status</h3>
+              @if (isBanker()) {
+                <p class="lead-detail__muted">
+                  Status updates unlock once a Manager approves full access to this lead. Request it from the Bank
+                  matches tab.
+                </p>
+              } @else if (isEmployee()) {
+                <p class="lead-detail__muted">
+                  This lead has been reassigned, so status is read-only for you now. You can still attach supporting
+                  documents — with a remark on each upload — from the Documents tab.
+                </p>
+              } @else {
+                <p class="lead-detail__muted">You don't have permission to change this lead's status.</p>
+              }
+            </mat-card>
+          }
 
-        @if (canAssign() && assignees().length > 0) {
-          <mat-card class="lead-detail__form-card">
-            <h3 class="lead-detail__section-title">Assign lead</h3>
-            <form class="lead-detail__inline-form" [formGroup]="assignForm" (ngSubmit)="assign()">
-              <mat-form-field appearance="outline">
-                <mat-label>Assign to</mat-label>
-                <mat-select formControlName="assignee_id">
-                  @for (user of assignees(); track user.id) {
-                    <mat-option [value]="user.id">{{ user.name }} ({{ user.role }})</mat-option>
-                  }
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Remarks</mat-label>
-                <input matInput formControlName="remarks" />
-              </mat-form-field>
-              <button mat-flat-button color="primary" type="submit">Assign lead</button>
-            </form>
-          </mat-card>
+          @if (canAssign() && assignees().length > 0) {
+            <mat-card class="lead-detail__form-card">
+              <h3 class="lead-detail__section-title">Assign lead</h3>
+              <form class="lead-detail__inline-form" [formGroup]="assignForm" (ngSubmit)="assign()">
+                <mat-form-field appearance="outline">
+                  <mat-label>Assign to</mat-label>
+                  <mat-select formControlName="assignee_id">
+                    @for (user of assignees(); track user.id) {
+                      <mat-option [value]="user.id">{{ user.name }} ({{ user.role }})</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline">
+                  <mat-label>Remarks</mat-label>
+                  <input matInput formControlName="remarks" />
+                </mat-form-field>
+                <button mat-flat-button color="primary" type="submit">Assign lead</button>
+              </form>
+            </mat-card>
+          }
         }
 
         <mat-card class="lead-detail__form-card">
@@ -269,6 +300,7 @@
       </div>
     </mat-tab>
 
+    @if (!isConnector()) {
     <mat-tab label="Bank matches">
       <div class="lead-detail__tab-body">
         <div class="lead-detail__match-actions">
@@ -359,7 +391,9 @@
         }
       </div>
     </mat-tab>
+    }
 
+    @if (!isConnector()) {
     <mat-tab label="Documents">
       <div class="lead-detail__tab-body">
         @if (!isBanker() || hasFullAccess()) {
@@ -431,6 +465,7 @@
         }
       </div>
     </mat-tab>
+    }
 
     @if (isBanker() && hasFullAccess()) {
       <mat-tab label="Follow-ups">

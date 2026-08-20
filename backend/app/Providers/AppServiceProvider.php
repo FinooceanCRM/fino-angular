@@ -12,6 +12,8 @@ use App\Models\LeadFollowUp;
 use App\Models\LoanLead;
 use App\Models\Manager;
 use App\Models\RelationshipManager;
+use App\Models\Telecaller;
+use App\Models\TelecallerFollowUp;
 use App\Models\User;
 use App\Policies\BankCriteriaPolicy;
 use App\Policies\BankerPolicy;
@@ -23,6 +25,8 @@ use App\Policies\LeadFollowUpPolicy;
 use App\Policies\LoanLeadPolicy;
 use App\Policies\ManagerPolicy;
 use App\Policies\RelationshipManagerPolicy;
+use App\Policies\TelecallerFollowUpPolicy;
+use App\Policies\TelecallerPolicy;
 use App\Policies\UserPolicy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Gate;
@@ -48,5 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Document::class, DocumentPolicy::class);
         Gate::policy(LeadAccessRequest::class, LeadAccessRequestPolicy::class);
         Gate::policy(LeadFollowUp::class, LeadFollowUpPolicy::class);
+        Gate::policy(Telecaller::class, TelecallerPolicy::class);
+        Gate::policy(TelecallerFollowUp::class, TelecallerFollowUpPolicy::class);
     }
 }

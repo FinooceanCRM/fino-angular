@@ -17,10 +17,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
-import { MatStepperModule } from '@angular/material/stepper';
+import { MatStepper, MatStepperModule } from '@angular/material/stepper';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { map } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 
+import { LeadDocument } from '@core/models/document.model';
 import {
   BALANCE_TRANSFER_TYPE_OPTIONS,
   CAR_TYPE_OPTIONS,
@@ -39,8 +41,11 @@ import {
   SALARY_ACCOUNT_TYPE_OPTIONS,
   labelFromOptions,
 } from '@core/models/lead.model';
+import { AuthService } from '@core/services/auth.service';
+import { DocumentService } from '@core/services/document.service';
 import { LeadService } from '@core/services/lead.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { StatusPillColour, StatusPillComponent } from '@shared/components/status-pill.component';
 
 /** Loan types (see `App\Enums\LoanType` on the backend) that unlock a step-4 fieldset. */
 const HOME_LOAN = 'home';
@@ -80,6 +85,73 @@ function minimumAgeValidator(minAge: number) {
 const MOBILE_PATTERN = /^[6-9]\d{9}$/;
 const PINCODE_PATTERN = /^\d{6}$/;
 
+/** The three documents the Attach Documents step collects; keys match `App\Enums\DocumentType` on the backend. */
+type DocumentSlotKey = 'aadhaar_front' | 'aadhaar_back' | 'pan_card';
+
+interface DocumentSlotConfig {
+  readonly key: DocumentSlotKey;
+  readonly title: string;
+  readonly uploadLabel: string;
+  readonly requiredMessage: string;
+}
+
+const DOCUMENT_SLOTS: readonly DocumentSlotConfig[] = [
+  {
+    key: 'aadhaar_front',
+    title: 'Aadhaar Front',
+    uploadLabel: 'Upload Front Image',
+    requiredMessage: 'Aadhaar front is required.',
+  },
+  {
+    key: 'aadhaar_back',
+    title: 'Aadhaar Back',
+    uploadLabel: 'Upload Back Image',
+    requiredMessage: 'Aadhaar back is required.',
+  },
+  {
+    key: 'pan_card',
+    title: 'PAN Card',
+    uploadLabel: 'Upload PAN Card',
+    requiredMessage: 'PAN card is required.',
+  },
+];
+
+const ACCEPTED_DOCUMENT_EXTENSIONS = ['jpg', 'jpeg', 'png', 'pdf'];
+const ACCEPTED_DOCUMENT_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+const MAX_DOCUMENT_SIZE_BYTES = 5 * 1024 * 1024;
+
+/** Mirrors the backend's stricter identity-document contract (see `UploadDocumentRequest`): images or PDF, 5 MB cap. */
+function documentFileValidator(control: AbstractControl): ValidationErrors | null {
+  const file: File | null = control.value;
+  if (!file) {
+    return null;
+  }
+
+  const extension = file.name.includes('.') ? file.name.split('.').pop()!.toLowerCase() : '';
+  const extensionOk = ACCEPTED_DOCUMENT_EXTENSIONS.includes(extension);
+  const mimeOk = !file.type || ACCEPTED_DOCUMENT_MIME_TYPES.includes(file.type);
+  if (!extensionOk || !mimeOk) {
+    return { unsupportedFileType: true };
+  }
+
+  if (file.size > MAX_DOCUMENT_SIZE_BYTES) {
+    return { fileTooLarge: true };
+  }
+
+  return null;
+}
+
+interface DocumentSlotStatus {
+  readonly status: 'idle' | 'uploading' | 'uploaded' | 'error';
+  readonly message: string | null;
+  readonly existing: LeadDocument | null;
+}
+
+function initialDocumentStatusMap(): Record<DocumentSlotKey, DocumentSlotStatus> {
+  const idle: DocumentSlotStatus = { status: 'idle', message: null, existing: null };
+  return { aadhaar_front: idle, aadhaar_back: idle, pan_card: idle };
+}
+
 @Component({
   selector: 'app-lead-form',
   standalone: true,
@@ -94,9 +166,11 @@ const PINCODE_PATTERN = /^\d{6}$/;
     MatProgressBarModule,
     MatSelectModule,
     MatStepperModule,
+    MatTooltipModule,
     PageHeaderComponent,
     ReactiveFormsModule,
     RouterLink,
+    StatusPillComponent,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './lead-form.component.html',
@@ -106,6 +180,8 @@ const PINCODE_PATTERN = /^\d{6}$/;
 export class LeadFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly leads = inject(LeadService);
+  private readonly documentsApi = inject(DocumentService);
+  private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -115,6 +191,9 @@ export class LeadFormComponent implements OnInit {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
+
+  readonly documentSlots = DOCUMENT_SLOTS;
+  readonly documentStatus = signal<Record<DocumentSlotKey, DocumentSlotStatus>>(initialDocumentStatusMap());
 
   /** Static option catalogues for the fields that don't come from the backend metadata endpoint. */
   readonly genderOptions = GENDER_OPTIONS;
@@ -131,6 +210,14 @@ export class LeadFormComponent implements OnInit {
   readonly mudraLoanTypeOptions = MUDRA_LOAN_TYPE_OPTIONS;
 
   readonly maxDob = new Date();
+
+  /**
+   * Set once the lead has been created so a retry after a partial document-upload
+   * failure updates that same lead instead of creating a duplicate. Kept separate
+   * from `leadId` (which drives the "Edit lead" header/title) so the page still
+   * reads as "Create lead" until the whole flow, documents included, is done.
+   */
+  private createdLeadId: number | null = null;
 
   readonly form = this.fb.nonNullable.group({
     applicant: this.fb.nonNullable.group({
@@ -179,6 +266,11 @@ export class LeadFormComponent implements OnInit {
       balance_transfer_type: ['none'],
       balance_transfer_loan_amount: this.fb.control<number | null>(null),
       topup_loan_amount: this.fb.control<number | null>(null),
+    }),
+    documents: this.fb.group({
+      aadhaar_front: this.fb.control<File | null>(null, [Validators.required, documentFileValidator]),
+      aadhaar_back: this.fb.control<File | null>(null, [Validators.required, documentFileValidator]),
+      pan_card: this.fb.control<File | null>(null, [Validators.required, documentFileValidator]),
     }),
     notes: [''],
   });
@@ -231,6 +323,16 @@ export class LeadFormComponent implements OnInit {
     if (idParam) {
       const id = Number(idParam);
       this.leadId.set(id);
+      // Editing an existing lead: documents may already have been attached
+      // (during creation, or since) under a type this form doesn't manage —
+      // don't hard-require a fresh pick, but still validate file type/size
+      // if the user chooses to attach or replace one.
+      const documentControls = this.form.controls.documents.controls;
+      for (const key of ['aadhaar_front', 'aadhaar_back', 'pan_card'] as const) {
+        documentControls[key].setValidators([documentFileValidator]);
+        documentControls[key].updateValueAndValidity({ emitEvent: false });
+      }
+      this.loadExistingDocuments(id);
       this.loading.set(true);
       this.leads.detail(id).subscribe({
         next: (detail) => {
@@ -399,6 +501,138 @@ export class LeadFormComponent implements OnInit {
     return this.employmentTypes().find((option) => option.value === value)?.label ?? value;
   }
 
+  /** Populates the Attach Documents step with whatever's already uploaded for this lead (edit mode). */
+  private loadExistingDocuments(id: number): void {
+    this.documentsApi.listForLead(id).subscribe({
+      next: ({ items }) => {
+        this.documentStatus.update((current) => {
+          const next = { ...current };
+          for (const slot of this.documentSlots) {
+            const existing = items.find((doc) => doc.document_type === slot.key) ?? null;
+            next[slot.key] = existing
+              ? { status: 'uploaded', message: null, existing }
+              : { status: 'idle', message: null, existing: null };
+          }
+          return next;
+        });
+      },
+      error: () => undefined,
+    });
+  }
+
+  /** Filename to display for a slot: a freshly picked file, or the already-uploaded document's name. */
+  documentFileName(key: DocumentSlotKey): string | null {
+    const control = this.form.controls.documents.controls[key];
+    return control.value?.name ?? this.documentStatus()[key].existing?.original_name ?? null;
+  }
+
+  documentStatusLabel(key: DocumentSlotKey): string {
+    const status = this.documentStatus()[key].status;
+    switch (status) {
+      case 'uploading':
+        return 'Uploading…';
+      case 'uploaded':
+        return 'Uploaded';
+      case 'error':
+        return 'Action needed';
+      default:
+        return this.documentFileName(key) ? 'Selected' : 'Required';
+    }
+  }
+
+  documentStatusColour(key: DocumentSlotKey): StatusPillColour {
+    const status = this.documentStatus()[key].status;
+    if (status === 'error') return 'warn';
+    if (status === 'uploaded') return 'success';
+    if (status === 'uploading') return 'accent';
+    return this.documentFileName(key) ? 'accent' : 'default';
+  }
+
+  /** Validation/upload error text for a slot, preferring a live upload failure over a stale control error. */
+  documentErrorText(key: DocumentSlotKey): string | null {
+    const status = this.documentStatus()[key];
+    if (status.status === 'error' && status.message) {
+      return status.message;
+    }
+    const control = this.form.controls.documents.controls[key];
+    if (control.touched && control.errors) {
+      return this.documentErrorMessage(key, control.errors);
+    }
+    return null;
+  }
+
+  private documentErrorMessage(key: DocumentSlotKey, errors: ValidationErrors): string {
+    if (errors['required']) {
+      return this.documentSlots.find((slot) => slot.key === key)!.requiredMessage;
+    }
+    if (errors['unsupportedFileType']) {
+      return 'Only JPG, JPEG, PNG or PDF files are supported.';
+    }
+    if (errors['fileTooLarge']) {
+      return 'File must be smaller than 5 MB.';
+    }
+    return 'This file is not valid.';
+  }
+
+  onDocumentSelected(key: DocumentSlotKey, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    input.value = '';
+    if (!file) {
+      return;
+    }
+
+    const control = this.form.controls.documents.controls[key];
+    control.setValue(file);
+    control.markAsTouched();
+    control.updateValueAndValidity();
+
+    const errors = control.errors;
+    this.documentStatus.update((current) => ({
+      ...current,
+      [key]: errors
+        ? { status: 'error', message: this.documentErrorMessage(key, errors), existing: current[key].existing }
+        : { status: 'idle', message: null, existing: null },
+    }));
+  }
+
+  removeDocument(key: DocumentSlotKey): void {
+    const control = this.form.controls.documents.controls[key];
+    const existing = this.documentStatus()[key].existing;
+
+    if (!existing) {
+      control.setValue(null);
+      control.markAsTouched();
+      this.documentStatus.update((current) => ({
+        ...current,
+        [key]: { status: 'idle', message: null, existing: null },
+      }));
+      return;
+    }
+
+    this.documentStatus.update((current) => ({
+      ...current,
+      [key]: { status: 'uploading', message: null, existing },
+    }));
+
+    this.documentsApi.remove(existing.id).subscribe({
+      next: () => {
+        control.setValue(null);
+        control.markAsTouched();
+        this.documentStatus.update((current) => ({
+          ...current,
+          [key]: { status: 'idle', message: null, existing: null },
+        }));
+      },
+      error: () => {
+        this.documentStatus.update((current) => ({
+          ...current,
+          [key]: { status: 'error', message: 'The document could not be removed. Try again.', existing },
+        }));
+      },
+    });
+  }
+
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -455,18 +689,97 @@ export class LeadFormComponent implements OnInit {
       details,
     };
 
-    const id = this.leadId();
+    const id = this.leadId() ?? this.createdLeadId;
     const request = id ? this.leads.update(id, payload) : this.leads.create(payload);
 
     request.subscribe({
       next: (lead) => {
-        this.saving.set(false);
-        void this.router.navigate(['/leads', lead.id]);
+        this.createdLeadId = lead.id;
+        this.uploadPendingDocuments(lead.id, raw.documents);
       },
       error: () => {
         this.error.set('The lead could not be saved. Check the fields and retry.');
         this.saving.set(false);
       },
+    });
+  }
+
+  /**
+   * Uploads whichever of the three documents were freshly picked in this session
+   * (already-uploaded slots have a null control value, see `documentFileValidator`
+   * relaxation after a successful upload / on edit-mode load). Runs after the lead
+   * itself is created/updated, since the upload endpoint is scoped under the lead's
+   * id. Navigation away only happens once every upload has actually succeeded, so a
+   * partial failure never gets silently reported as a finished lead.
+   */
+  private uploadPendingDocuments(
+    leadId: number,
+    documents: Record<DocumentSlotKey, File | null>,
+  ): void {
+    const pending = this.documentSlots
+      .map((slot) => ({ slot, file: documents[slot.key] }))
+      .filter((entry): entry is { slot: DocumentSlotConfig; file: File } => entry.file !== null);
+
+    if (pending.length === 0) {
+      this.saving.set(false);
+      void this.router.navigate(['/leads', leadId]);
+      return;
+    }
+
+    this.documentStatus.update((current) => {
+      const next = { ...current };
+      for (const { slot } of pending) {
+        next[slot.key] = { status: 'uploading', message: null, existing: current[slot.key].existing };
+      }
+      return next;
+    });
+
+    // Backend requires a remark on every upload from an Employee actor (their only way to
+    // leave context once a lead is restricted to documents-only — see UploadDocumentRequest);
+    // this step has no remarks field, so supply a neutral default rather than fail their upload.
+    const remarks = this.auth.hasRole('employee') ? 'Attached during lead creation.' : undefined;
+
+    forkJoin(
+      pending.map(({ slot, file }) =>
+        this.documentsApi.upload(leadId, file, slot.key, remarks).pipe(
+          map((document) => ({ key: slot.key, document, error: null as string | null })),
+          catchError(() =>
+            of({ key: slot.key, document: null as LeadDocument | null, error: 'Upload failed. Please retry.' }),
+          ),
+        ),
+      ),
+    ).subscribe((results) => {
+      this.saving.set(false);
+
+      this.documentStatus.update((current) => {
+        const next = { ...current };
+        for (const result of results) {
+          next[result.key] = result.error
+            ? { status: 'error', message: result.error, existing: current[result.key].existing }
+            : { status: 'uploaded', message: null, existing: result.document };
+        }
+        return next;
+      });
+
+      for (const result of results) {
+        const control = this.form.controls.documents.controls[result.key];
+        if (!result.error) {
+          // The document now exists on the backend: a resubmit shouldn't demand
+          // this file again, only accept/validate a fresh one if the user replaces it.
+          control.setValidators([documentFileValidator]);
+          control.setValue(null, { emitEvent: false });
+          control.updateValueAndValidity({ emitEvent: false });
+        }
+      }
+
+      if (results.some((result) => result.error)) {
+        this.error.set(
+          'The lead was saved, but one or more documents could not be uploaded. Please retry.',
+        );
+        return;
+      }
+
+      void this.router.navigate(['/leads', leadId]);
     });
   }
 }

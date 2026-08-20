@@ -336,7 +336,94 @@
               Back
             </button>
             <button mat-flat-button color="primary" type="button" matStepperNext>
-              Review
+              Next
+              <mat-icon>arrow_forward</mat-icon>
+            </button>
+          </div>
+        </mat-step>
+
+        <mat-step label="Attach Documents" [completed]="stepValid(form.controls.documents)">
+          <p class="lead-form__hint">
+            Attach clear photos or scans of the applicant's Aadhaar (front &amp; back) and PAN card.
+            Accepted formats: JPG, JPEG, PNG or PDF, up to 5 MB each.
+          </p>
+
+          <div class="lead-form__documents" formGroupName="documents">
+            @for (slot of documentSlots; track slot.key) {
+              <mat-card class="lead-form__document-card">
+                <mat-card-content>
+                  <div class="lead-form__document-card-header">
+                    <span class="lead-form__document-card-title">{{ slot.title }}</span>
+                    <app-status-pill
+                      [label]="documentStatusLabel(slot.key)"
+                      [colour]="documentStatusColour(slot.key)"
+                    />
+                  </div>
+
+                  @if (documentFileName(slot.key); as name) {
+                    <div class="lead-form__document-file">
+                      <mat-icon>description</mat-icon>
+                      <span class="lead-form__document-filename">{{ name }}</span>
+                      <button
+                        mat-icon-button
+                        type="button"
+                        matTooltip="Remove"
+                        [disabled]="documentStatus()[slot.key].status === 'uploading'"
+                        (click)="removeDocument(slot.key)"
+                      >
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+                    <label class="lead-form__document-replace">
+                      <input
+                        type="file"
+                        class="lead-form__document-input"
+                        accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                        (change)="onDocumentSelected(slot.key, $event)"
+                      />
+                      Replace file
+                    </label>
+                  } @else {
+                    <label
+                      class="lead-form__document-dropzone"
+                      [class.lead-form__document-dropzone--busy]="documentStatus()[slot.key].status === 'uploading'"
+                    >
+                      <input
+                        type="file"
+                        class="lead-form__document-input"
+                        accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf"
+                        (change)="onDocumentSelected(slot.key, $event)"
+                      />
+                      <mat-icon>cloud_upload</mat-icon>
+                      <span>{{ slot.uploadLabel }}</span>
+                    </label>
+                  }
+
+                  @if (documentStatus()[slot.key].status === 'uploading') {
+                    <mat-progress-bar mode="indeterminate" class="lead-form__document-progress" />
+                  }
+
+                  @if (documentErrorText(slot.key); as message) {
+                    <p class="lead-form__document-error">{{ message }}</p>
+                  }
+                </mat-card-content>
+              </mat-card>
+            }
+          </div>
+
+          <div class="lead-form__step-actions">
+            <button mat-stroked-button type="button" matStepperPrevious>
+              <mat-icon>arrow_back</mat-icon>
+              Back
+            </button>
+            <button
+              mat-flat-button
+              color="primary"
+              type="button"
+              [disabled]="!stepValid(form.controls.documents)"
+              matStepperNext
+            >
+              Next
               <mat-icon>arrow_forward</mat-icon>
             </button>
           </div>
@@ -436,6 +523,21 @@
                 </strong>
               </div>
             }
+            <div class="lead-form__span-2">
+              <span class="lead-form__review-label">Documents</span>
+              <div class="lead-form__review-documents">
+                @for (slot of documentSlots; track slot.key) {
+                  <div class="lead-form__review-document">
+                    <span>{{ slot.title }}</span>
+                    <strong>{{ documentFileName(slot.key) ?? 'Not attached' }}</strong>
+                    <app-status-pill
+                      [label]="documentStatusLabel(slot.key)"
+                      [colour]="documentStatusColour(slot.key)"
+                    />
+                  </div>
+                }
+              </div>
+            </div>
           </div>
 
           <div class="lead-form__step-actions">

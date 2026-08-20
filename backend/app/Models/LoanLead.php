@@ -134,4 +134,9 @@ class LoanLead extends Model
     {
         return $this->hasMany(LeadFollowUp::class);
     }
+
+    public function telecallerFollowUps(): HasMany
+    {
+        return $this->hasMany(TelecallerFollowUp::class);
+    }
 }
