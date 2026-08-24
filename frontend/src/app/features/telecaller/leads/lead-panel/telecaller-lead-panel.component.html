@@ -13,7 +13,7 @@
           @if (canCompletePd()) {
             <button mat-flat-button color="primary" type="button" (click)="completePd()">
               <mat-icon>call_end</mat-icon>
-              Mark PD complete
+              Complete Full PD
             </button>
           }
 
@@ -106,6 +106,14 @@
               <mat-option value="note">Note</mat-option>
             </mat-select>
           </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Priority</mat-label>
+            <mat-select formControlName="priority">
+              <mat-option value="low">Low</mat-option>
+              <mat-option value="medium">Medium</mat-option>
+              <mat-option value="high">High</mat-option>
+            </mat-select>
+          </mat-form-field>
           <mat-form-field appearance="outline" class="lead-panel__notes-field">
             <mat-label>Notes</mat-label>
             <input matInput formControlName="notes" />
@@ -128,11 +136,16 @@
                   @default { sticky_note_2 }
                 }
               </mat-icon>
-              <span matListItemTitle>{{ item.notes || '(no notes)' }}</span>
+              <span matListItemTitle>{{ item.notes || '(no notes)' }} · {{ item.priority }} priority</span>
               <span matListItemLine>
                 Logged {{ item.created_at | date: 'medium' }}
                 @if (item.next_follow_up_at) {
                   · Next follow-up {{ item.next_follow_up_at | date: 'mediumDate' }}
+                  @if (item.is_overdue) {
+                    · Overdue
+                  } @else if (item.is_today) {
+                    · Due today
+                  }
                 }
                 @if (item.completed_at) {
                   · Completed {{ item.completed_at | date: 'medium' }}

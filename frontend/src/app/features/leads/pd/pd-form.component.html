@@ -1,0 +1,136 @@
+<app-page-header
+  title="Full PD"
+  [subtitle]="lead() ? 'Pre-disbursement verification for ' + lead()!.applicant_name + ' (' + lead()!.reference + ')' : 'Pre-disbursement verification'"
+/>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <mat-card class="pd-form__notice">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
+
+@if (!loading() && !canSubmitPd()) {
+  <mat-card class="pd-form__notice">
+    <mat-card-content>
+      @if (alreadyCompletedAt()) {
+        Full PD was already completed for this lead on {{ alreadyCompletedAt() | date: 'medium' }}.
+      } @else {
+        You are not authorised to complete Full PD for this lead.
+      }
+      <div class="pd-form__step-actions">
+        <a mat-stroked-button [routerLink]="['/leads', leadId]">Back to lead</a>
+      </div>
+    </mat-card-content>
+  </mat-card>
+}
+
+@if (!loading() && canSubmitPd()) {
+  <mat-card class="pd-form__card">
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="submit()">
+        <mat-stepper orientation="horizontal" [linear]="false" class="pd-form__stepper">
+          <mat-step label="Applicant">
+            <app-pd-applicant-basics [form]="form" />
+            <div class="pd-form__step-actions">
+              <button mat-flat-button color="primary" type="button" matStepperNext>
+                Next
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="Employment / Business">
+            <app-pd-employment-business [form]="form" />
+            <app-pd-professional [form]="form" />
+            <app-pd-business-partner [form]="form" />
+            <div class="pd-form__step-actions">
+              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext>
+                Next
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="Income & Banking">
+            <app-pd-salaried-income-banking [form]="form" />
+            <div class="pd-form__step-actions">
+              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext>
+                Next
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="ITR (3 years)">
+            <app-pd-applicant-itr [form]="form" />
+            <app-pd-firm-itr [form]="form" />
+            <div class="pd-form__step-actions">
+              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext>
+                Next
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="Existing loans">
+            <app-pd-existing-loans [form]="form" />
+            <div class="pd-form__step-actions">
+              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext>
+                Next
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="Family & partners">
+            <app-pd-family-members [form]="form" />
+            <app-pd-partner-directors [form]="form" />
+            <div class="pd-form__step-actions">
+              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext>
+                Next
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="Property">
+            <app-pd-property [form]="form" />
+            <div class="pd-form__step-actions">
+              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext>
+                Next
+                <mat-icon>arrow_forward</mat-icon>
+              </button>
+            </div>
+          </mat-step>
+
+          <mat-step label="Review & submit">
+            <p>
+              Review the sections above using Back/Next, then submit. All fields are optional — save whatever the
+              applicant could confirm.
+            </p>
+            <div class="pd-form__step-actions">
+              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
+              <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+                @if (saving()) {
+                  Saving…
+                } @else {
+                  Complete Full PD
+                }
+              </button>
+            </div>
+          </mat-step>
+        </mat-stepper>
+      </form>
+    </mat-card-content>
+  </mat-card>
+}

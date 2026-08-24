@@ -1,7 +1,8 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 
 import { Lead, MatchingResult } from '../models/lead.model';
 import { BankCriteria } from '../models/banker.model';
+import { SettingsDataProvider } from './settings-data.provider';
 
 const SEED_BANK_CRITERIA: BankCriteria[] = [
   { id: 1, bank_name: 'HDFC Bank', product_name: 'Home Advantage', loan_type: 'home', min_loan_amount: 1000000, max_loan_amount: 10000000, min_monthly_income: 40000, min_credit_score: 700, min_age: 21, max_age: 60, employment_type: null, interest_rate: 8.5, eligibility_rules: [], is_active: true, banker_id: 25, created_at: '2026-01-10T09:00:00+05:30', updated_at: '2026-01-10T09:00:00+05:30' },
@@ -40,6 +41,7 @@ export interface BankCriteriaUpsertPayload {
  */
 @Injectable({ providedIn: 'root' })
 export class BankingDataProvider {
+  private readonly settings = inject(SettingsDataProvider);
   private readonly _criteria = signal<BankCriteria[]>(SEED_BANK_CRITERIA);
   private nextId = 100;
 
@@ -107,6 +109,7 @@ export class BankingDataProvider {
    * matching engine would check. Deterministic, no randomness.
    */
   runMatching(lead: Lead): MatchingResult {
+    const { min_cibil_score, min_match_score } = this.settings.settings().matching_engine;
     const active = this._criteria().filter((product) => product.is_active);
     const matches: MatchingResult['matches'] = [];
     const rejected: MatchingResult['rejected'] = [];
@@ -129,13 +132,19 @@ export class BankingDataProvider {
       if (product.min_credit_score !== null && (lead.credit_score ?? 0) < product.min_credit_score) {
         reasons.push(`Credit score below ${product.min_credit_score}`);
       }
+      if ((lead.credit_score ?? 0) < min_cibil_score) {
+        reasons.push(`Credit score below the platform minimum of ${min_cibil_score}`);
+      }
+      if (product.employment_type !== null && lead.employment_type !== product.employment_type) {
+        reasons.push(`Only offered to ${product.employment_type.replace(/_/g, ' ')} applicants`);
+      }
 
       if (reasons.length > 0) {
         rejected.push({ bank_name: product.bank_name, product_name: product.product_name, reasons });
         continue;
       }
 
-      const creditHeadroom = product.min_credit_score
+      const creditHeadroom = product.min_credit_score !== null
         ? Math.min(20, (lead.credit_score ?? 0) - product.min_credit_score)
         : 10;
       const incomeHeadroom = Math.min(
@@ -143,6 +152,15 @@ export class BankingDataProvider {
         Math.round((((lead.monthly_income ?? 0) - product.min_monthly_income) / product.min_monthly_income) * 20),
       );
       const score = Math.max(60, Math.min(99, 70 + creditHeadroom + incomeHeadroom));
+
+      if (score < min_match_score) {
+        rejected.push({
+          bank_name: product.bank_name,
+          product_name: product.product_name,
+          reasons: [`Match score ${score} below the platform minimum of ${min_match_score}`],
+        });
+        continue;
+      }
 
       matches.push({
         bank_criteria_id: product.id,

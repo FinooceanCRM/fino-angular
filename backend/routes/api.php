@@ -126,6 +126,8 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::post('{lead}/status', [LeadController::class, 'updateStatus'])->whereNumber('lead')->name('status');
             Route::post('{lead}/match', [LeadController::class, 'match'])->whereNumber('lead')->name('match');
             Route::post('{lead}/pd-complete', [LeadController::class, 'completePd'])->whereNumber('lead')->name('pd-complete');
+            Route::get('{lead}/pd', [LeadController::class, 'showPd'])->whereNumber('lead')->name('pd.show');
+            Route::post('{lead}/pd', [LeadController::class, 'submitPd'])->whereNumber('lead')->name('pd.store');
             Route::get('{lead}/documents', [DocumentController::class, 'index'])->whereNumber('lead')->name('documents.index');
             Route::post('{lead}/documents', [DocumentController::class, 'store'])->whereNumber('lead')->name('documents.store');
             Route::get('{lead}/access-requests', [LeadAccessRequestController::class, 'forLead'])

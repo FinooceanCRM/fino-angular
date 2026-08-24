@@ -33,6 +33,7 @@ const ROLE_LABEL: Record<string, string> = {
   employee: 'Employee',
   manager: 'Manager',
   banker: 'Banker',
+  telecaller: 'Telecaller',
 };
 
 /**
@@ -215,7 +216,13 @@ export class ManagerLeadStatusTableComponent {
   }
 
   protected assigneeLabel(row: Lead): string {
-    return row.assigned_employee?.name ?? row.assigned_relationship_manager?.name ?? 'Unassigned';
+    return (
+      row.assigned_employee?.name ??
+      row.assigned_relationship_manager?.name ??
+      row.assigned_telecaller?.name ??
+      row.assigned_banker?.name ??
+      'Unassigned'
+    );
   }
 
   /** Terminal-status leads (Closed) can no longer transition — mirrors `LeadStatus::isTerminal()` on the backend. */

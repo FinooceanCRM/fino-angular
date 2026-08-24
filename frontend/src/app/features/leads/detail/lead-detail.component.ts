@@ -31,16 +31,23 @@ import {
   CAR_TYPE_OPTIONS,
   CASTE_CATEGORY_OPTIONS,
   CatalogueOption,
+  COLLATERAL_TYPE_OPTIONS,
+  CONSTRUCTION_STATUS_OPTIONS,
   GENDER_OPTIONS,
+  HOME_LOAN_CHECKLIST_OPTIONS,
+  HOME_LOAN_PURPOSE_OPTIONS,
   INSURANCE_TYPE_OPTIONS,
   LAP_PROPERTY_TYPE_OPTIONS,
   LeadDetail,
   MARITAL_STATUS_OPTIONS,
   MUDRA_LOAN_TYPE_OPTIONS,
+  OWNERSHIP_DOCUMENT_OPTIONS,
   PROPERTY_TYPE_OPTIONS,
   PURPOSE_OF_LOAN_OPTIONS,
   RESIDENTIAL_TYPE_OPTIONS,
   SALARY_ACCOUNT_TYPE_OPTIONS,
+  TYPE_OF_ACCOUNT_SALARY_OPTIONS,
+  TYPE_OF_SALARY_OPTIONS,
   UserSummary,
   labelFromOptions,
 } from '@core/models/lead.model';
@@ -107,6 +114,11 @@ export class LeadDetailComponent implements OnInit {
   readonly selectedTab = signal(0);
 
   protected readonly optionLabel = labelFromOptions;
+  /** Same lookup as `optionLabel`, for a multi-select value (home loan checklist / ownership documents). */
+  protected optionLabels(options: readonly CatalogueOption[], values: string[] | null | undefined): string {
+    if (!values || values.length === 0) return '—';
+    return values.map((value) => labelFromOptions(options, value)).join(', ');
+  }
 
   /** Catalogues for the `LeadApplicantDetails` fields captured by the lead creation wizard. */
   protected readonly genderOptions = GENDER_OPTIONS;
@@ -121,6 +133,13 @@ export class LeadDetailComponent implements OnInit {
   protected readonly insuranceTypeOptions = INSURANCE_TYPE_OPTIONS;
   protected readonly carTypeOptions = CAR_TYPE_OPTIONS;
   protected readonly mudraLoanTypeOptions = MUDRA_LOAN_TYPE_OPTIONS;
+  protected readonly typeOfSalaryOptions = TYPE_OF_SALARY_OPTIONS;
+  protected readonly typeOfAccountSalaryOptions = TYPE_OF_ACCOUNT_SALARY_OPTIONS;
+  protected readonly homeLoanPurposeOptions = HOME_LOAN_PURPOSE_OPTIONS;
+  protected readonly constructionStatusOptions = CONSTRUCTION_STATUS_OPTIONS;
+  protected readonly collateralTypeOptions = COLLATERAL_TYPE_OPTIONS;
+  protected readonly homeLoanChecklistOptions = HOME_LOAN_CHECKLIST_OPTIONS;
+  protected readonly ownershipDocumentOptions = OWNERSHIP_DOCUMENT_OPTIONS;
 
   protected readonly showPropertyType = computed(() => this.detail()?.lead.loan_type === 'home');
   protected readonly showLapDetails = computed(

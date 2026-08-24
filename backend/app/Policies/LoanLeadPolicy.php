@@ -153,4 +153,22 @@ class LoanLeadPolicy
     {
         return $actor->roleEnum() === UserRole::Telecaller && $lead->pd_completed_at === null;
     }
+
+    /**
+     * Full PD (pre-disbursement verification) data capture — the successor
+     * to {@see self::completePd()}'s timestamp-only action. Deliberately a
+     * wider role set than `completePd`: Super Admin and Manager may also
+     * complete the full data-entry workflow directly, not just review it
+     * afterwards. Relationship Manager, Employee, Banker and Connector are
+     * never allowed, per business rule — visibility into a lead does not
+     * imply the ability to record its PD outcome.
+     */
+    public function submitPd(User $actor, LoanLead $lead): bool
+    {
+        return in_array($actor->roleEnum(), [
+            UserRole::SuperAdmin,
+            UserRole::Manager,
+            UserRole::Telecaller,
+        ], true) && $lead->pd_completed_at === null;
+    }
 }

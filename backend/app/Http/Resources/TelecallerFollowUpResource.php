@@ -21,13 +21,32 @@ class TelecallerFollowUpResource extends JsonResource
         return [
             'id' => $this->id,
             'type' => $this->type,
+            'priority' => $this->priority,
             'notes' => $this->notes,
             'next_follow_up_at' => optional($this->next_follow_up_at)->toIso8601String(),
             'completed_at' => optional($this->completed_at)->toIso8601String(),
+            'is_overdue' => $this->isOverdue(),
+            'is_today' => $this->isToday(),
             'telecaller' => $this->userSummary($this->whenLoaded('telecaller')),
             'lead' => $this->leadSummary($this->whenLoaded('loanLead')),
             'created_at' => optional($this->created_at)->toIso8601String(),
         ];
+    }
+
+    /** Overdue = not completed, and the follow-up date is a past day (not today). */
+    private function isOverdue(): bool
+    {
+        return $this->completed_at === null
+            && $this->next_follow_up_at !== null
+            && $this->next_follow_up_at->isPast()
+            && ! $this->next_follow_up_at->isToday();
+    }
+
+    private function isToday(): bool
+    {
+        return $this->completed_at === null
+            && $this->next_follow_up_at !== null
+            && $this->next_follow_up_at->isToday();
     }
 
     /**

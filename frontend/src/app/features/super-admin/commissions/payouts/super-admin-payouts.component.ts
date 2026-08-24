@@ -19,6 +19,7 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
 import { exportToCsv } from '../../data/csv-export.util';
 import { Payout } from '../../data/models/commission.model';
 import { CommissionDataProvider } from '../../data/providers/commission-data.provider';
+import { MOCK_TODAY } from '../../data/report-date-range.util';
 
 type PayoutView = 'all' | 'queue' | 'history' | 'failed';
 
@@ -88,7 +89,7 @@ export class SuperAdminPayoutsComponent {
     const pendingAmount = all
       .filter((row) => row.status === 'pending' || row.status === 'processing')
       .reduce((sum, row) => sum + row.amount, 0);
-    const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+    const thirtyDaysAgo = MOCK_TODAY.getTime() - 30 * 24 * 60 * 60 * 1000;
     const paidThisMonth = all
       .filter((row) => row.status === 'paid' && row.paid_at && new Date(row.paid_at).getTime() >= thirtyDaysAgo)
       .reduce((sum, row) => sum + row.amount, 0);

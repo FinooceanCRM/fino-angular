@@ -61,6 +61,7 @@ class TelecallerModuleTest extends TestCase
                     'recent_leads',
                     'pd_queue' => ['pending', 'completed'],
                     'pending_follow_ups',
+                    'follow_up_reminders' => ['overdue', 'today', 'upcoming'],
                 ],
             ])
             ->assertJsonPath('data.submitted_leads.total', 1);
@@ -139,6 +140,64 @@ class TelecallerModuleTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_telecaller_appears_in_assignable_users_for_manager_and_super_admin(): void
+    {
+        $manager = User::factory()->create(['role' => UserRole::Manager]);
+        $superAdmin = User::factory()->create(['role' => UserRole::SuperAdmin]);
+        $this->telecaller(['name' => 'Priya Caller']);
+
+        Sanctum::actingAs($manager);
+        $this->getJson('/api/v1/leads/assignable-users')
+            ->assertOk()
+            ->assertJsonFragment(['name' => 'Priya Caller', 'role' => 'telecaller']);
+
+        Sanctum::actingAs($superAdmin);
+        $this->getJson('/api/v1/leads/assignable-users')
+            ->assertOk()
+            ->assertJsonFragment(['name' => 'Priya Caller', 'role' => 'telecaller']);
+    }
+
+    public function test_manager_can_assign_a_lead_to_a_telecaller_in_the_matching_department(): void
+    {
+        $manager = User::factory()->create(['role' => UserRole::Manager]);
+        $telecaller = $this->telecaller(['department' => Department::HomeLoan]);
+        $lead = LoanLead::factory()->create([
+            'status' => LeadStatus::New,
+            'department' => Department::HomeLoan,
+            'assigned_manager_id' => $manager->id,
+        ]);
+
+        Sanctum::actingAs($manager);
+
+        $this->postJson("/api/v1/leads/{$lead->id}/assign", ['assignee_id' => $telecaller->id])
+            ->assertOk()
+            ->assertJsonPath('data.assigned_telecaller.id', $telecaller->id);
+
+        $this->assertDatabaseHas('loan_leads', [
+            'id' => $lead->id,
+            'assigned_telecaller_id' => $telecaller->id,
+        ]);
+
+        Sanctum::actingAs($telecaller);
+        $this->getJson("/api/v1/leads/{$lead->id}")->assertOk();
+    }
+
+    public function test_manager_cannot_assign_a_lead_to_a_telecaller_in_a_different_department(): void
+    {
+        $manager = User::factory()->create(['role' => UserRole::Manager]);
+        $telecaller = $this->telecaller(['department' => Department::MortgageLoan]);
+        $lead = LoanLead::factory()->create([
+            'status' => LeadStatus::New,
+            'department' => Department::PersonalLoan,
+            'assigned_manager_id' => $manager->id,
+        ]);
+
+        Sanctum::actingAs($manager);
+
+        $this->postJson("/api/v1/leads/{$lead->id}/assign", ['assignee_id' => $telecaller->id])
+            ->assertStatus(422);
+    }
+
     public function test_telecaller_can_change_status_only_on_own_leads(): void
     {
         $telecaller = $this->telecaller();
@@ -210,6 +269,51 @@ class TelecallerModuleTest extends TestCase
         ]);
 
         $this->getJson('/api/v1/telecallers/follow-ups')->assertOk()->assertJsonCount(0, 'data');
+    }
+
+    public function test_telecaller_follow_up_reminder_counts_and_filters(): void
+    {
+        $telecaller = $this->telecaller();
+        $lead = LoanLead::factory()->create([
+            'created_by' => $telecaller->id,
+            'department' => Department::PersonalLoan,
+        ]);
+
+        Sanctum::actingAs($telecaller);
+
+        $overdue = $this->postJson("/api/v1/leads/{$lead->id}/telecaller-follow-ups", [
+            'type' => 'call',
+            'priority' => 'high',
+            'next_follow_up_at' => now()->subDays(2)->toIso8601String(),
+        ])->assertCreated()->json('data.id');
+
+        $this->postJson("/api/v1/leads/{$lead->id}/telecaller-follow-ups", [
+            'type' => 'reminder',
+            'priority' => 'low',
+            'next_follow_up_at' => now()->toIso8601String(),
+        ])->assertCreated();
+
+        $this->postJson("/api/v1/leads/{$lead->id}/telecaller-follow-ups", [
+            'type' => 'meeting',
+            'next_follow_up_at' => now()->addDays(3)->toIso8601String(),
+        ])->assertCreated()->assertJsonPath('data.priority', 'medium');
+
+        $this->getJson('/api/v1/telecallers/dashboard')
+            ->assertOk()
+            ->assertJsonPath('data.follow_up_reminders.overdue', 1)
+            ->assertJsonPath('data.follow_up_reminders.today', 1)
+            ->assertJsonPath('data.follow_up_reminders.upcoming', 1);
+
+        $this->getJson('/api/v1/telecallers/follow-ups?filter=overdue')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id', $overdue)
+            ->assertJsonPath('data.0.is_overdue', true);
+
+        $this->getJson('/api/v1/telecallers/follow-ups?filter=all')->assertOk()->assertJsonCount(3, 'data');
+        $this->getJson('/api/v1/telecallers/follow-ups?filter=today')->assertOk()->assertJsonCount(1, 'data');
+        $this->getJson('/api/v1/telecallers/follow-ups?filter=upcoming')->assertOk()->assertJsonCount(1, 'data');
+        $this->getJson('/api/v1/telecallers/follow-ups?filter=completed')->assertOk()->assertJsonCount(0, 'data');
     }
 
     public function test_telecaller_can_complete_pd_once(): void

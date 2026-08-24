@@ -167,6 +167,71 @@ class LeadWorkflowTest extends TestCase
         ]);
     }
 
+    public function test_newly_added_loan_types_resolve_to_the_expected_department(): void
+    {
+        ['connector' => $connector] = $this->hierarchy();
+
+        $cases = [
+            'gold_loan' => 'personal_loan',
+            'mudra_loan' => 'personal_loan',
+            'overdraft' => 'personal_loan',
+            'cash_credit' => 'personal_loan',
+            'commercial_property' => 'mortgage_loan',
+        ];
+
+        foreach ($cases as $loanType => $expectedDepartment) {
+            $response = $this->actingAs($connector, 'sanctum')->postJson('/api/v1/leads', [
+                'applicant_name' => 'Test Applicant',
+                'applicant_phone' => '9876543210',
+                'loan_type' => $loanType,
+                'loan_amount' => 500000,
+                'city' => 'Pune',
+                'state' => 'Maharashtra',
+            ]);
+
+            $response->assertCreated();
+            $this->assertSame($expectedDepartment, $response->json('data.department'), "loan_type={$loanType}");
+        }
+    }
+
+    public function test_form_26_derived_detail_fields_and_document_types_round_trip(): void
+    {
+        ['connector' => $connector] = $this->hierarchy();
+
+        $response = $this->actingAs($connector, 'sanctum')->postJson('/api/v1/leads', [
+            'applicant_name' => 'Test Applicant',
+            'applicant_phone' => '9876543210',
+            'loan_type' => 'home',
+            'loan_amount' => 2500000,
+            'city' => 'Pune',
+            'state' => 'Maharashtra',
+            'details' => [
+                'home_loan_purpose' => 'home_purchase',
+                'construction_status' => 'ready_to_move',
+                'home_loan_checklist' => ['akhiv_patrika', '6a_copy'],
+                'ownership_documents' => ['7_12_copy', '8a_copy'],
+            ],
+        ]);
+
+        $response->assertCreated();
+        $this->assertSame('home_purchase', $response->json('data.details.home_loan_purpose'));
+        $this->assertSame('ready_to_move', $response->json('data.details.construction_status'));
+        $this->assertSame(['akhiv_patrika', '6a_copy'], $response->json('data.details.home_loan_checklist'));
+
+        $lead = LoanLead::query()->latest('id')->first();
+
+        $document = $this->actingAs($connector, 'sanctum')->post("/api/v1/leads/{$lead->id}/documents", [
+            'document_type' => 'form_16_two_years',
+            'file' => \Illuminate\Http\UploadedFile::fake()->create('form16.pdf', 100, 'application/pdf'),
+        ]);
+
+        $document->assertCreated();
+        $this->assertDatabaseHas('documents', [
+            'loan_lead_id' => $lead->id,
+            'document_type' => 'form_16_two_years',
+        ]);
+    }
+
     public function test_only_super_admin_can_create_bank_criteria(): void
     {
         ['manager' => $manager] = $this->hierarchy();

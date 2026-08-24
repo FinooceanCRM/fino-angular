@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Lead\AssignLeadRequest;
 use App\Http\Requests\Lead\CompletePdRequest;
 use App\Http\Requests\Lead\StoreLeadRequest;
+use App\Http\Requests\Lead\SubmitPdRequest;
 use App\Http\Requests\Lead\UpdateLeadRequest;
 use App\Http\Requests\Lead\UpdateLeadStatusRequest;
 use App\Http\Resources\LoanLeadResource;
@@ -235,6 +236,39 @@ class LeadController extends BaseApiController
         );
     }
 
+    /** GET /api/v1/leads/{lead}/pd — existing Full PD data, for pre-filling/resuming the form. */
+    public function showPd(Request $request, int $lead): JsonResponse
+    {
+        $model = $this->leads->findVisible($request->user(), $lead);
+        $this->authorize('view', $model);
+
+        // pd_details holds the same class of sensitive PII as documents
+        // (bank accounts, addresses, family details) — gate it the same
+        // way viewDocuments does, so a Banker who is merely matched (not
+        // granted full access) can't read it via this endpoint.
+        $this->authorize('viewDocuments', $model);
+
+        return $this->respondSuccess([
+            'pd_details' => $model->pd_details,
+            'pd_completed_at' => optional($model->pd_completed_at)->toIso8601String(),
+            'can_submit_pd' => $request->user()->can('submitPd', $model),
+        ]);
+    }
+
+    /** POST /api/v1/leads/{lead}/pd — Full PD workflow (successor to pd-complete). */
+    public function submitPd(SubmitPdRequest $request, int $lead): JsonResponse
+    {
+        $model = $this->leads->findVisible($request->user(), $lead);
+        $this->authorize('submitPd', $model);
+
+        $updated = $this->leads->submitPd($request->user(), $model, $request->validated());
+
+        return $this->respondSuccess(
+            (new LoanLeadResource($updated))->resolve($request),
+            'Full PD completed.',
+        );
+    }
+
     public function assignableUsers(Request $request): JsonResponse
     {
         return $this->respondSuccess($this->leads->assignableUsers($request->user()));
@@ -254,6 +288,7 @@ class LeadController extends BaseApiController
                 ['value' => 'salaried', 'label' => 'Salaried'],
                 ['value' => 'self_employed', 'label' => 'Self Employed'],
                 ['value' => 'business', 'label' => 'Business'],
+                ['value' => 'professional', 'label' => 'Professional'],
             ],
         ]);
     }

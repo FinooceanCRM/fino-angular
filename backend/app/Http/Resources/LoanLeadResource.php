@@ -61,10 +61,12 @@ class LoanLeadResource extends JsonResource
             'assigned_relationship_manager' => $this->userSummary($this->whenLoaded('assignedRelationshipManager')),
             'assigned_manager' => $this->userSummary($this->whenLoaded('assignedManager')),
             'assigned_banker' => $this->userSummary($this->whenLoaded('assignedBanker')),
+            'assigned_telecaller' => $this->userSummary($this->whenLoaded('assignedTelecaller')),
             'created_by' => $this->userSummary($this->whenLoaded('creator')),
             'updated_by' => $this->userSummary($this->whenLoaded('updater')),
             'pd_completed_at' => optional($this->pd_completed_at)->toIso8601String(),
             'pd_completed_by' => $this->userSummary($this->whenLoaded('pdCompletedBy')),
+            'pd_details' => $isBanker && ! $fullAccess ? null : $this->pd_details,
             'created_at' => optional($this->created_at)->toIso8601String(),
             'updated_at' => optional($this->updated_at)->toIso8601String(),
             // Banker-workspace-only flags. `full_access` is meaningful (and
@@ -80,6 +82,10 @@ class LoanLeadResource extends JsonResource
             // lead has been reassigned) without re-deriving the policy.
             'can_change_status' => $actor !== null && $actor->can('changeStatus', $this->resource),
             'can_assign' => $actor !== null && $actor->can('assign', $this->resource),
+            // Mirrors LoanLeadPolicy::submitPd() so the frontend can show/hide
+            // the "Complete Full PD" action without re-deriving the policy —
+            // same pattern as can_change_status/can_assign above.
+            'can_submit_pd' => $actor !== null && $actor->can('submitPd', $this->resource),
         ];
     }
 

@@ -11,6 +11,7 @@ import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 
 import { ManagedUser, UserRole } from '@core/models/user.model';
 import { UserService } from '@core/services/user.service';
@@ -65,6 +66,8 @@ export class UserRoleTableComponent {
   protected readonly total = signal(0);
   protected readonly loading = signal(false);
 
+  private pendingRequest?: Subscription;
+
   /** Seeded from `?search=` so quick navigation from Global Search lands pre-filtered. */
   protected readonly filters = this.fb.nonNullable.group({
     search: this.route.snapshot.queryParamMap.get('search') ?? '',
@@ -102,11 +105,12 @@ export class UserRoleTableComponent {
   }
 
   private load(f: ReturnType<typeof this.filterValues>, page: number, size: number): void {
+    this.pendingRequest?.unsubscribe();
     this.loading.set(true);
     const search = (f.search ?? '').trim();
     const isActive = f.status === 'active' ? true : f.status === 'inactive' ? false : undefined;
 
-    this.users
+    this.pendingRequest = this.users
       .list({ role: this.role(), search: search || undefined, isActive, page: page + 1, perPage: size })
       .subscribe({
         next: (items) => {

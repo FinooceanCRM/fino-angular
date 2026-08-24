@@ -113,6 +113,7 @@ class TelecallerService extends BaseService
             'recent_leads' => $this->recentLeads($user),
             'pd_queue' => $this->pdQueueStats($user),
             'pending_follow_ups' => $this->pendingFollowUps($user),
+            'follow_up_reminders' => $this->followUps->reminderCounts($user),
         ];
     }
 
@@ -152,14 +153,23 @@ class TelecallerService extends BaseService
     }
 
     /**
+     * The PD queue is her department's employee-sourced leads plus every
+     * lead explicitly assigned to her (`assigned_telecaller_id`) — the two
+     * ways a lead reaches her queue, mirroring the OR-clauses in
+     * {@see \App\Repositories\EloquentLoanLeadRepository::visibleQuery()}.
+     *
      * @return array<string, int>
      */
     private function pdQueueStats(User $user): array
     {
-        $query = $this->leads->visibleQuery($user)->where('department', $user->department?->value)
-            ->whereHas('creator', function ($q): void {
-                $q->where('role', UserRole::Employee->value);
-            });
+        $query = $this->leads->visibleQuery($user)->where(function ($q) use ($user): void {
+            $q->where(function ($pd) use ($user): void {
+                $pd->where('department', $user->department?->value)
+                    ->whereHas('creator', function ($cq): void {
+                        $cq->where('role', UserRole::Employee->value);
+                    });
+            })->orWhere('assigned_telecaller_id', $user->id);
+        });
 
         return [
             'pending' => (clone $query)->whereNull('pd_completed_at')->count(),
@@ -172,10 +182,11 @@ class TelecallerService extends BaseService
      */
     private function pendingFollowUps(User $user): array
     {
-        return $this->followUps->pendingForActor($user, 5)
+        return $this->followUps->forActor($user, 'pending', 5)
             ->map(static fn ($followUp): array => [
                 'id' => $followUp->id,
                 'type' => $followUp->type,
+                'priority' => $followUp->priority,
                 'notes' => $followUp->notes,
                 'next_follow_up_at' => optional($followUp->next_follow_up_at)->toIso8601String(),
                 'lead' => $followUp->loanLead ? [

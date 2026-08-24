@@ -1,0 +1,181 @@
+<div [formGroup]="form()" class="pd-form__section">
+  <h3 class="pd-form__section-title">APPLICANTE EMPLOYMENT / BUSINESS INFORMATION</h3>
+  <div class="pd-form__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Type of Customer</mat-label>
+          <mat-select formControlName="Type_of_Customer">
+            <mat-option [value]="null">— Select —</mat-option>
+            @for (opt of ['If Salaried', 'If Professional', 'If Business/ Self employed']; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>EMPLOYER TYPE</mat-label>
+            <mat-select formControlName="EMPLOYER_TYPE">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['PROPROTORSHIP', 'PARTNERSHIP', 'PVT LTD', 'PUBLIC LTD', 'GOVERNMENT']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Type of Work Contract</mat-label>
+            <mat-select formControlName="Type_of_Work_Contract">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Regular', 'Contract Basis']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Joining</mat-label>
+            <input matInput type="date" formControlName="Date_of_Joining" />
+          </mat-form-field>
+        }
+  </div>
+  @if (pdVisible([{ field: 'Type_of_Work_Contract', value: 'Regular' }])) {
+  <h3 class="pd-form__section-title">APPLICANTE EMPLOYER / COMPANY INFORMATION</h3>
+  <div class="pd-form__grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Current Employer/Company Name</mat-label>
+            <input matInput formControlName="Current_Employer_Company_Name" />
+          </mat-form-field>
+  </div>
+  }
+  @if (pdVisible([{ field: 'Type_of_Work_Contract', value: 'Contract Basis' }]) || pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+  <h3 class="pd-form__section-title">APPLICANTE COMPANY / EMPLOYER INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Work_Contract', value: 'Contract Basis' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Employer Name</mat-label>
+            <input matInput formControlName="Employer_Name" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Work_Contract', value: 'Contract Basis' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Joining</mat-label>
+            <input matInput type="date" formControlName="Date_of_Joining_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Designation</mat-label>
+            <input matInput formControlName="Designation" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Department</mat-label>
+            <input matInput formControlName="Department" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>TOTAL EXPIRIANCE IN CURRENT COMPANY</mat-label>
+            <input matInput type="number" formControlName="TOTAL_EXPIRIANCE_IN_CURRENT_COMPANY" />
+          </mat-form-field>
+        }
+  </div>
+  }
+  @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }])) {
+  <h3 class="pd-form__section-title">CURRENT COMPANY's 2 REFERENCES</h3>
+  <div class="pd-form__grid">
+          <mat-form-field appearance="outline">
+            <mat-label>References 1</mat-label>
+            <input matInput formControlName="Full_name_References_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Designation</mat-label>
+            <input matInput formControlName="Designation_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Department</mat-label>
+            <input matInput formControlName="Department_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Mobile No.</mat-label>
+            <input matInput formControlName="Mobile_Number" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>References 2</mat-label>
+            <input matInput formControlName="Full_name_References_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Designation</mat-label>
+            <input matInput formControlName="Designation_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Department</mat-label>
+            <input matInput formControlName="Department_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Mobile No.</mat-label>
+            <input matInput formControlName="Mobile_No_2" />
+          </mat-form-field>
+  </div>
+  }
+        @if (pdVisible([{ field: 'Type_of_Work_Contract', value: 'Regular' }])) {
+        <div class="pd-form__address" formGroupName="Current_Employer_Company_Address">
+          <div class="pd-form__address-title">Current Employer Company Address</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="address_line_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput formControlName="address_line_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" />
+          </mat-form-field>
+        </div>
+        }
+        @if (pdVisible([{ field: 'Type_of_Work_Contract', value: 'Contract Basis' }])) {
+        <div class="pd-form__address" formGroupName="Employer_Address">
+          <div class="pd-form__address-title">Employer Address</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="address_line_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput formControlName="address_line_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" />
+          </mat-form-field>
+        </div>
+        }
+</div>

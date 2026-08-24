@@ -28,17 +28,24 @@ import {
   CAR_TYPE_OPTIONS,
   CASTE_CATEGORY_OPTIONS,
   CatalogueOption,
+  COLLATERAL_TYPE_OPTIONS,
+  CONSTRUCTION_STATUS_OPTIONS,
   GENDER_OPTIONS,
+  HOME_LOAN_CHECKLIST_OPTIONS,
+  HOME_LOAN_PURPOSE_OPTIONS,
   INSURANCE_TYPE_OPTIONS,
   LAP_PROPERTY_TYPE_OPTIONS,
   LeadApplicantDetails,
   LeadPayload,
   MARITAL_STATUS_OPTIONS,
   MUDRA_LOAN_TYPE_OPTIONS,
+  OWNERSHIP_DOCUMENT_OPTIONS,
   PROPERTY_TYPE_OPTIONS,
   PURPOSE_OF_LOAN_OPTIONS,
   RESIDENTIAL_TYPE_OPTIONS,
   SALARY_ACCOUNT_TYPE_OPTIONS,
+  TYPE_OF_ACCOUNT_SALARY_OPTIONS,
+  TYPE_OF_SALARY_OPTIONS,
   labelFromOptions,
 } from '@core/models/lead.model';
 import { AuthService } from '@core/services/auth.service';
@@ -50,6 +57,14 @@ import { StatusPillColour, StatusPillComponent } from '@shared/components/status
 /** Loan types (see `App\Enums\LoanType` on the backend) that unlock a step-4 fieldset. */
 const HOME_LOAN = 'home';
 const MORTGAGE_LOAN = 'loan_against_property';
+const PERSONAL_LOAN = 'personal';
+const BUSINESS_LOAN = 'business';
+const CAR_LOAN = 'auto';
+const SALARIED = 'salaried';
+const BUSINESS_EMPLOYMENT = 'business';
+const SELF_EMPLOYED = 'self_employed';
+const PROFESSIONAL = 'professional';
+const ACCOUNT_SALARY = 'account_salary';
 
 function calculateAge(dob: Date, at: Date = new Date()): number {
   let age = at.getFullYear() - dob.getFullYear();
@@ -85,8 +100,24 @@ function minimumAgeValidator(minAge: number) {
 const MOBILE_PATTERN = /^[6-9]\d{9}$/;
 const PINCODE_PATTERN = /^\d{6}$/;
 
-/** The three documents the Attach Documents step collects; keys match `App\Enums\DocumentType` on the backend. */
-type DocumentSlotKey = 'aadhaar_front' | 'aadhaar_back' | 'pan_card';
+/** Every document the Attach Documents step can collect; keys match `App\Enums\DocumentType` on the backend. */
+type DocumentSlotKey =
+  | 'aadhaar_front'
+  | 'aadhaar_back'
+  | 'pan_card'
+  | 'form_16_two_years'
+  | 'three_year_itr'
+  | 'six_month_bank_statement'
+  | 'joining_letter'
+  | 'gumasta'
+  | 'electricity_bill'
+  | 'udyam'
+  | 'salary_slip_3_months'
+  | 'company_registration'
+  | 'gst_certificate';
+
+/** The three slots every lead-creation flow must collect, regardless of loan/employment type. */
+const MANDATORY_DOCUMENT_KEYS: readonly DocumentSlotKey[] = ['aadhaar_front', 'aadhaar_back', 'pan_card'];
 
 interface DocumentSlotConfig {
   readonly key: DocumentSlotKey;
@@ -113,6 +144,70 @@ const DOCUMENT_SLOTS: readonly DocumentSlotConfig[] = [
     title: 'PAN Card',
     uploadLabel: 'Upload PAN Card',
     requiredMessage: 'PAN card is required.',
+  },
+  // The remaining slots are all optional and only shown for the loan
+  // type/employment type combination they apply to — see
+  // `visibleOptionalDocumentSlots` below (mirrors Fluent Form #26's
+  // conditional file-upload fields).
+  {
+    key: 'form_16_two_years',
+    title: 'Form 16 (2 yrs)',
+    uploadLabel: 'Upload Form 16',
+    requiredMessage: 'Form 16 is required.',
+  },
+  {
+    key: 'salary_slip_3_months',
+    title: '3 Months Salary Slip',
+    uploadLabel: 'Upload Salary Slips',
+    requiredMessage: 'Salary slips are required.',
+  },
+  {
+    key: 'joining_letter',
+    title: 'Joining Letter',
+    uploadLabel: 'Upload Joining Letter',
+    requiredMessage: 'Joining letter is required.',
+  },
+  {
+    key: 'three_year_itr',
+    title: '3 Yr ITR',
+    uploadLabel: 'Upload 3-Year ITR',
+    requiredMessage: '3-Year ITR is required.',
+  },
+  {
+    key: 'gumasta',
+    title: 'Gumasta',
+    uploadLabel: 'Upload Gumasta',
+    requiredMessage: 'Gumasta is required.',
+  },
+  {
+    key: 'udyam',
+    title: 'Udyam',
+    uploadLabel: 'Upload Udyam Certificate',
+    requiredMessage: 'Udyam certificate is required.',
+  },
+  {
+    key: 'company_registration',
+    title: 'Company Registration',
+    uploadLabel: 'Upload Registration',
+    requiredMessage: 'Company registration is required.',
+  },
+  {
+    key: 'gst_certificate',
+    title: 'GST Certificate',
+    uploadLabel: 'Upload GST Certificate',
+    requiredMessage: 'GST certificate is required.',
+  },
+  {
+    key: 'six_month_bank_statement',
+    title: '6 Month Bank Statement',
+    uploadLabel: 'Upload Bank Statement',
+    requiredMessage: 'Bank statement is required.',
+  },
+  {
+    key: 'electricity_bill',
+    title: 'Electricity Bill',
+    uploadLabel: 'Upload Electricity Bill',
+    requiredMessage: 'Electricity bill is required.',
   },
 ];
 
@@ -149,7 +244,10 @@ interface DocumentSlotStatus {
 
 function initialDocumentStatusMap(): Record<DocumentSlotKey, DocumentSlotStatus> {
   const idle: DocumentSlotStatus = { status: 'idle', message: null, existing: null };
-  return { aadhaar_front: idle, aadhaar_back: idle, pan_card: idle };
+  return Object.fromEntries(DOCUMENT_SLOTS.map((slot) => [slot.key, idle])) as Record<
+    DocumentSlotKey,
+    DocumentSlotStatus
+  >;
 }
 
 @Component({
@@ -208,6 +306,13 @@ export class LeadFormComponent implements OnInit {
   readonly insuranceTypeOptions = INSURANCE_TYPE_OPTIONS;
   readonly carTypeOptions = CAR_TYPE_OPTIONS;
   readonly mudraLoanTypeOptions = MUDRA_LOAN_TYPE_OPTIONS;
+  readonly typeOfSalaryOptions = TYPE_OF_SALARY_OPTIONS;
+  readonly typeOfAccountSalaryOptions = TYPE_OF_ACCOUNT_SALARY_OPTIONS;
+  readonly homeLoanPurposeOptions = HOME_LOAN_PURPOSE_OPTIONS;
+  readonly constructionStatusOptions = CONSTRUCTION_STATUS_OPTIONS;
+  readonly collateralTypeOptions = COLLATERAL_TYPE_OPTIONS;
+  readonly homeLoanChecklistOptions = HOME_LOAN_CHECKLIST_OPTIONS;
+  readonly ownershipDocumentOptions = OWNERSHIP_DOCUMENT_OPTIONS;
 
   readonly maxDob = new Date();
 
@@ -241,7 +346,8 @@ export class LeadFormComponent implements OnInit {
       loan_amount: [500000, [Validators.required, Validators.min(1)]],
       company_name: ['', [Validators.required, Validators.maxLength(191)]],
       monthly_income: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
-      net_salary: this.fb.control<number | null>(null, [Validators.required, Validators.min(1)]),
+      // Required only for Personal Loan + Salaried — see setupConditionalBehaviour().
+      net_salary: this.fb.control<number | null>(null, [Validators.min(1)]),
       salary_account_type: ['', Validators.required],
       credit_score: this.fb.control<number | null>(700, [Validators.min(300), Validators.max(900)]),
       tenure_months: [60, [Validators.required, Validators.min(1), Validators.max(360)]],
@@ -250,6 +356,11 @@ export class LeadFormComponent implements OnInit {
       insurance_type: [''],
       car_type: [''],
       mudra_loan_type: [''],
+      // Form 26-derived fields — all conditionally required, see setupConditionalBehaviour().
+      type_of_salary: [''],
+      type_of_account_salary: [''],
+      gross_salary: this.fb.control<number | null>(null, [Validators.min(0)]),
+      min_income_turnover: this.fb.control<number | null>(null, [Validators.min(0)]),
     }),
     address: this.fb.nonNullable.group({
       city: ['', Validators.required],
@@ -266,11 +377,33 @@ export class LeadFormComponent implements OnInit {
       balance_transfer_type: ['none'],
       balance_transfer_loan_amount: this.fb.control<number | null>(null),
       topup_loan_amount: this.fb.control<number | null>(null),
+      // Home Loan only.
+      home_loan_purpose: [''],
+      construction_status: [''],
+      // Mortgage Loan / LAP only.
+      collateral_available: [''],
+      collateral_type: [''],
+      collateral_market_value: this.fb.control<number | null>(null, [Validators.min(0)]),
+      // Home Loan or Mortgage Loan/LAP (shared branch).
+      home_loan_checklist: this.fb.nonNullable.control<string[]>([]),
+      ownership_documents: this.fb.nonNullable.control<string[]>([]),
     }),
     documents: this.fb.group({
       aadhaar_front: this.fb.control<File | null>(null, [Validators.required, documentFileValidator]),
       aadhaar_back: this.fb.control<File | null>(null, [Validators.required, documentFileValidator]),
       pan_card: this.fb.control<File | null>(null, [Validators.required, documentFileValidator]),
+      // The remaining slots are always optional — only their visibility is
+      // conditional (see visibleOptionalDocumentSlots below).
+      form_16_two_years: this.fb.control<File | null>(null, [documentFileValidator]),
+      three_year_itr: this.fb.control<File | null>(null, [documentFileValidator]),
+      six_month_bank_statement: this.fb.control<File | null>(null, [documentFileValidator]),
+      joining_letter: this.fb.control<File | null>(null, [documentFileValidator]),
+      gumasta: this.fb.control<File | null>(null, [documentFileValidator]),
+      electricity_bill: this.fb.control<File | null>(null, [documentFileValidator]),
+      udyam: this.fb.control<File | null>(null, [documentFileValidator]),
+      salary_slip_3_months: this.fb.control<File | null>(null, [documentFileValidator]),
+      company_registration: this.fb.control<File | null>(null, [documentFileValidator]),
+      gst_certificate: this.fb.control<File | null>(null, [documentFileValidator]),
     }),
     notes: [''],
   });
@@ -301,11 +434,73 @@ export class LeadFormComponent implements OnInit {
     ['self_employed', 'business'].includes(this.loanSnapshot().employment_type),
   );
   readonly showInsuranceField = computed(() => this.showPropertyTypeSection() || this.showLapSection());
-  readonly showCarTypeField = computed(() => this.loanSnapshot().purpose_of_loan === 'vehicle_purchase');
+  readonly showCarTypeField = computed(
+    () => this.loanSnapshot().purpose_of_loan === 'vehicle_purchase' || this.loanSnapshot().loan_type === CAR_LOAN,
+  );
   readonly showMudraTypeField = computed(() => this.loanSnapshot().purpose_of_loan === 'business_mudra');
   readonly showBalanceTransferAmount = computed(() => {
     const type = this.loanTypeDetailsSnapshot().balance_transfer_type;
     return !!type && type !== 'none';
+  });
+
+  /** Personal Loan + Salaried — mirrors Fluent Form #26's Net Salary / Type of Salary condition. */
+  readonly showSalariedPersonalLoanFields = computed(
+    () => this.loanSnapshot().loan_type === PERSONAL_LOAN && this.loanSnapshot().employment_type === SALARIED,
+  );
+  readonly showGrossSalaryField = computed(() => this.loanSnapshot().employment_type === SALARIED);
+  readonly showTypeOfAccountSalaryField = computed(
+    () => this.loanSnapshot().type_of_salary === ACCOUNT_SALARY,
+  );
+  readonly showMinIncomeTurnoverField = computed(
+    () =>
+      this.loanSnapshot().loan_type === BUSINESS_LOAN ||
+      [BUSINESS_EMPLOYMENT, SELF_EMPLOYED].includes(this.loanSnapshot().employment_type),
+  );
+  /** Home Loan only. */
+  readonly showHomeLoanExtras = computed(() => this.loanSnapshot().loan_type === HOME_LOAN);
+  /** Home Loan or Mortgage Loan/LAP — the shared document-checklist branch. */
+  readonly showPropertyDocumentChecklists = computed(
+    () => this.loanSnapshot().loan_type === HOME_LOAN || this.loanSnapshot().loan_type === MORTGAGE_LOAN,
+  );
+  /** Mortgage Loan / LAP only. */
+  readonly showCollateralGate = computed(() => this.loanSnapshot().loan_type === MORTGAGE_LOAN);
+  readonly showCollateralDetails = computed(
+    () => this.showCollateralGate() && this.loanTypeDetailsSnapshot().collateral_available === 'yes',
+  );
+  /** Business Loan, or Business/Self-Employed/Professional employment — the "business documents" bucket. */
+  readonly showBusinessDocuments = computed(
+    () =>
+      this.loanSnapshot().loan_type === BUSINESS_LOAN ||
+      [BUSINESS_EMPLOYMENT, SELF_EMPLOYED, PROFESSIONAL].includes(this.loanSnapshot().employment_type),
+  );
+
+  /** Which optional document slots are currently relevant, given the selected loan/employment type. */
+  readonly visibleOptionalDocumentKeys = computed((): ReadonlySet<DocumentSlotKey> => {
+    const keys = new Set<DocumentSlotKey>();
+    if (this.showSalariedPersonalLoanFields()) {
+      keys.add('form_16_two_years');
+      keys.add('joining_letter');
+      keys.add('salary_slip_3_months');
+    }
+    if (this.showBusinessDocuments()) {
+      keys.add('three_year_itr');
+      keys.add('gumasta');
+      keys.add('udyam');
+      keys.add('company_registration');
+      keys.add('gst_certificate');
+    }
+    // Unconditional optional documents.
+    keys.add('six_month_bank_statement');
+    keys.add('electricity_bill');
+    return keys;
+  });
+
+  /** The document slots actually rendered: the 3 mandatory ones plus whichever optional ones currently apply. */
+  readonly visibleDocumentSlots = computed(() => {
+    const optional = this.visibleOptionalDocumentKeys();
+    return DOCUMENT_SLOTS.filter(
+      (slot) => (MANDATORY_DOCUMENT_KEYS as readonly string[]).includes(slot.key) || optional.has(slot.key),
+    );
   });
 
   ngOnInit(): void {
@@ -366,6 +561,10 @@ export class LeadFormComponent implements OnInit {
               insurance_type: details.insurance_type ?? '',
               car_type: details.car_type ?? '',
               mudra_loan_type: details.mudra_loan_type ?? '',
+              type_of_salary: details.type_of_salary ?? '',
+              type_of_account_salary: details.type_of_account_salary ?? '',
+              gross_salary: details.gross_salary ?? null,
+              min_income_turnover: details.min_income_turnover ?? null,
             },
             address: {
               city: lead.city ?? '',
@@ -382,6 +581,13 @@ export class LeadFormComponent implements OnInit {
               balance_transfer_type: details.balance_transfer_type ?? 'none',
               balance_transfer_loan_amount: details.balance_transfer_loan_amount ?? null,
               topup_loan_amount: details.topup_loan_amount ?? null,
+              home_loan_purpose: details.home_loan_purpose ?? '',
+              construction_status: details.construction_status ?? '',
+              collateral_available: details.collateral_available ?? '',
+              collateral_type: details.collateral_type ?? '',
+              collateral_market_value: details.collateral_market_value ?? null,
+              home_loan_checklist: details.home_loan_checklist ?? [],
+              ownership_documents: details.ownership_documents ?? [],
             },
             notes: lead.notes ?? '',
           });
@@ -482,6 +688,89 @@ export class LeadFormComponent implements OnInit {
         loan.controls.mudra_loan_type.setValue('', { emitEvent: false });
       }
     });
+
+    // ---- Form 26-derived: Net Salary / Type of Salary (Personal Loan + Salaried) ----
+    const applySalariedPersonalLoanValidators = (): void => {
+      const isSalariedPersonalLoan =
+        loan.controls.loan_type.value === PERSONAL_LOAN && loan.controls.employment_type.value === SALARIED;
+
+      loan.controls.net_salary.setValidators(
+        isSalariedPersonalLoan ? [Validators.required, Validators.min(1)] : [Validators.min(1)],
+      );
+      loan.controls.type_of_salary.setValidators(isSalariedPersonalLoan ? [Validators.required] : []);
+      if (!isSalariedPersonalLoan) {
+        loan.controls.type_of_salary.setValue('', { emitEvent: false });
+        loan.controls.net_salary.setValue(null, { emitEvent: false });
+      }
+      loan.controls.net_salary.updateValueAndValidity({ emitEvent: false });
+      loan.controls.type_of_salary.updateValueAndValidity({ emitEvent: false });
+    };
+
+    loan.controls.loan_type.valueChanges.subscribe(applySalariedPersonalLoanValidators);
+    loan.controls.employment_type.valueChanges.subscribe(() => {
+      applySalariedPersonalLoanValidators();
+
+      const isSalaried = loan.controls.employment_type.value === SALARIED;
+      loan.controls.gross_salary.setValidators(isSalaried ? [Validators.required, Validators.min(0)] : [Validators.min(0)]);
+      loan.controls.gross_salary.updateValueAndValidity({ emitEvent: false });
+      if (!isSalaried) {
+        loan.controls.gross_salary.setValue(null, { emitEvent: false });
+      }
+    });
+    loan.controls.type_of_salary.valueChanges.subscribe((type) => {
+      loan.controls.type_of_account_salary.setValidators(type === ACCOUNT_SALARY ? [Validators.required] : []);
+      loan.controls.type_of_account_salary.updateValueAndValidity({ emitEvent: false });
+      if (type !== ACCOUNT_SALARY) {
+        loan.controls.type_of_account_salary.setValue('', { emitEvent: false });
+      }
+    });
+    applySalariedPersonalLoanValidators();
+
+    // ---- Form 26-derived: Min Income/Turnover clears when neither trigger applies ----
+    const clearMinIncomeIfHidden = (): void => {
+      const showsMinIncome =
+        loan.controls.loan_type.value === BUSINESS_LOAN ||
+        [BUSINESS_EMPLOYMENT, SELF_EMPLOYED].includes(loan.controls.employment_type.value);
+      if (!showsMinIncome) {
+        loan.controls.min_income_turnover.setValue(null, { emitEvent: false });
+      }
+    };
+    loan.controls.loan_type.valueChanges.subscribe(clearMinIncomeIfHidden);
+    loan.controls.employment_type.valueChanges.subscribe(clearMinIncomeIfHidden);
+
+    // ---- Form 14-derived: Home Loan purpose/construction; Form 16-derived: LAP collateral ----
+    loan.controls.loan_type.valueChanges.subscribe((loanType) => {
+      if (loanType !== HOME_LOAN) {
+        details.patchValue({ home_loan_purpose: '', construction_status: '' }, { emitEvent: false });
+      }
+      if (loanType !== MORTGAGE_LOAN) {
+        details.patchValue(
+          { collateral_available: '', collateral_type: '', collateral_market_value: null },
+          { emitEvent: false },
+        );
+      }
+      if (loanType !== HOME_LOAN && loanType !== MORTGAGE_LOAN) {
+        details.patchValue({ home_loan_checklist: [], ownership_documents: [] }, { emitEvent: false });
+      }
+    });
+    details.controls.collateral_available.valueChanges.subscribe((value) => {
+      if (value !== 'yes') {
+        details.patchValue({ collateral_type: '', collateral_market_value: null }, { emitEvent: false });
+      }
+    });
+
+    // ---- Optional document slots: clear a picked file the moment its slot is no longer shown ----
+    const documents = this.form.controls.documents;
+    const clearHiddenDocumentSlots = (): void => {
+      const visible = this.visibleOptionalDocumentKeys();
+      for (const key of Object.keys(documents.controls) as DocumentSlotKey[]) {
+        if (!(MANDATORY_DOCUMENT_KEYS as readonly string[]).includes(key) && !visible.has(key)) {
+          documents.controls[key].setValue(null, { emitEvent: false });
+        }
+      }
+    };
+    loan.controls.loan_type.valueChanges.subscribe(clearHiddenDocumentSlots);
+    loan.controls.employment_type.valueChanges.subscribe(clearHiddenDocumentSlots);
   }
 
   /** True when the given step's form group (or every listed control) is currently valid. */
@@ -536,7 +825,8 @@ export class LeadFormComponent implements OnInit {
       case 'error':
         return 'Action needed';
       default:
-        return this.documentFileName(key) ? 'Selected' : 'Required';
+        if (this.documentFileName(key)) return 'Selected';
+        return (MANDATORY_DOCUMENT_KEYS as readonly string[]).includes(key) ? 'Required' : 'Optional';
     }
   }
 
@@ -652,7 +942,7 @@ export class LeadFormComponent implements OnInit {
       marital_status: raw.applicant.marital_status,
       caste_category: raw.applicant.caste_category,
       company_name: raw.loan.company_name,
-      net_salary: raw.loan.net_salary,
+      net_salary: this.showSalariedPersonalLoanFields() ? raw.loan.net_salary : null,
       salary_account_type: raw.loan.salary_account_type,
       purpose_of_loan: raw.loan.purpose_of_loan,
       gst_number: this.showGstField() ? raw.loan.gst_number || null : null,
@@ -670,6 +960,17 @@ export class LeadFormComponent implements OnInit {
         ? raw.loanTypeDetails.balance_transfer_loan_amount
         : null,
       topup_loan_amount: this.showLapSection() ? raw.loanTypeDetails.topup_loan_amount : null,
+      type_of_salary: this.showSalariedPersonalLoanFields() ? raw.loan.type_of_salary || null : null,
+      type_of_account_salary: this.showTypeOfAccountSalaryField() ? raw.loan.type_of_account_salary || null : null,
+      gross_salary: this.showGrossSalaryField() ? raw.loan.gross_salary : null,
+      min_income_turnover: this.showMinIncomeTurnoverField() ? raw.loan.min_income_turnover : null,
+      home_loan_purpose: this.showHomeLoanExtras() ? raw.loanTypeDetails.home_loan_purpose || null : null,
+      construction_status: this.showHomeLoanExtras() ? raw.loanTypeDetails.construction_status || null : null,
+      collateral_available: this.showCollateralGate() ? raw.loanTypeDetails.collateral_available || null : null,
+      collateral_type: this.showCollateralDetails() ? raw.loanTypeDetails.collateral_type || null : null,
+      collateral_market_value: this.showCollateralDetails() ? raw.loanTypeDetails.collateral_market_value : null,
+      home_loan_checklist: this.showPropertyDocumentChecklists() ? raw.loanTypeDetails.home_loan_checklist : null,
+      ownership_documents: this.showPropertyDocumentChecklists() ? raw.loanTypeDetails.ownership_documents : null,
     };
 
     const payload: LeadPayload = {

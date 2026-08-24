@@ -12,6 +12,7 @@ import {
   Paginated,
   PaginationMeta,
 } from '@core/models/lead.model';
+import { PdDetails, PdShowResponse } from '@core/models/pd.model';
 
 import { ApiService } from './api.service';
 
@@ -74,10 +75,24 @@ export class LeadService {
     return this.api.post<MatchingResult>(`${this.base}/${id}/match`);
   }
 
-  /** Telecaller PD (pre-disbursement verification call) workflow, Phase 6. */
+  /**
+   * Telecaller PD (pre-disbursement verification call) workflow, Phase 6.
+   * Superseded in the UI by {@see submitPd} (the Full PD data-entry form),
+   * but left callable — nothing about this endpoint changed.
+   */
   completePd(id: number, remarks?: string): Observable<Lead> {
     return this.api.post<Lead>(`${this.base}/${id}/pd-complete`, {
       remarks: remarks ?? null,
     });
+  }
+
+  /** Existing Full PD data for a lead, to pre-fill/resume the PD form. */
+  getPd(id: number): Observable<PdShowResponse> {
+    return this.api.get<PdShowResponse>(`${this.base}/${id}/pd`);
+  }
+
+  /** Full PD (pre-disbursement verification) data capture — Super Admin, Manager, Telecaller only. */
+  submitPd(id: number, payload: PdDetails): Observable<Lead> {
+    return this.api.post<Lead>(`${this.base}/${id}/pd`, payload);
   }
 }

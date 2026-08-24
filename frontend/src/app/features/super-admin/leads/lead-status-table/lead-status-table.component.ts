@@ -2,6 +2,7 @@ import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, effect, inject, input, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -84,6 +85,8 @@ export class LeadStatusTableComponent {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  private pendingRequest?: Subscription;
+
   protected readonly columns: TableColumn<Lead>[] = [
     { key: 'reference', label: 'Reference' },
     { key: 'applicant_name', label: 'Applicant' },
@@ -109,11 +112,12 @@ export class LeadStatusTableComponent {
     page: number,
     size: number,
   ): void {
+    this.pendingRequest?.unsubscribe();
     this.loading.set(true);
     this.error.set(null);
     const status = bucket ? bucket.join(',') : f.status || undefined;
 
-    this.leads
+    this.pendingRequest = this.leads
       .list({
         search: f.search || undefined,
         status,

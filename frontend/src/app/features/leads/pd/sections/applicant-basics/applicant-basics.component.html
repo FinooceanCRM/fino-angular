@@ -1,0 +1,272 @@
+<div [formGroup]="form()" class="pd-form__section">
+  <h3 class="pd-form__section-title">Loan &amp; Applicant Basics</h3>
+  <div class="pd-form__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>LOAN TYPE</mat-label>
+          <mat-select formControlName="LOAN_TYPE">
+            <mat-option [value]="null">— Select —</mat-option>
+            @for (opt of ['Personal Loan', 'Business Loan', 'Home Loan', 'Mortgage Loan / LAP', 'Car Loan', 'INSTANT LOAN', 'Mocro Loan', 'Gold loan', 'Mudra loan', 'OD', 'CC', 'Dropline OD', 'Project Loan', 'Commercial PROPERTY', 'EDUCATION LOAN', 'Loan BT', 'Insurance', 'Loan Against FD', 'Loan Against Mutual Fund', 'Loan Against Pension']; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>If -HL </mat-label>
+            <mat-select formControlName="If__HL_">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Flat Purchase', 'Row house Purchase', 'Individual House Purchase', 'PLOT Purchase ', 'P+C', 'Self Construction', 'Extension', 'Improvement Construction Refinance']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>If -LAP</mat-label>
+            <mat-select formControlName="If__LAP">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Under Construction', 'Shaded Property', 'RCC Structure Frame', 'Load bearing structure', 'Residential', 'Commercial', 'Semi commercial']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>If Commercial Property</mat-label>
+            <mat-select formControlName="If_Commercial_Property">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Commercial Purchase ', 'Semi commercial Purchase', 'Commercial LAP', 'Semi commercial LAP']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mudra loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>If Mudra Loan</mat-label>
+            <mat-select formControlName="If_Mudra_Loan">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Shishu  (Loan Upto  50,000/-)  for New Business', 'Kishor (50,000/- to  5 Lakh ) for Established Business', 'Tarun   (5 Lakh to 10 Lakh ) for Business Expansion ', 'Tarun Plus  (10 Lakh to  20 Lakh  ) Business Expansion After repaid Tarun Loan']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Loan BT' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>If Loan BT </mat-label>
+            <mat-select formControlName="If_Loan_BT_">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['BT + Top Up', 'Only BT', 'Only Top up']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'If_Loan_BT_', value: 'Only BT' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>BT Loan Amount</mat-label>
+            <input matInput type="number" formControlName="BT_Loan_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'If_Loan_BT_', value: 'Only Top up' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Top up Loan Amount</mat-label>
+            <input matInput type="number" formControlName="Top_up_Loan_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Insurance' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>If Insurance</mat-label>
+            <mat-select formControlName="If_Insurance">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Life Insurance', 'Health insurance', 'Term Life Insurance', 'Vehicle Insurance ']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Car Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>If Car Loan</mat-label>
+            <mat-select formControlName="If_Car_Loan">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['New Car Purchase', 'Used Car Purchase', 'Car Refinance']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        <mat-form-field appearance="outline">
+          <mat-label>PURPOSE OF LOAN</mat-label>
+          <input matInput formControlName="PURPOSE_OF_LOAN" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Mother's maiden Name</mat-label>
+          <input matInput formControlName="Mother_s_maiden_Name" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Age</mat-label>
+          <input matInput type="number" formControlName="Age" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Marital Status</mat-label>
+          <mat-select formControlName="Marital_Status">
+            <mat-option [value]="null">— Select —</mat-option>
+            @for (opt of ['Single', 'Married', 'Window', 'Divorced']; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>RESSIDENCIAL TYPE</mat-label>
+          <mat-select formControlName="RESSIDENCIAL_TYPE">
+            <mat-option [value]="null">— Select —</mat-option>
+            @for (opt of ['RENTED', 'OWEND', 'PARANTIAL', 'QUARTER', 'ANY OTHER SPECIFY']; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (pdVisible([{ field: 'RESSIDENCIAL_TYPE', value: 'ANY OTHER SPECIFY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>ANY OTHER SPECIFY</mat-label>
+            <input matInput formControlName="ANY_OTHER_SPECIFY" />
+          </mat-form-field>
+        }
+        <mat-form-field appearance="outline">
+          <mat-label>Caste Category</mat-label>
+          <mat-select formControlName="Caste_Category">
+            <mat-option [value]="null">— Select —</mat-option>
+            @for (opt of ['GEN - General Caste', 'ST - Schedule Tribes', 'SC - Schedule Caste', 'OBC - Other Backward Class', 'Any Other Specific']; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        @if (pdVisible([{ field: 'Caste_Category', value: 'GEN - General Caste' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>General Caste</mat-label>
+            <mat-select formControlName="General_Caste">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Brahmin', 'Rajput', 'Bania', 'Kayastha', 'Khatri', 'Punjabi Arora', 'Jain', 'Bhumihar', 'Nair', 'Reddy', 'Maratha', 'Patel', 'Lingayat']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Caste_Category', value: 'SC - Schedule Caste' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>SC Caste </mat-label>
+            <mat-select formControlName="SC_Caste">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Chamar', 'Jatav', 'Mahar', 'Matang', 'Bhangi', 'Valmiki', 'Pasi', 'Dusadh', 'Paraiyar', 'Adi Dravida', 'Mala', 'Madiga', 'Dom', 'Kori', 'Dhobi']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Caste_Category', value: 'ST - Schedule Tribes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>ST Caste</mat-label>
+            <mat-select formControlName="ST_Caste">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Gond', 'Bhil', 'Santhal', 'Munda', 'Oraon', 'Baiga', 'Korku', 'Warli', 'Toda', 'Khasi', 'Garo', 'Naga', 'Mizo', 'Bodo', 'Jarawa', 'Nicobarese']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Caste_Category', value: 'OBC - Other Backward Class' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OBC Caste</mat-label>
+            <mat-select formControlName="OBC_Caste">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Yadav', 'Kurmi', 'Jat', 'Gujjar', 'Ahir', 'Lodh', 'Kushwaha', 'Mali', 'Teli', 'Kumhar', 'Nai', 'Lohar', 'Sutar', 'Koli', 'Dhangar', 'Vishwakarma', 'Maratha Kunbi', 'Kunbi']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Caste_Category', value: 'Any Other Specific' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Specific Caste</mat-label>
+            <input matInput formControlName="Specific_Caste" />
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">APPLICANTE PERSONAL ADDRESS</h3>
+  <div class="pd-form__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Type of Current Resident</mat-label>
+          <mat-select formControlName="Type_of_Current_Resident">
+            <mat-option [value]="null">— Select —</mat-option>
+            @for (opt of ['Rental ', 'Owned', 'Parental ']; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>SINCE RESSIBENT</mat-label>
+          <input matInput formControlName="SINCE_RESSIBENT" />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Landmark</mat-label>
+          <input matInput formControlName="Landmark" />
+        </mat-form-field>
+  </div>
+        <div class="pd-form__address" formGroupName="Current_Residential_Address">
+          <div class="pd-form__address-title">Current Residential Address</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="address_line_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput formControlName="address_line_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" />
+          </mat-form-field>
+        </div>
+        <div class="pd-form__address" formGroupName="Permanent_Address">
+          <div class="pd-form__address-title">Permanent Address</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="address_line_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput formControlName="address_line_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" />
+          </mat-form-field>
+        </div>
+</div>

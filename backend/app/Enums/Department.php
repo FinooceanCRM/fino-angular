@@ -57,8 +57,28 @@ enum Department: string
     {
         return match ($type) {
             LoanType::Home => self::HomeLoan,
-            LoanType::LoanAgainstProperty => self::MortgageLoan,
-            LoanType::Personal, LoanType::Business, LoanType::Auto, LoanType::Education => self::PersonalLoan,
+            // Property-secured products share Mortgage Loan's department.
+            LoanType::LoanAgainstProperty, LoanType::CommercialProperty => self::MortgageLoan,
+            // Everything else — including every newly added loan type —
+            // falls into Personal Loan, matching how Business/Auto/Education
+            // already worked before this list grew from 6 to 20 types.
+            LoanType::Personal,
+            LoanType::Business,
+            LoanType::Auto,
+            LoanType::Education,
+            LoanType::InstantLoan,
+            LoanType::MicroLoan,
+            LoanType::GoldLoan,
+            LoanType::MudraLoan,
+            LoanType::Overdraft,
+            LoanType::CashCredit,
+            LoanType::DroplineOd,
+            LoanType::ProjectLoan,
+            LoanType::LoanBalanceTransfer,
+            LoanType::Insurance,
+            LoanType::LoanAgainstFd,
+            LoanType::LoanAgainstMutualFund,
+            LoanType::LoanAgainstPension => self::PersonalLoan,
         };
     }
 }

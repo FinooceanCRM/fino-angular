@@ -14,6 +14,7 @@ class StoreTelecallerFollowUpRequest extends BaseFormRequest
     {
         return [
             'type' => ['required', 'string', Rule::in(['call', 'meeting', 'reminder', 'note'])],
+            'priority' => ['sometimes', 'string', Rule::in(['low', 'medium', 'high'])],
             'notes' => ['nullable', 'string', 'max:2000'],
             'next_follow_up_at' => ['nullable', 'date'],
         ];

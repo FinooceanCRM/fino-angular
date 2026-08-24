@@ -42,6 +42,32 @@ enum LeadStatus: string
     }
 
     /**
+     * Statuses reachable directly from this one via changeStatus(). Every
+     * non-terminal status may also be closed out administratively.
+     *
+     * @return array<int, self>
+     */
+    public function allowedNextStatuses(): array
+    {
+        return match ($this) {
+            self::New => [self::Assigned, self::Closed],
+            self::Assigned => [self::InProgress, self::DocumentsPending, self::UnderReview, self::Rejected, self::Closed],
+            self::InProgress => [self::DocumentsPending, self::UnderReview, self::Rejected, self::Closed],
+            self::DocumentsPending => [self::InProgress, self::UnderReview, self::Rejected, self::Closed],
+            self::UnderReview => [self::Approved, self::Rejected, self::DocumentsPending, self::Closed],
+            self::Approved => [self::Disbursed, self::Rejected, self::Closed],
+            self::Rejected => [self::Assigned, self::InProgress, self::Closed],
+            self::Disbursed => [self::Closed],
+            self::Closed => [],
+        };
+    }
+
+    public function canTransitionTo(self $target): bool
+    {
+        return in_array($target, $this->allowedNextStatuses(), true);
+    }
+
+    /**
      * @return array<int, string>
      */
     public static function values(): array

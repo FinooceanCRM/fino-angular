@@ -155,6 +155,42 @@
                 }
               </mat-select>
             </mat-form-field>
+
+            @if (showGrossSalaryField()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Gross salary</mat-label>
+                <input matInput type="number" formControlName="gross_salary" />
+              </mat-form-field>
+            }
+
+            @if (showSalariedPersonalLoanFields()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Type of salary</mat-label>
+                <mat-select formControlName="type_of_salary">
+                  @for (option of typeOfSalaryOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+
+            @if (showTypeOfAccountSalaryField()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Type of account salary</mat-label>
+                <mat-select formControlName="type_of_account_salary">
+                  @for (option of typeOfAccountSalaryOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            }
+
+            @if (showMinIncomeTurnoverField()) {
+              <mat-form-field appearance="outline">
+                <mat-label>Min income / turnover (INR)</mat-label>
+                <input matInput type="number" formControlName="min_income_turnover" />
+              </mat-form-field>
+            }
           </div>
 
           @if (showGstField() || showInsuranceField() || showCarTypeField() || showMudraTypeField()) {
@@ -330,6 +366,78 @@
             </div>
           }
 
+          @if (showHomeLoanExtras()) {
+            <div class="lead-form__grid" formGroupName="loanTypeDetails">
+              <mat-form-field appearance="outline">
+                <mat-label>Purpose of loan</mat-label>
+                <mat-select formControlName="home_loan_purpose">
+                  @for (option of homeLoanPurposeOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Construction status</mat-label>
+                <mat-select formControlName="construction_status">
+                  @for (option of constructionStatusOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+
+          @if (showCollateralGate()) {
+            <div class="lead-form__grid" formGroupName="loanTypeDetails">
+              <mat-form-field appearance="outline">
+                <mat-label>Existing EMIs / loan liabilities?</mat-label>
+                <mat-select formControlName="collateral_available">
+                  <mat-option value="yes">Yes</mat-option>
+                  <mat-option value="no">No</mat-option>
+                </mat-select>
+              </mat-form-field>
+
+              @if (showCollateralDetails()) {
+                <mat-form-field appearance="outline">
+                  <mat-label>Type of collateral</mat-label>
+                  <mat-select formControlName="collateral_type">
+                    @for (option of collateralTypeOptions; track option.value) {
+                      <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Approximate market value (INR)</mat-label>
+                  <input matInput type="number" formControlName="collateral_market_value" />
+                </mat-form-field>
+              }
+            </div>
+          }
+
+          @if (showPropertyDocumentChecklists()) {
+            <div class="lead-form__grid" formGroupName="loanTypeDetails">
+              <mat-form-field appearance="outline" class="lead-form__span-2">
+                <mat-label>Home loan checklist</mat-label>
+                <mat-select formControlName="home_loan_checklist" multiple>
+                  @for (option of homeLoanChecklistOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="lead-form__span-2">
+                <mat-label>Ownership documents</mat-label>
+                <mat-select formControlName="ownership_documents" multiple>
+                  @for (option of ownershipDocumentOptions; track option.value) {
+                    <mat-option [value]="option.value">{{ option.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+            </div>
+          }
+
           <div class="lead-form__step-actions">
             <button mat-stroked-button type="button" matStepperPrevious>
               <mat-icon>arrow_back</mat-icon>
@@ -349,7 +457,7 @@
           </p>
 
           <div class="lead-form__documents" formGroupName="documents">
-            @for (slot of documentSlots; track slot.key) {
+            @for (slot of visibleDocumentSlots(); track slot.key) {
               <mat-card class="lead-form__document-card">
                 <mat-card-content>
                   <div class="lead-form__document-card-header">
@@ -526,7 +634,7 @@
             <div class="lead-form__span-2">
               <span class="lead-form__review-label">Documents</span>
               <div class="lead-form__review-documents">
-                @for (slot of documentSlots; track slot.key) {
+                @for (slot of visibleDocumentSlots(); track slot.key) {
                   <div class="lead-form__review-document">
                     <span>{{ slot.title }}</span>
                     <strong>{{ documentFileName(slot.key) ?? 'Not attached' }}</strong>

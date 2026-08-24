@@ -41,9 +41,16 @@ export interface TelecallerRecentLead {
 export interface TelecallerPendingFollowUp {
   id: number;
   type: string;
+  priority: string;
   notes: string | null;
   next_follow_up_at: string | null;
   lead: { id: number; reference: string; applicant_name: string } | null;
+}
+
+export interface TelecallerFollowUpReminders {
+  overdue: number;
+  today: number;
+  upcoming: number;
 }
 
 export interface TelecallerDashboard {
@@ -81,4 +88,5 @@ export interface TelecallerDashboard {
     completed: number;
   };
   pending_follow_ups: TelecallerPendingFollowUp[];
+  follow_up_reminders: TelecallerFollowUpReminders;
 }

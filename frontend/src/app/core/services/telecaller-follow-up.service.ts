@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 
 import {
   TelecallerFollowUp,
+  TelecallerFollowUpFilter,
   TelecallerFollowUpPayload,
 } from '@core/models/telecaller-follow-up.model';
 
@@ -31,7 +32,8 @@ export class TelecallerFollowUpService {
     });
   }
 
-  pending(): Observable<TelecallerFollowUp[]> {
-    return this.api.get<TelecallerFollowUp[]>('telecallers/follow-ups');
+  /** `filter` defaults to 'pending' (not yet completed) — matches the backend default. */
+  pending(filter: TelecallerFollowUpFilter = 'pending'): Observable<TelecallerFollowUp[]> {
+    return this.api.get<TelecallerFollowUp[]>('telecallers/follow-ups', { filter });
   }
 }

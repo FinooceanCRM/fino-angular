@@ -3,29 +3,31 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatListModule } from '@angular/material/list';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { NormalizedApiError } from '@core/interceptors/error.interceptor';
 import { DocumentTypeOption, LeadDocument } from '@core/models/document.model';
 import { Lead, CatalogueOption } from '@core/models/lead.model';
-import { TelecallerFollowUp, TelecallerFollowUpType } from '@core/models/telecaller-follow-up.model';
+import {
+  TelecallerFollowUp,
+  TelecallerFollowUpPriority,
+  TelecallerFollowUpType,
+} from '@core/models/telecaller-follow-up.model';
 import { DocumentService } from '@core/services/document.service';
 import { LeadService } from '@core/services/lead.service';
 import { TelecallerFollowUpService } from '@core/services/telecaller-follow-up.service';
-import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
 
 /**
  * Telecaller-only actions for a lead: status change (own leads only, per
- * `LoanLeadPolicy::changeStatus`), documents, PD completion, and her
- * follow-up/notes log. Kept as a sibling panel next to the shared, role-
- * neutral `ManagerLeadDetailComponent` rather than folded into it, so that
+ * `LoanLeadPolicy::changeStatus`), documents, Full PD, and her follow-up/
+ * notes log. Kept as a sibling panel next to the shared, role-neutral
+ * `ManagerLeadDetailComponent` rather than folded into it, so that
  * component stays untouched for every other role.
  */
 @Component({
@@ -48,11 +50,11 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.compon
 })
 export class TelecallerLeadPanelComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly leads = inject(LeadService);
   private readonly documentsApi = inject(DocumentService);
   private readonly followUpsApi = inject(TelecallerFollowUpService);
   private readonly fb = inject(FormBuilder);
-  private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
   private readonly leadId = Number(this.route.snapshot.paramMap.get('id'));
@@ -66,7 +68,7 @@ export class TelecallerLeadPanelComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
 
   protected readonly canChangeStatus = computed(() => this.lead()?.can_change_status ?? false);
-  protected readonly canCompletePd = computed(() => !!this.lead() && this.lead()!.pd_completed_at === null);
+  protected readonly canCompletePd = computed(() => this.lead()?.can_submit_pd ?? false);
 
   selectedFile: File | null = null;
 
@@ -82,6 +84,7 @@ export class TelecallerLeadPanelComponent implements OnInit {
 
   readonly followUpForm = this.fb.nonNullable.group({
     type: 'call' as TelecallerFollowUpType,
+    priority: 'medium' as TelecallerFollowUpPriority,
     notes: '',
     next_follow_up_at: '',
   });
@@ -145,29 +148,7 @@ export class TelecallerLeadPanelComponent implements OnInit {
   }
 
   completePd(): void {
-    this.dialog
-      .open(ConfirmDialogComponent, {
-        data: {
-          title: 'Mark PD complete',
-          message: 'Confirm the pre-disbursement verification call for this lead has been completed?',
-          confirmLabel: 'Mark complete',
-        },
-      })
-      .afterClosed()
-      .subscribe((confirmed) => {
-        if (!confirmed) {
-          return;
-        }
-
-        this.leads.completePd(this.leadId).subscribe({
-          next: () => {
-            this.reload();
-            this.snackBar.open('PD marked complete.', 'Dismiss', { duration: 4000 });
-          },
-          error: (err: NormalizedApiError) =>
-            this.error.set(err.message ?? 'The PD call could not be marked complete.'),
-        });
-      });
+    this.router.navigate(['/leads', this.leadId, 'pd']);
   }
 
   onFileSelected(event: Event): void {
@@ -223,17 +204,18 @@ export class TelecallerLeadPanelComponent implements OnInit {
       return;
     }
 
-    const { type, notes, next_follow_up_at } = this.followUpForm.getRawValue();
+    const { type, priority, notes, next_follow_up_at } = this.followUpForm.getRawValue();
 
     this.followUpsApi
       .create(this.leadId, {
         type,
+        priority,
         notes: notes.trim() || null,
         next_follow_up_at: next_follow_up_at || null,
       })
       .subscribe({
         next: () => {
-          this.followUpForm.reset({ type: 'call', notes: '', next_follow_up_at: '' });
+          this.followUpForm.reset({ type: 'call', priority: 'medium', notes: '', next_follow_up_at: '' });
           this.loadFollowUps();
           this.snackBar.open('Follow-up logged.', 'Dismiss', { duration: 4000 });
         },

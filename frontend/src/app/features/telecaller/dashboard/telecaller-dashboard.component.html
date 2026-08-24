@@ -19,10 +19,6 @@
         <mat-card-subtitle>{{ dashboard.welcome.message }}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-actions class="telecaller-dashboard__actions">
-        <a mat-flat-button color="primary" routerLink="/leads/create">
-          <mat-icon>add_circle</mat-icon>
-          New lead
-        </a>
         <a mat-stroked-button routerLink="/telecaller/leads">
           <mat-icon>assignment</mat-icon>
           My submitted leads
@@ -60,12 +56,28 @@
         [value]="dashboard.pd_queue.completed"
         label="PD calls completed"
       />
-      <app-stat-card
-        icon="event_repeat"
-        [value]="dashboard.pending_follow_ups.length"
-        label="Pending follow-ups"
-      />
     </div>
+
+    <mat-card class="telecaller-dashboard__reminder">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>notifications_active</mat-icon>
+        <mat-card-title>Follow-up reminder</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="telecaller-dashboard__reminder-counts">
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--overdue" routerLink="/telecaller/follow-ups">
+          <strong>{{ dashboard.follow_up_reminders.overdue }}</strong>
+          <span>Overdue</span>
+        </a>
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--today" routerLink="/telecaller/follow-ups">
+          <strong>{{ dashboard.follow_up_reminders.today }}</strong>
+          <span>Today</span>
+        </a>
+        <a class="telecaller-dashboard__reminder-item" routerLink="/telecaller/follow-ups">
+          <strong>{{ dashboard.follow_up_reminders.upcoming }}</strong>
+          <span>Upcoming</span>
+        </a>
+      </mat-card-content>
+    </mat-card>
 
     <app-notifications-panel class="telecaller-dashboard__notifications" />
 
@@ -99,7 +111,7 @@
         <mat-list>
           @for (item of dashboard.pending_follow_ups; track item.id) {
             <mat-list-item>
-              <span matListItemTitle>{{ item.lead?.applicant_name ?? '—' }} · {{ item.type }}</span>
+              <span matListItemTitle>{{ item.lead?.applicant_name ?? '—' }} · {{ item.type }} · {{ item.priority }}</span>
               <span matListItemLine>
                 {{ item.notes || '(no notes)' }}
                 @if (item.next_follow_up_at) {

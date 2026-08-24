@@ -22,6 +22,12 @@
         Edit
       </a>
     }
+    @if (data.lead.can_submit_pd) {
+      <a mat-flat-button color="primary" [routerLink]="['/leads', data.lead.id, 'pd']">
+        <mat-icon>call_end</mat-icon>
+        Complete Full PD
+      </a>
+    }
     @if (!isConnector() && canAssign()) {
       <button mat-stroked-button type="button" (click)="selectedTab.set(workflowTab)">
         <mat-icon>person_add</mat-icon>
@@ -106,6 +112,13 @@
           <strong>{{ data.lead.assigned_banker?.name ?? '—' }}</strong>
         </span>
       </div>
+      <div class="lead-detail__summary-field">
+        <span class="lead-detail__summary-icon"><mat-icon>call</mat-icon></span>
+        <span>
+          <span class="lead-detail__label">Telecaller</span>
+          <strong>{{ data.lead.assigned_telecaller?.name ?? '—' }}</strong>
+        </span>
+      </div>
     </mat-card-content>
   </mat-card>
 
@@ -159,6 +172,18 @@
                 @if (details.mudra_loan_type) {
                   <div><span class="lead-detail__label">Mudra loan type</span><strong>{{ optionLabel(mudraLoanTypeOptions, details.mudra_loan_type) }}</strong></div>
                 }
+                @if (details.gross_salary) {
+                  <div><span class="lead-detail__label">Gross salary</span><strong>{{ details.gross_salary | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+                }
+                @if (details.type_of_salary) {
+                  <div><span class="lead-detail__label">Type of salary</span><strong>{{ optionLabel(typeOfSalaryOptions, details.type_of_salary) }}</strong></div>
+                }
+                @if (details.type_of_account_salary) {
+                  <div><span class="lead-detail__label">Type of account salary</span><strong>{{ optionLabel(typeOfAccountSalaryOptions, details.type_of_account_salary) }}</strong></div>
+                }
+                @if (details.min_income_turnover) {
+                  <div><span class="lead-detail__label">Min income / turnover</span><strong>{{ details.min_income_turnover | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+                }
               </div>
             </div>
 
@@ -188,6 +213,37 @@
                     @if (details.topup_loan_amount) {
                       <div><span class="lead-detail__label">Top-up loan amount</span><strong>{{ details.topup_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
                     }
+                  }
+                  @if (showPropertyType()) {
+                    @if (details.home_loan_purpose) {
+                      <div><span class="lead-detail__label">Purpose of loan</span><strong>{{ optionLabel(homeLoanPurposeOptions, details.home_loan_purpose) }}</strong></div>
+                    }
+                    @if (details.construction_status) {
+                      <div><span class="lead-detail__label">Construction status</span><strong>{{ optionLabel(constructionStatusOptions, details.construction_status) }}</strong></div>
+                    }
+                  }
+                  @if (showLapDetails()) {
+                    @if (details.collateral_available) {
+                      <div><span class="lead-detail__label">Existing EMIs / loan liabilities</span><strong>{{ details.collateral_available === 'yes' ? 'Yes' : 'No' }}</strong></div>
+                    }
+                    @if (details.collateral_type) {
+                      <div><span class="lead-detail__label">Type of collateral</span><strong>{{ optionLabel(collateralTypeOptions, details.collateral_type) }}</strong></div>
+                    }
+                    @if (details.collateral_market_value) {
+                      <div><span class="lead-detail__label">Approximate market value</span><strong>{{ details.collateral_market_value | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
+                    }
+                  }
+                  @if (details.home_loan_checklist?.length) {
+                    <div class="lead-detail__span-2">
+                      <span class="lead-detail__label">Home loan checklist</span>
+                      <strong>{{ optionLabels(homeLoanChecklistOptions, details.home_loan_checklist) }}</strong>
+                    </div>
+                  }
+                  @if (details.ownership_documents?.length) {
+                    <div class="lead-detail__span-2">
+                      <span class="lead-detail__label">Ownership documents</span>
+                      <strong>{{ optionLabels(ownershipDocumentOptions, details.ownership_documents) }}</strong>
+                    </div>
                   }
                 </div>
               </div>

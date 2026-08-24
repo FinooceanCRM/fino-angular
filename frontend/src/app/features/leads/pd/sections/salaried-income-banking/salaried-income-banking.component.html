@@ -1,0 +1,189 @@
+<div [formGroup]="form()" class="pd-form__section">
+@if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+  <h3 class="pd-form__section-title">APPLICANTE SALARY TYPE &amp; BANK DETAILS</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Type Salary </mat-label>
+            <mat-select formControlName="Type_Salary">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Cash Salary', 'Bank Salary']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Bank Salary</mat-label>
+            <mat-select formControlName="Bank_Salary">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['NEFT/RTGS', 'CHEQUE', 'IMPS']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'Type_Salary', value: 'Bank Salary' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Bank Name</mat-label>
+            <mat-select formControlName="Bank_Name">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['State Bank of India', 'Bank of Baroda', 'Punjab National Bank', 'Canara Bank', 'Union Bank of India', 'Indian Bank', 'Bank of India', 'Central Bank of India', 'Indian Overseas Bank', 'UCO Bank', 'Bank of Maharashtra', 'Punjab & Sind Bank', 'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra Bank', 'IndusInd Bank', 'Yes Bank', 'IDFC FIRST Bank', 'Federal Bank', 'South Indian Bank', 'Karnataka Bank', 'Karur Vysya Bank', 'City Union Bank', 'Tamilnad Mercantile Bank', 'DCB Bank', 'RBL Bank', 'Bandhan Bank', 'AU Small Finance Bank', 'Ujjivan Small Finance Bank', 'Equitas Small Finance Bank', 'Jana Small Finance Bank', 'Suryoday Small Finance Bank', 'ESAF Small Finance Bank', 'Utkarsh Small Finance Bank', 'North East Small Finance Bank', 'Capital Small Finance Bank', 'Fincare Small Finance Bank', 'Airtel Payments Bank', 'India Post Payments Bank', 'Paytm Payments Bank', 'Fino Payments Bank', 'NSDL Payments Bank', 'HSBC', 'Citibank', 'Standard Chartered', 'Deutsche Bank', 'Barclays', 'Bank of America', 'DBS Bank']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'Type_Salary', value: 'Bank Salary' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Bank Account Number</mat-label>
+            <input matInput type="number" formControlName="Bank_Account_Number" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>SALARY DEDUCTION</mat-label>
+            <mat-select formControlName="SALARY_DEDUCTION">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['PF', 'PT', 'SOCIETY LOAN', 'PF LOAN', 'LIC', 'OTHER DEDUCTION']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'SALARY_DEDUCTION', value: 'PF' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>PF Deduction Amount</mat-label>
+            <input matInput type="number" formControlName="PF_Deduction_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'SALARY_DEDUCTION', value: 'PT' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>PT Deduction Amount</mat-label>
+            <input matInput type="number" formControlName="PT_Deduction_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'SALARY_DEDUCTION', value: 'SOCIETY LOAN' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>SOCIETY LOAN Deduction Amount</mat-label>
+            <input matInput type="number" formControlName="SOCIETY_LOAN_Deduction_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'SALARY_DEDUCTION', value: 'PF LOAN' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>PF LOAN Deduction Amount</mat-label>
+            <input matInput type="number" formControlName="PF_LOAN_Deduction_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'SALARY_DEDUCTION', value: 'LIC' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>LIC Deduction Amount</mat-label>
+            <input matInput type="number" formControlName="LIC_Deduction_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'SALARY_DEDUCTION', value: 'OTHER DEDUCTION' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OTHER DEDUCTION Amount</mat-label>
+            <input matInput type="number" formControlName="OTHER_DEDUCTION_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>CURRENT MONTH SAL</mat-label>
+            <input matInput formControlName="CURRENT_MONTH_SAL" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>PREVIOUS MONTH</mat-label>
+            <input matInput formControlName="PREVIOUS_MONTH" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>2ND PREVIOUS MONTH</mat-label>
+            <input matInput formControlName="2ND_PREVIOUS_MONTH" />
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">APPLICANTE OTHER INCOME SOURCE INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Total Income from other source</mat-label>
+            <input matInput type="number" formControlName="Total_Income_from_other_source_salaried" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Source name</mat-label>
+            <mat-select formControlName="Source_name_salaried">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Rental Income', 'Agriculture Income', 'Pension', 'Part time', 'other(Specify)', 'Business']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'other(Specify)' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>other(Specify) Name</mat-label>
+            <input matInput formControlName="other_Specify__Name" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'Business' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Type of Business</mat-label>
+            <mat-select formControlName="Type_of_Business">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['PROPRITORSHIP', 'PVT LTD / LLP']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'Business' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Partnership Business</mat-label>
+            <mat-select formControlName="Partnership_Business">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['YES', 'NO']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'Rental Income' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Rental Income Amount</mat-label>
+            <input matInput type="number" formControlName="Rental_Income_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'Agriculture Income' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Agriculture Income Amount</mat-label>
+            <input matInput type="number" formControlName="Agriculture_Income_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'Pension' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Pension Amount</mat-label>
+            <input matInput type="number" formControlName="Pension_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'Part time' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Part time Income Amount</mat-label>
+            <input matInput type="number" formControlName="Part_time_Income_Amount" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Salaried' }, { field: 'LOAN_TYPE', value: 'Personal Loan' }, { field: 'Source_name_salaried', value: 'other(Specify)' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>other(Specify) Amount</mat-label>
+            <input matInput type="number" formControlName="other_Specify__Amount" />
+          </mat-form-field>
+        }
+  </div>
+}
+</div>

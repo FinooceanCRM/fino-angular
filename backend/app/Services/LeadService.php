@@ -178,6 +178,13 @@ class LeadService extends BaseService
             return $lead;
         }
 
+        if (! $current->canTransitionTo($target)) {
+            throw new DomainException(
+                sprintf('Cannot move a lead from %s to %s.', $current->label(), $target->label()),
+                422,
+            );
+        }
+
         return $this->transaction(function () use ($actor, $lead, $current, $target, $remarks): LoanLead {
             $lead = $this->leads->update($lead, [
         'status' => $target->value,
@@ -238,6 +245,49 @@ class LeadService extends BaseService
     }
 
     /**
+     * Full PD (pre-disbursement verification) data capture — successor to
+     * {@see self::completePd()}. Persists the full applicant/employment/
+     * income/ITR/property dataset (validated field-by-field by
+     * `SubmitPdRequest`) alongside the same completion metadata the simple
+     * action recorded, and — unlike `completePd()` — writes a
+     * `lead_status_history` entry (same-status, no real transition) so PD
+     * completion finally shows up in the existing lead timeline UI.
+     * Deliberately does not touch `status`, for the same reason documented
+     * on `completePd()`.
+     *
+     * @param array<string, mixed> $pdData
+     */
+    public function submitPd(User $actor, LoanLead $lead, array $pdData): LoanLead
+    {
+        if ($lead->pd_completed_at !== null) {
+            throw new DomainException('PD has already been completed for this lead.', 422);
+        }
+
+        return $this->transaction(function () use ($actor, $lead, $pdData): LoanLead {
+            $current = $lead->statusEnum()->value;
+
+            $lead = $this->leads->update($lead, [
+                'pd_details' => $pdData,
+                'pd_completed_at' => now(),
+                'pd_completed_by' => $actor->id,
+                'updated_by' => $actor->id,
+            ]);
+
+            $this->recordStatus($lead, $current, $current, $actor->id, 'Full PD completed by '.$actor->name.'.');
+
+            $this->notifications->notifyMany(
+                [$lead->assigned_relationship_manager_id, $lead->assigned_manager_id],
+                'lead.full_pd_completed',
+                'Full PD completed — ready for review',
+                sprintf('%s completed the full PD for lead %s.', $actor->name, $lead->reference),
+                ['lead_id' => $lead->id],
+            );
+
+            return $lead;
+        });
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function runMatching(LoanLead $lead): array
@@ -261,7 +311,7 @@ class LeadService extends BaseService
                     UserRole::Manager->value,
                     UserRole::RelationshipManager->value,
                     UserRole::Employee->value,
-                ])->orWhere('role', UserRole::Banker->value);
+                ])->orWhereIn('role', [UserRole::Banker->value, UserRole::Telecaller->value]);
             }),
             UserRole::Manager, UserRole::RelationshipManager => $query->where(function ($q) use ($actor): void {
                 $q->where(function ($sub) use ($actor): void {
@@ -272,7 +322,7 @@ class LeadService extends BaseService
                         $sub->where('relationship_manager_id', $actor->id)
                             ->where('role', UserRole::Employee->value);
                     }
-                })->orWhere('role', UserRole::Banker->value);
+                })->orWhereIn('role', [UserRole::Banker->value, UserRole::Telecaller->value]);
             }),
             default => $query->whereRaw('1 = 0'),
         };
@@ -314,18 +364,21 @@ class LeadService extends BaseService
             UserRole::Banker => [
                 'assigned_banker_id' => $user->id,
             ],
+            UserRole::Telecaller => [
+                'assigned_telecaller_id' => $user->id,
+            ],
             default => [],
         };
     }
 
     private function guardAssignment(User $actor, LoanLead $lead, User $assignee): void
     {
-        // Bankers sit outside the manager/RM/employee hierarchy (like
-        // Connector), so there's no subtree to check — any actor who can
-        // already assign leads (Super Admin, Manager, RM; enforced by
-        // LoanLeadPolicy::assign) may route a lead to any active banker.
-        // Bankers are also not department-scoped, so no department check.
-        if ($assignee->roleEnum() === UserRole::Banker) {
+        // Bankers and Telecallers both sit outside the manager/RM/employee
+        // hierarchy (like Connector), so there's no subtree-ownership check
+        // for either — any actor who can already assign leads (Super Admin,
+        // Manager, RM; enforced by LoanLeadPolicy::assign) may route a lead
+        // to any active banker or telecaller.
+        if (in_array($assignee->roleEnum(), [UserRole::Banker, UserRole::Telecaller], true)) {
             $allowed = in_array($actor->roleEnum(), [
                 UserRole::SuperAdmin,
                 UserRole::Manager,
@@ -334,6 +387,16 @@ class LeadService extends BaseService
 
             if (! $allowed) {
                 throw new DomainException('You cannot assign leads to this user.', 403);
+            }
+
+            // Unlike Bankers, Telecallers are department-scoped (their PD
+            // queue only ever covers their own department), so the same
+            // department-isolation rule as the RM/Employee branch below
+            // applies here too.
+            if ($assignee->roleEnum() === UserRole::Telecaller
+                && $assignee->department !== null
+                && $assignee->department->value !== $lead->department?->value) {
+                throw new DomainException("This lead's department does not match the assignee's department.", 422);
             }
 
             return;

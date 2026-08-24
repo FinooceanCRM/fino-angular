@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 
 import { authGuard } from '@core/guards/auth.guard';
+import { roleGuard } from '@core/guards/role.guard';
 
 /** Lead management workspace (Phase 9). Open to every authenticated role; */
 /** the API scopes what each of them can see and do. */
@@ -34,5 +35,13 @@ export const leadsRoutes: Routes = [
     canActivate: [authGuard],
     loadComponent: () =>
       import('./form/lead-form.component').then((m) => m.LeadFormComponent),
+  },
+  {
+    path: ':id/pd',
+    title: 'Full PD — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin', 'manager', 'telecaller'] },
+    loadComponent: () =>
+      import('./pd/pd-form.component').then((m) => m.PdFormComponent),
   },
 ];

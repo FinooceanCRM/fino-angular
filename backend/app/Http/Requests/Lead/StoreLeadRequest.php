@@ -28,6 +28,30 @@ class StoreLeadRequest extends BaseFormRequest
             'pincode' => ['nullable', 'string', 'max:12'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'details' => ['nullable', 'array'],
+
+            // ---- Form 26-derived conditional fields (all optional at the
+            // Laravel-validation layer; the frontend enforces which of these
+            // are actually required for a given loan type/employment type
+            // combination via lead-form.component.ts's own logic). ----
+            'details.type_of_salary' => ['nullable', 'string', Rule::in(['account_salary', 'cash_salary'])],
+            'details.type_of_account_salary' => ['nullable', 'string', Rule::in(['neft_rtgs', 'upi_transfer', 'cheque'])],
+            'details.gross_salary' => ['nullable', 'numeric', 'min:0'],
+            'details.min_income_turnover' => ['nullable', 'numeric', 'min:0'],
+            'details.home_loan_purpose' => ['nullable', 'string', Rule::in([
+                'home_purchase', 'home_construction', 'home_improvement_extension', 'home_loan_balance_transfer',
+            ])],
+            'details.construction_status' => ['nullable', 'string', Rule::in([
+                'ready_to_move', 'under_construction', 'not_yet_started',
+            ])],
+            'details.collateral_available' => ['nullable', 'string', Rule::in(['yes', 'no'])],
+            'details.collateral_type' => ['nullable', 'string', Rule::in([
+                'residential_property', 'commercial_property', 'fd_insurance_policy', 'other',
+            ])],
+            'details.collateral_market_value' => ['nullable', 'numeric', 'min:0'],
+            'details.home_loan_checklist' => ['nullable', 'array'],
+            'details.home_loan_checklist.*' => ['string', 'max:64'],
+            'details.ownership_documents' => ['nullable', 'array'],
+            'details.ownership_documents.*' => ['string', 'max:64'],
         ];
     }
 }

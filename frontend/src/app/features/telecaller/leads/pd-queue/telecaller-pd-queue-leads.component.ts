@@ -2,17 +2,13 @@ import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
-import { NormalizedApiError } from '@core/interceptors/error.interceptor';
 import { Lead } from '@core/models/lead.model';
 import { AuthService } from '@core/services/auth.service';
 import { LeadService } from '@core/services/lead.service';
-import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
@@ -25,10 +21,11 @@ type PdView = 'pending' | 'completed';
 /**
  * PD (pre-disbursement verification call) Queue — the Telecaller's view of
  * every lead she is allowed to see (her department's employee-sourced leads
- * plus her own submissions), split by whether the PD call has been logged
- * yet. Backed by `LeadService.list()` + `LeadService.completePd()`,
- * unmodified — the repository's Telecaller visibility scope already limits
- * what comes back, so no extra filter is needed here.
+ * plus her own submissions), split by whether Full PD has been completed
+ * yet. Backed by `LeadService.list()`; "Mark PD complete" now navigates to
+ * the Full PD data-entry form (`leads/:id/pd`) rather than one-click
+ * completing it — the repository's Telecaller visibility scope already
+ * limits what comes back, so no extra filter is needed here.
  */
 @Component({
   selector: 'app-telecaller-pd-queue-leads',
@@ -93,13 +90,13 @@ type PdView = 'pending' | 'completed';
         <a mat-icon-button type="button" matTooltip="View" aria-label="View" [routerLink]="['/telecaller/leads', row.id]">
           <mat-icon>visibility</mat-icon>
         </a>
-        @if (view() === 'pending') {
+        @if (view() === 'pending' && row.can_submit_pd) {
           <button
             mat-icon-button
             type="button"
             color="primary"
-            matTooltip="Mark PD complete"
-            aria-label="Mark PD complete"
+            matTooltip="Complete Full PD"
+            aria-label="Complete Full PD"
             (click)="completePd(row)"
           >
             <mat-icon>call_end</mat-icon>
@@ -122,8 +119,7 @@ type PdView = 'pending' | 'completed';
 })
 export class TelecallerPdQueueLeadsComponent implements OnInit {
   private readonly leads = inject(LeadService);
-  private readonly dialog = inject(MatDialog);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
 
   protected readonly telecallerId = this.auth.user()?.id ?? null;
@@ -166,31 +162,6 @@ export class TelecallerPdQueueLeadsComponent implements OnInit {
   }
 
   protected completePd(row: Lead): void {
-    this.dialog
-      .open(ConfirmDialogComponent, {
-        data: {
-          title: 'Mark PD complete',
-          message: `Confirm the pre-disbursement call for ${row.applicant_name} has been completed?`,
-          confirmLabel: 'Mark complete',
-        },
-      })
-      .afterClosed()
-      .subscribe((confirmed) => {
-        if (!confirmed) {
-          return;
-        }
-
-        this.leads.completePd(row.id).subscribe({
-          next: () => {
-            this.snackBar.open('PD marked complete.', 'Dismiss', { duration: 4000 });
-            this.load();
-          },
-          error: (err: NormalizedApiError) => {
-            this.snackBar.open(err.message ?? 'The PD call could not be marked complete.', 'Dismiss', {
-              duration: 6000,
-            });
-          },
-        });
-      });
+    this.router.navigate(['/leads', row.id, 'pd']);
   }
 }

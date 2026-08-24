@@ -1,0 +1,153 @@
+<div [formGroup]="form()" class="pd-form__section">
+@if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+  <h3 class="pd-form__section-title">APPLICANTE PROFESSION INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Profession Type</mat-label>
+            <input matInput formControlName="Profession_Type" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>PROFESSIONAL CERTIFICATE</mat-label>
+            <input matInput formControlName="PROFESSIONAL_CERTIFICATE" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Professional Name</mat-label>
+            <input matInput formControlName="Professional_Name" />
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">APPLICANTE PROFESSIONAL INCORPORATION &amp; INCOME INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Incorporation DD/MM/YY</mat-label>
+            <input matInput type="date" formControlName="Date_of_Incorporation_DD_MM_YY" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Type of Professional License</mat-label>
+            <mat-select formControlName="Type_of_Professional_License">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['SHOPACT', 'UDHYAM AADHAR', 'OTHER SPECIFY']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Professional_License', value: 'OTHER SPECIFY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OTHER SPECIFY PROFESSIONAL LICENSE</mat-label>
+            <input matInput formControlName="OTHER_SPECIFY_PROFESSIONAL_LICENSE" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Income Amount from Profession</mat-label>
+            <input matInput type="number" formControlName="Income_Amount_from_Profession" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Source name</mat-label>
+            <mat-select formControlName="Source_name">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Rental Income', 'Agriculture Income', 'Pension', 'BROKRAGE', 'other(Specify)']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Source_name', value: 'Rental Income' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Rental Income Amount</mat-label>
+            <input matInput type="number" formControlName="Rental_Income_Amount_Professional" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Source_name', value: 'Agriculture Income' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Agriculture Income Amount</mat-label>
+            <input matInput type="number" formControlName="Agriculture_Income_Amount_Professional" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Source_name', value: 'Pension' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Pension Amount</mat-label>
+            <input matInput type="number" formControlName="Pension_Amount_Professional" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Source_name', value: 'BROKRAGE' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>BROKRAGE Amount</mat-label>
+            <input matInput type="number" formControlName="BROKRAGE_Amount_Professional" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Source_name', value: 'other(Specify)' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>other(Specify) Amount</mat-label>
+            <input matInput type="number" formControlName="other_Specify__Amount_Professional" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Total Income from other source</mat-label>
+            <input matInput type="number" formControlName="Total_Income_from_other_source_Professional" />
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">APPLICANTE PROFESSION OFFICE INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OFFICE Premises Type</mat-label>
+            <mat-select formControlName="OFFICE_Premises_Type">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['RENTAL', 'OWENED', 'PRANTIAL', 'OTHER SPECIFY']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'OFFICE_Premises_Type', value: 'OTHER SPECIFY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OTHER SPECIFY</mat-label>
+            <input matInput formControlName="OTHER_SPECIFY_2" />
+          </mat-form-field>
+        }
+  </div>
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }])) {
+        <div class="pd-form__address" formGroupName="Office_Address">
+          <div class="pd-form__address-title">Office Address</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="address_line_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput formControlName="address_line_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" />
+          </mat-form-field>
+        </div>
+        }
+}
+</div>

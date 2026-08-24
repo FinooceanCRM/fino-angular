@@ -3,6 +3,7 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 
+import { AuthService } from '@core/services/auth.service';
 import { SessionService } from '@core/services/session.service';
 
 /**
@@ -10,6 +11,7 @@ import { SessionService } from '@core/services/session.service';
  */
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const session = inject(SessionService);
+  const auth = inject(AuthService);
   const router = inject(Router);
   const token = session.token;
 
@@ -22,7 +24,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
       const status = (error as { status?: number })?.status;
 
       if (status === 401) {
-        session.clear();
+        auth.clear();
         void router.navigate(['/auth/login']);
       }
 

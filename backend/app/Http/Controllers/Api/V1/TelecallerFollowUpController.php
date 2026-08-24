@@ -73,14 +73,16 @@ class TelecallerFollowUpController extends BaseApiController
         );
     }
 
-    /** GET /api/v1/telecallers/follow-ups */
+    /** GET /api/v1/telecallers/follow-ups?filter=all|today|pending|completed|overdue */
     public function pending(Request $request): JsonResponse
     {
         $this->authorize('viewDashboard', Telecaller::class);
 
+        $filter = (string) $request->query('filter', 'pending');
+
         return $this->respondSuccess(
             TelecallerFollowUpResource::collection(
-                $this->followUps->pendingForActor($request->user()),
+                $this->followUps->forActor($request->user(), $filter),
             )->resolve($request),
         );
     }

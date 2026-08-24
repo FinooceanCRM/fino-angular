@@ -38,8 +38,10 @@ class LoanLead extends Model
         'assigned_relationship_manager_id',
         'assigned_manager_id',
         'assigned_banker_id',
+        'assigned_telecaller_id',
         'pd_completed_at',
         'pd_completed_by',
+        'pd_details',
         'notes',
         'details',
     ];
@@ -54,6 +56,7 @@ class LoanLead extends Model
             'status' => LeadStatus::class,
             'department' => Department::class,
             'pd_completed_at' => 'datetime',
+            'pd_details' => 'array',
             'details' => 'array',
         ];
     }
@@ -98,6 +101,11 @@ class LoanLead extends Model
     public function assignedBanker(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_banker_id');
+    }
+
+    public function assignedTelecaller(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_telecaller_id');
     }
 
     public function pdCompletedBy(): BelongsTo

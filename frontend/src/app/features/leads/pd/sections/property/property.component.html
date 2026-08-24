@@ -1,0 +1,285 @@
+<div [formGroup]="form()" class="pd-form__section">
+@if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+  <h3 class="pd-form__section-title">HOME / MORTGAGE / LAP LOAN PROPERTY INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }, { field: 'LOAN_TYPE', value: 'Home Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Name of Property Owner</mat-label>
+            <input matInput formControlName="Name_of_Property_Owner" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }, { field: 'LOAN_TYPE', value: 'Home Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Relation with applicant</mat-label>
+            <input matInput formControlName="Relation_with_applicant" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Available Property Document</mat-label>
+            <mat-select formControlName="Available_Property_Document">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Sale Deed', 'Lease Deed', 'RL Letter', 'NATP', 'Sanction Building Plan', 'Akhiv Patrika', '7/12', 'Tax', 'Layout Plan', 'ATS registered', 'POA registered']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Gaothan</mat-label>
+            <mat-select formControlName="Gaothan">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Sale deed/ Gift deed )', 'Tax Assesment List', 'Sanad', 'Chatursima Letter', 'Tax']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>REGISTERAD ATS / POA</mat-label>
+            <mat-select formControlName="REGISTERAD_AGREEMENT_TO_SALE___REGISTERED_POWER_OF_ATORNY">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['REGISTERAD AGREEMENT TO SALE', 'REGISTERED POWER OF ATORNY', 'TAX RECIEPT', 'LAY OUT PLAN', 'NA ORDER COPY', 'ELECTRICITY BILL']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>BHADEPATTA PROPERTY</mat-label>
+            <mat-select formControlName="BHADEPATTA_PROPERTY">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['BHADEPATTA  KARAR', 'TAX RECIEPT', 'ELECTRICITY BILL', 'NOC OF ATHORITY']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">HOME / MORTGAGE / LAP LOAN PROPERTY ADDRESS</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Mauza</mat-label>
+            <input matInput formControlName="Mauza_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Kh. No.</mat-label>
+            <input matInput formControlName="khasara_No_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>P.H. No.</mat-label>
+            <input matInput formControlName="P_H__No_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Survey No.</mat-label>
+            <input matInput formControlName="Survey_No_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Society No.</mat-label>
+            <input matInput formControlName="Society_No__1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Other</mat-label>
+            <input matInput formControlName="Other" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Other2</mat-label>
+            <input matInput formControlName="Other2" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Other3</mat-label>
+            <input matInput formControlName="Other3" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="City" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Tahsil</mat-label>
+            <input matInput formControlName="Tahsil" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>District</mat-label>
+            <input matInput formControlName="District" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="State" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Home Loan' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Property Loan Type</mat-label>
+            <mat-select formControlName="Property_Loan_Type">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['If Purchase', 'If Self Construction/ Improvement/ Extention']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Loan_Type', value: 'If Purchase' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Property Selected ?</mat-label>
+            <mat-select formControlName="Property_Selected_">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Yes', 'No']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Total Agreement Value</mat-label>
+            <input matInput type="number" formControlName="Total_Agreement_Value" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OCR Paid</mat-label>
+            <input matInput type="number" formControlName="OCR_Paid" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Source</mat-label>
+            <input matInput formControlName="Source" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OCR Balance</mat-label>
+            <input matInput type="number" formControlName="OCR_Balance" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Source2</mat-label>
+            <input matInput formControlName="Source2" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Completion State Of Property</mat-label>
+            <input matInput type="number" formControlName="Completion_State_Of_Property" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Land Areaa</mat-label>
+            <input matInput formControlName="Land_Areaa" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Selected_', value: 'Yes' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Built up Area1</mat-label>
+            <input matInput formControlName="Built_up_Area1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Loan_Type', value: 'If Self Construction/ Improvement/ Extention' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Estimated Cost</mat-label>
+            <input matInput type="number" formControlName="Estimated_Cost" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Loan_Type', value: 'If Self Construction/ Improvement/ Extention' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Land Area</mat-label>
+            <input matInput formControlName="Land_Area" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Loan_Type', value: 'If Self Construction/ Improvement/ Extention' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Existing Construction Area</mat-label>
+            <input matInput formControlName="Existing_Construction_Area" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Loan_Type', value: 'If Self Construction/ Improvement/ Extention' }, { field: 'Existing_Construction_Area', value: '' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Existing Construction Stage</mat-label>
+            <input matInput formControlName="Existing_Construction_Stage" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Property_Loan_Type', value: 'If Self Construction/ Improvement/ Extention' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Proposed Construction</mat-label>
+            <input matInput formControlName="Proposed_Construction" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Estimated Market Value</mat-label>
+            <input matInput type="number" formControlName="Estimated_Market_Value" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Land / Land Sharing Area</mat-label>
+            <input matInput type="number" formControlName="Land_Land_Sharing_Area_in_Sqft" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Built up Area</mat-label>
+            <input matInput type="number" formControlName="Built_up_Area_in_Sqft" />
+          </mat-form-field>
+        }
+  </div>
+        @if (pdVisible([{ field: 'LOAN_TYPE', value: 'Home Loan' }, { field: 'LOAN_TYPE', value: 'Mortgage Loan / LAP' }, { field: 'LOAN_TYPE', value: 'Commercial PROPERTY' }])) {
+        <div class="pd-form__address" formGroupName="Property_Address__as_per_site_">
+          <div class="pd-form__address-title">Property Address as per site</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="address_line_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput formControlName="address_line_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" />
+          </mat-form-field>
+        </div>
+        }
+}
+</div>

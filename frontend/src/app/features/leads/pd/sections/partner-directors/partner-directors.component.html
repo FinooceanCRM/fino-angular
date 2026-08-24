@@ -1,0 +1,52 @@
+<div [formGroup]="form()" class="pd-form__section">
+  <h3 class="pd-form__section-title">Partner / Director Information</h3>
+
+  @if (!pdVisible([{ field: 'Partnership_Business', value: 'YES' }, { field: 'PARTNERSHIP', value: 'YES' }])) {
+    <p>Applicable only when the business is registered as a Partnership.</p>
+  } @else {
+    <div formArrayName="partner_directors">
+      @for (row of rows.controls; track $index; let i = $index) {
+        <div class="pd-form__repeater-row" [formGroupName]="i">
+          <mat-form-field appearance="outline">
+            <mat-label>Partner / Director name</mat-label>
+            <input matInput formControlName="Partner__Director_Name" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Partner / Director number</mat-label>
+            <input matInput formControlName="Partner__Director_Number" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>KYC available</mat-label>
+            <mat-select formControlName="Partner___Director_KYC_Available">
+              @for (opt of yesNo; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>3-year ITR available</mat-label>
+            <mat-select formControlName="Partner___Director_3_YR_ITR">
+              @for (opt of yesNo; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <button mat-icon-button type="button" color="warn" (click)="removeRow(i)" aria-label="Remove partner">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      } @empty {
+        <p>No partners/directors added yet.</p>
+      }
+    </div>
+
+    <button mat-stroked-button type="button" (click)="addRow()">
+      <mat-icon>add</mat-icon>
+      Add partner / director
+    </button>
+  }
+</div>

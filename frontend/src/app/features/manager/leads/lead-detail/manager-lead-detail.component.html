@@ -10,6 +10,12 @@
       <mat-icon>history</mat-icon>
       View timeline
     </a>
+    @if (data.can_submit_pd) {
+      <a mat-flat-button color="primary" [routerLink]="['/leads', data.id, 'pd']">
+        <mat-icon>call_end</mat-icon>
+        Complete Full PD
+      </a>
+    }
     @if (showReassign()) {
       <a mat-flat-button color="primary" [routerLink]="[basePath(), data.id, 'assign']">
         <mat-icon>person_add</mat-icon>
@@ -63,6 +69,13 @@
         <span>
           <span class="lead-detail__label">Banker</span>
           <strong>{{ data.assigned_banker?.name ?? '—' }}</strong>
+        </span>
+      </div>
+      <div class="lead-detail__field">
+        <mat-icon>call</mat-icon>
+        <span>
+          <span class="lead-detail__label">Telecaller</span>
+          <strong>{{ data.assigned_telecaller?.name ?? '—' }}</strong>
         </span>
       </div>
     </mat-card-content>
@@ -183,6 +196,88 @@
                 }
               }
             </div>
+          </div>
+        }
+      </mat-card-content>
+    </mat-card>
+  }
+
+  @if (hasPdDetails()) {
+    <mat-card class="lead-detail__additional">
+      <mat-card-header>
+        <mat-card-title>Full PD details</mat-card-title>
+        <mat-card-subtitle>
+          Pre-disbursement verification
+          @if (data.pd_completed_at) {
+            · completed {{ data.pd_completed_at | date: 'mediumDate' }}
+            @if (data.pd_completed_by) {
+              by {{ data.pd_completed_by.name }}
+            }
+          }
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        @for (section of pdSummarySections(); track section.title) {
+          <div class="lead-detail__additional-section">
+            <h4 class="lead-detail__additional-title">{{ section.title }}</h4>
+            <div class="lead-detail__applicant-grid">
+              @for (row of section.rows; track row.label) {
+                <div><span class="lead-detail__label">{{ row.label }}</span><strong>{{ row.value }}</strong></div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (pdAddresses().length > 0) {
+          <div class="lead-detail__additional-section">
+            <h4 class="lead-detail__additional-title">Addresses</h4>
+            <div class="lead-detail__applicant-grid">
+              @for (address of pdAddresses(); track address.title) {
+                <div class="lead-detail__span-2"><span class="lead-detail__label">{{ address.title }}</span><strong>{{ address.line }}</strong></div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (pdExistingLoans().length > 0) {
+          <div class="lead-detail__additional-section">
+            <h4 class="lead-detail__additional-title">Existing loans / obligations</h4>
+            @for (loan of pdExistingLoans(); track $index) {
+              <div class="lead-detail__applicant-grid">
+                <div><span class="lead-detail__label">Loan type</span><strong>{{ loan.Loan_Type ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">EMI amount</span><strong>{{ loan.EMI_Amount ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Loan amount</span><strong>{{ loan.Loan_Amount ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Status</span><strong>{{ loan.Status ?? '—' }}</strong></div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (pdFamilyMembers().length > 0) {
+          <div class="lead-detail__additional-section">
+            <h4 class="lead-detail__additional-title">Family member income &amp; banking</h4>
+            @for (member of pdFamilyMembers(); track $index) {
+              <div class="lead-detail__applicant-grid">
+                <div><span class="lead-detail__label">Relation</span><strong>{{ member.Relation_of_Member ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Name</span><strong>{{ member.Name_As_Per_Bank_PAN_Card ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Co-borrower</span><strong>{{ member.Co_Borrower ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Income amount</span><strong>{{ member.Income_Amount ?? '—' }}</strong></div>
+              </div>
+            }
+          </div>
+        }
+
+        @if (pdPartnerDirectors().length > 0) {
+          <div class="lead-detail__additional-section">
+            <h4 class="lead-detail__additional-title">Partner / director information</h4>
+            @for (partner of pdPartnerDirectors(); track $index) {
+              <div class="lead-detail__applicant-grid">
+                <div><span class="lead-detail__label">Name</span><strong>{{ partner.Partner__Director_Name ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">Number</span><strong>{{ partner.Partner__Director_Number ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">KYC available</span><strong>{{ partner.Partner___Director_KYC_Available ?? '—' }}</strong></div>
+                <div><span class="lead-detail__label">3-yr ITR available</span><strong>{{ partner.Partner___Director_3_YR_ITR ?? '—' }}</strong></div>
+              </div>
+            }
           </div>
         }
       </mat-card-content>

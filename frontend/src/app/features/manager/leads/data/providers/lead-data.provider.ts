@@ -139,16 +139,19 @@ function buildLead(seed: LeadSeed): Lead {
     assigned_relationship_manager: seed.rm ?? null,
     assigned_manager: seed.employee ? STAFF.manager : null,
     assigned_banker: seed.banker ?? null,
+    assigned_telecaller: null,
     created_by: seed.connector ?? seed.employee ?? null,
     updated_by: seed.employee ?? null,
     pd_completed_at: null,
     pd_completed_by: null,
+    pd_details: null,
     created_at: createdAt,
     updated_at: createdAt,
     full_access: true,
     match_score: null,
     can_change_status: true,
     can_assign: true,
+    can_submit_pd: false,
   };
 }
 

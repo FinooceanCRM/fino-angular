@@ -1,9 +1,11 @@
 <div class="lead-list__header">
   <app-page-header title="Leads" subtitle="Every lead visible to you, scoped by your role" />
-  <a mat-flat-button color="primary" routerLink="/leads/create" class="lead-list__new">
-    <mat-icon>add</mat-icon>
-    New lead
-  </a>
+  @if (canCreateLead) {
+    <a mat-flat-button color="primary" routerLink="/leads/create" class="lead-list__new">
+      <mat-icon>add</mat-icon>
+      New lead
+    </a>
+  }
 </div>
 
 <mat-card class="lead-list__toolbar">

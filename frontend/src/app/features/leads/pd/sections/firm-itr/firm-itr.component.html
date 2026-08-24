@@ -1,0 +1,109 @@
+<div [formGroup]="form()" class="pd-form__section">
+@if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+  <h3 class="pd-form__section-title">FIRM 3 YEARS ITR DETAILS</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Date / Time</mat-label>
+            <input matInput type="date" formControlName="Date_of_Filing" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Turnover</mat-label>
+            <input matInput type="number" formControlName="itr_current_turnover_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Income</mat-label>
+            <input matInput type="number" formControlName="itr_current_income_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Depreciation</mat-label>
+            <input matInput type="number" formControlName="itr_current_depreciation_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Remark</mat-label>
+            <input matInput formControlName="itr_current_remark_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Date / Time</mat-label>
+            <input matInput type="date" formControlName="Date_of_Filing_2" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Turnover</mat-label>
+            <input matInput type="number" formControlName="itr_current_turnover_2" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Income</mat-label>
+            <input matInput type="number" formControlName="itr_current_income_2" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Depreciation</mat-label>
+            <input matInput type="number" formControlName="itr_current_depreciation_2" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Remark</mat-label>
+            <input matInput formControlName="itr_current_remark_2" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Date / Time</mat-label>
+            <input matInput type="date" formControlName="Date_of_Filing_3" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Turnover</mat-label>
+            <input matInput type="number" formControlName="itr_current_turnover_3" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Income</mat-label>
+            <input matInput type="number" formControlName="itr_current_income_3" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Depreciation</mat-label>
+            <input matInput type="number" formControlName="itr_current_depreciation_3" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Remark</mat-label>
+            <input matInput formControlName="itr_current_remark_3" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Annual Turnover</mat-label>
+            <input matInput type="number" formControlName="Annual_Turnover_without_ITR_1" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Professional' }, { field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Net Income</mat-label>
+            <input matInput type="number" formControlName="Net_Income_without_ITR_1" />
+          </mat-form-field>
+        }
+  </div>
+}
+</div>

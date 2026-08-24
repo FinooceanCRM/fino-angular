@@ -27,7 +27,9 @@ use Illuminate\Database\Eloquent\Builder;
  * Connector    -> leads they submitted
  * Banker       -> leads assigned to them, plus leads matched against their own bank_criteria
  * Telecaller   -> employee-generated leads in their own department (the PD call queue),
- *                 plus every lead they personally submitted ("My Submitted Leads")
+ *                 every lead explicitly assigned to them by Super
+ *                 Admin/Manager/RM for PD calling, plus every lead they
+ *                 personally submitted ("My Submitted Leads")
  */
 class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
 {
@@ -42,6 +44,7 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
             'assignedRelationshipManager:id,name,email,role',
             'assignedManager:id,name,email,role',
             'assignedBanker:id,name,email,role',
+            'assignedTelecaller:id,name,email,role',
             'pdCompletedBy:id,name,email,role',
         ]);
 
@@ -81,19 +84,23 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
                         $bq->where('banker_id', $actor->id);
                     });
             }),
-            // A telecaller sees two populations: her PD call queue
-            // (employee-submitted leads in her own department — assignment
-            // cascades don't reach Telecaller since it sits outside the
-            // hierarchy, so this is scoped by department + creator role
-            // rather than an assigned_* column), plus every lead she
-            // personally submitted, regardless of department.
+            // A telecaller sees three populations: her PD call queue
+            // (employee-submitted leads in her own department), every lead
+            // explicitly routed to her via `assigned_telecaller_id` (Super
+            // Admin/Manager/RM assigning a specific lead to a specific
+            // telecaller — she isn't hierarchy-cascaded onto automatically,
+            // so this is the only way a lead outside her department/creator
+            // scope ever reaches her), plus every lead she personally
+            // submitted, regardless of department.
             UserRole::Telecaller => $query->where(function (Builder $q) use ($actor): void {
                 $q->where(function (Builder $pd) use ($actor): void {
                     $pd->where('department', $actor->department?->value)
                         ->whereHas('creator', function (Builder $cq): void {
                             $cq->where('role', UserRole::Employee->value);
                         });
-                })->orWhere('created_by', $actor->id);
+                })
+                    ->orWhere('assigned_telecaller_id', $actor->id)
+                    ->orWhere('created_by', $actor->id);
             }),
         };
     }
@@ -148,6 +155,10 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
 
         if (! empty($filters['assigned_banker_id'])) {
             $query->where('assigned_banker_id', (int) $filters['assigned_banker_id']);
+        }
+
+        if (! empty($filters['assigned_telecaller_id'])) {
+            $query->where('assigned_telecaller_id', (int) $filters['assigned_telecaller_id']);
         }
 
         if (! empty($filters['connector_id'])) {

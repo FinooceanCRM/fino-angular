@@ -12,6 +12,13 @@
     [statusColour]="data.status_colour"
   />
 
+  <div class="lead-detail__pd-action">
+    <a mat-flat-button color="primary" [routerLink]="['/leads', data.id, 'pd']">
+      <mat-icon>call_end</mat-icon>
+      Complete Full PD
+    </a>
+  </div>
+
   <!-- Status tracking stepper -->
   <div class="stage-tracker" [class.stage-tracker--rejected]="isRejected()">
     @for (stage of stages; track stage.value; let last = $last) {

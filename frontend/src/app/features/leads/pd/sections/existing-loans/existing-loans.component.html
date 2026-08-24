@@ -1,0 +1,103 @@
+<div [formGroup]="form()" class="pd-form__section">
+@if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Customer', value: 'If Salaried' }])) {
+  <h3 class="pd-form__section-title">Existing Loan / Obligations Details</h3>
+
+  <div formArrayName="existing_loans">
+    @for (row of rows.controls; track $index; let i = $index) {
+      <div class="pd-form__repeater-row" [formGroupName]="i">
+        <mat-form-field appearance="outline">
+          <mat-label>Sr. No.</mat-label>
+          <mat-select formControlName="Sr__No_">
+            @for (n of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; track n) {
+              <mat-option [value]="n">{{ n }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Loan type</mat-label>
+          <mat-select formControlName="Loan_Type">
+            @for (opt of loanTypeOptions; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>EMI amount</mat-label>
+          <input matInput type="number" formControlName="EMI_Amount" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Loan amount</mat-label>
+          <input matInput type="number" formControlName="Loan_Amount" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>No. of EMI paid</mat-label>
+          <input matInput type="number" formControlName="No__Of_EMI_Paid" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Unpaid / overdue amount</mat-label>
+          <input matInput type="number" formControlName="UNPAID__Overdue_Amount" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Loan opening date</mat-label>
+          <input matInput formControlName="Loan_Opening_Date" placeholder="DD/MM/YYYY" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Total bounces</mat-label>
+          <input matInput type="number" formControlName="Total_No__of_Bounces" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Bounced in month</mat-label>
+          <input matInput formControlName="Bounced_in_month" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Loan tenure</mat-label>
+          <input matInput formControlName="Loan_Tenure" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Paid bounces EMI</mat-label>
+          <input matInput type="number" formControlName="PAID_BOUNCES_EMI" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="Status">
+            @for (opt of statusOptions; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Remark</mat-label>
+          <mat-select formControlName="REMARK">
+            @for (opt of remarkOptions; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button type="button" color="warn" (click)="removeRow(i)" aria-label="Remove loan">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    } @empty {
+      <p>No existing loans added yet.</p>
+    }
+  </div>
+
+  <button mat-stroked-button type="button" (click)="addRow()">
+    <mat-icon>add</mat-icon>
+    Add existing loan
+  </button>
+}
+</div>

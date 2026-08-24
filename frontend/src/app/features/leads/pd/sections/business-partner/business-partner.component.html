@@ -1,0 +1,198 @@
+<div [formGroup]="form()" class="pd-form__section">
+@if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }])) {
+  <h3 class="pd-form__section-title">APPLICANTE's BUSINESS &amp; PARTNER INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Partnership_Business', value: 'YES' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Nature of Business</mat-label>
+            <mat-select formControlName="Nature_of_Business">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['MANUFACTURAR', 'TREDING', 'SERVISE PROVIDER', 'RETAILOR', 'COMISION AGENT']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Partnership_Business', value: 'YES' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>BUSINESS CATEGORY</mat-label>
+            <mat-select formControlName="BUSINESS_CATEGORY">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['PROPRITORSHIP', 'PVT LTD / LLP', 'OPC']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Partnership_Business', value: 'YES' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>PARTNERSHIP</mat-label>
+            <mat-select formControlName="PARTNERSHIP">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['YES', 'NO']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if ((pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Partnership_Business', value: 'YES' }])) && pdVisible([{ field: 'PARTNERSHIP', value: 'YES' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Type of Firm</mat-label>
+            <mat-select formControlName="Type_of_Firm">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['IF PROPRITORSHIP', 'IF Pvt. Ltd/ LLP', 'IF OPC']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Firm', value: 'IF PROPRITORSHIP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>PROPRITORSHIP FIRM</mat-label>
+            <mat-select formControlName="PROPRITORSHIP_FIRM">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Firm ITR-3 yrs', 'Partner KYC', 'PARTNERSHIP DEED', 'GUMASTA IN MENTION PARTNERSHIP']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Firm', value: 'IF Pvt. Ltd/ LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Pvt. Ltd/ LLP FIRM</mat-label>
+            <mat-select formControlName="Pvt__Ltd__LLP_FIRM">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Firm ITR -3 yrs', 'Both Director\'s KYC', 'MOA , AOA', 'ROC']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Firm', value: 'IF OPC' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>OPC FIRM</mat-label>
+            <mat-select formControlName="OPC_FIRM">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Firm ITR -3 yrs', 'Director\'s KYC', 'MOA , AOA', 'ROC']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">APPLICANTE BUSINESS INCORPORATION &amp; INCOME INFORMATION</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Business /Employement Name</mat-label>
+            <input matInput formControlName="Business__Employement_Name" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Incorporation</mat-label>
+            <input matInput type="date" formControlName="Date_of_Incorporation" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Income from Business /Employement</mat-label>
+            <input matInput type="number" formControlName="Income_from_Business__Employement" />
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">APPLICANTE'S OTHER INCOME SOURCE INFROMATION APART FROM OWNED BUSINESS</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Total Income from other source </mat-label>
+            <input matInput type="number" formControlName="Total_Income_from_other_source_Business" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Other Income Source</mat-label>
+            <mat-select formControlName="Other_Income_Source">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['Rental Income', 'Agriculture Income', 'Pension', 'other(Specify)']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Other_Income_Source', value: 'other(Specify)' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Other Specify Source</mat-label>
+            <input matInput formControlName="Other_Specify_Source" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Other_Income_Source', value: 'Rental Income' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Rental Income Amount</mat-label>
+            <input matInput type="number" formControlName="Rental_Income_Amount_Business" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Other_Income_Source', value: 'Agriculture Income' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Agriculture Income Amount</mat-label>
+            <input matInput type="number" formControlName="Agriculture_Income_Amount_Business" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Other_Income_Source', value: 'Pension' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>Pension Amount</mat-label>
+            <input matInput type="number" formControlName="Pension_Amount_Business" />
+          </mat-form-field>
+        }
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Other_Income_Source', value: 'other(Specify)' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>other(Specify) Amount</mat-label>
+            <input matInput type="number" formControlName="other_Specify__Amount_Business" />
+          </mat-form-field>
+        }
+  </div>
+  <h3 class="pd-form__section-title">BUSINESS OFFICE ADDRESS</h3>
+  <div class="pd-form__grid">
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+          <mat-form-field appearance="outline">
+            <mat-label>BUSINESS Premises Type</mat-label>
+            <mat-select formControlName="BUSINESS_Premises_Type">
+              <mat-option [value]="null">— Select —</mat-option>
+              @for (opt of ['RENTAL', 'OWENED', 'PRANTIAL', 'OTHER SECIFY']; track opt) {
+                <mat-option [value]="opt">{{ opt }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+        }
+  </div>
+        @if (pdVisible([{ field: 'Type_of_Customer', value: 'If Business/ Self employed' }, { field: 'Type_of_Business', value: 'PROPRITORSHIP' }, { field: 'Type_of_Business', value: 'PVT LTD / LLP' }])) {
+        <div class="pd-form__address" formGroupName="Business__Employement_Address">
+          <div class="pd-form__address-title">Business Employement Address</div>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 1</mat-label>
+            <input matInput formControlName="address_line_1" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Address line 2</mat-label>
+            <input matInput formControlName="address_line_2" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput formControlName="city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput formControlName="state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label>
+            <input matInput formControlName="zip" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country</mat-label>
+            <input matInput formControlName="country" />
+          </mat-form-field>
+        </div>
+        }
+}
+</div>

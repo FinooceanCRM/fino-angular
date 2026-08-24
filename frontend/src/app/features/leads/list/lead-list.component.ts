@@ -13,6 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { CatalogueOption, Lead, PaginationMeta } from '@core/models/lead.model';
+import { AuthService } from '@core/services/auth.service';
 import { LeadService } from '@core/services/lead.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
@@ -45,6 +46,10 @@ export class LeadListComponent implements OnInit {
   private readonly leads = inject(LeadService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
+  private readonly auth = inject(AuthService);
+
+  /** Telecallers work leads assigned to them; they don't create new ones. */
+  readonly canCreateLead = !this.auth.hasRole('telecaller');
 
   readonly columns = ['reference', 'applicant', 'loan', 'assignee', 'status', 'created', 'actions'];
 

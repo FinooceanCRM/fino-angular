@@ -6,8 +6,34 @@
 }
 
 .telecaller-dashboard__welcome,
-.telecaller-dashboard__notifications {
+.telecaller-dashboard__notifications,
+.telecaller-dashboard__reminder {
   grid-column: 1 / -1;
+}
+
+.telecaller-dashboard__reminder-counts {
+  display: flex;
+  gap: var(--app-space-5);
+}
+
+.telecaller-dashboard__reminder-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+.telecaller-dashboard__reminder-item strong {
+  font-size: 1.5rem;
+}
+
+.telecaller-dashboard__reminder-item--overdue strong {
+  color: var(--mat-sys-error);
+}
+
+.telecaller-dashboard__reminder-item--today strong {
+  color: var(--mat-sys-primary);
 }
 
 .telecaller-dashboard__actions {

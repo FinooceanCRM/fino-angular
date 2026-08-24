@@ -1,0 +1,108 @@
+<div [formGroup]="form()" class="pd-form__section">
+  <h3 class="pd-form__section-title">Income & Banking Details of Other Family Member</h3>
+
+  <div formArrayName="family_members">
+    @for (row of rows.controls; track $index; let i = $index) {
+      <div class="pd-form__repeater-row" [formGroupName]="i">
+        <mat-form-field appearance="outline">
+          <mat-label>Relation</mat-label>
+          <mat-select formControlName="Relation_of_Member">
+            @for (opt of relationOptions; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Name (as per bank / PAN)</mat-label>
+          <input matInput formControlName="Name_As_Per_Bank_PAN_Card" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Age</mat-label>
+          <input matInput type="number" formControlName="Age" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Education</mat-label>
+          <input matInput formControlName="Education" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Income type</mat-label>
+          <mat-select formControlName="Income_Type">
+            @for (opt of incomeTypeOptions; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Income amount</mat-label>
+          <input matInput type="number" formControlName="Income_Amount" />
+        </mat-form-field>
+
+        <div class="pd-form__address-title">Co-borrower</div>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Co-borrower</mat-label>
+          <mat-select formControlName="Co_Borrower">
+            @for (opt of yesNo; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Bank name & branch</mat-label>
+          <input matInput formControlName="Bank_Name___Branch_" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>A/C type</mat-label>
+          <mat-select formControlName="account_type">
+            @for (opt of accountTypeOptions; track opt) {
+              <mat-option [value]="opt">{{ opt }}</mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Account number</mat-label>
+          <input matInput formControlName="Account_Number" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>IFSC code</mat-label>
+          <input matInput formControlName="IFSC_Code_1" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Entries in month below 500</mat-label>
+          <input matInput type="number" formControlName="NO_OF_ENTRIES_IN_MONTH_BELOW_500" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Other amount credit in month</mat-label>
+          <input matInput type="number" formControlName="OTHER_AMOUNT_CREDIT_IN_MONTH" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Closing balance</mat-label>
+          <input matInput type="number" formControlName="Closing_Balance" />
+        </mat-form-field>
+
+        <button mat-icon-button type="button" color="warn" (click)="removeRow(i)" aria-label="Remove family member">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    } @empty {
+      <p>No family members added yet.</p>
+    }
+  </div>
+
+  <button mat-stroked-button type="button" (click)="addRow()">
+    <mat-icon>add</mat-icon>
+    Add family member
+  </button>
+</div>

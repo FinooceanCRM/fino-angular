@@ -1,4 +1,5 @@
 /** Loan-management domain models (Phase 9). */
+import { PdDetails } from './pd.model';
 
 export interface UserSummary {
   id: number;
@@ -45,6 +46,27 @@ export interface LeadApplicantDetails {
   balance_transfer_type?: string | null;
   balance_transfer_loan_amount?: number | null;
   topup_loan_amount?: number | null;
+  /** Personal Loan + Salaried only. */
+  type_of_salary?: string | null;
+  /** Shown when type_of_salary = 'account_salary'. */
+  type_of_account_salary?: string | null;
+  /** Shown when employment_type = 'salaried'. */
+  gross_salary?: number | null;
+  /** Business Loan, or Business/Self-Employed employment. */
+  min_income_turnover?: number | null;
+  /** Home Loan only. */
+  home_loan_purpose?: string | null;
+  /** Home Loan only. */
+  construction_status?: string | null;
+  /** Mortgage Loan / LAP only. */
+  collateral_available?: string | null;
+  /** Shown when collateral_available = 'yes'. */
+  collateral_type?: string | null;
+  collateral_market_value?: number | null;
+  /** Home Loan or Mortgage Loan/LAP. */
+  home_loan_checklist?: string[] | null;
+  /** Home Loan or Mortgage Loan/LAP. */
+  ownership_documents?: string[] | null;
 }
 
 export interface CatalogueOption {
@@ -140,8 +162,59 @@ export const INSURANCE_TYPE_OPTIONS: CatalogueOption[] = [
 ];
 
 export const CAR_TYPE_OPTIONS: CatalogueOption[] = [
-  { value: 'new_car', label: 'New car' },
-  { value: 'used_car', label: 'Used car' },
+  { value: 'new_car', label: 'New Car' },
+  { value: 'used_car', label: 'Resale Car' },
+];
+
+export const TYPE_OF_SALARY_OPTIONS: CatalogueOption[] = [
+  { value: 'account_salary', label: 'Account Salary' },
+  { value: 'cash_salary', label: 'Cash Salary' },
+];
+
+export const TYPE_OF_ACCOUNT_SALARY_OPTIONS: CatalogueOption[] = [
+  { value: 'neft_rtgs', label: 'NEFT/RTGS' },
+  { value: 'upi_transfer', label: 'UPI Transfer' },
+  { value: 'cheque', label: 'Cheque' },
+];
+
+export const HOME_LOAN_PURPOSE_OPTIONS: CatalogueOption[] = [
+  { value: 'home_purchase', label: 'Home Purchase' },
+  { value: 'home_construction', label: 'Home Construction' },
+  { value: 'home_improvement_extension', label: 'Home Improvement / Extension' },
+  { value: 'home_loan_balance_transfer', label: 'Home Loan Balance Transfer' },
+];
+
+export const CONSTRUCTION_STATUS_OPTIONS: CatalogueOption[] = [
+  { value: 'ready_to_move', label: 'Ready to Move' },
+  { value: 'under_construction', label: 'Under Construction' },
+  { value: 'not_yet_started', label: 'Not Yet Started' },
+];
+
+export const COLLATERAL_TYPE_OPTIONS: CatalogueOption[] = [
+  { value: 'residential_property', label: 'Residential Property' },
+  { value: 'commercial_property', label: 'Commercial Property' },
+  { value: 'fd_insurance_policy', label: 'Fixed Deposit / Insurance Policy' },
+  { value: 'other', label: 'Other' },
+];
+
+export const HOME_LOAN_CHECKLIST_OPTIONS: CatalogueOption[] = [
+  { value: 'agreement_to_sale', label: 'Agreement to Sale' },
+  { value: 'lay_out_map', label: 'Lay-Out Map' },
+  { value: 'noc', label: 'NOC' },
+  { value: 'r_l_letter', label: 'R L Letter' },
+  { value: 'tp_order', label: 'TP Order' },
+  { value: 'previous_sale_deed', label: 'Previous Sale Deed' },
+  { value: 'building_plan', label: 'Building Plan' },
+  { value: 'tax_receipts', label: 'Tax Receipts' },
+  { value: 'na_order', label: 'NA Order' },
+  { value: 'construction_estimate', label: 'Construction Estimate' },
+  { value: 'akhiv_patrika', label: 'Akhiv Patrika' },
+  { value: '6a_copy', label: '6A Copy' },
+];
+
+export const OWNERSHIP_DOCUMENT_OPTIONS: CatalogueOption[] = [
+  { value: '7_12_copy', label: '7/12 Copy' },
+  { value: '8a_copy', label: '8A Copy' },
 ];
 
 export const MUDRA_LOAN_TYPE_OPTIONS: CatalogueOption[] = [
@@ -183,10 +256,13 @@ export interface Lead {
   assigned_relationship_manager: UserSummary | null;
   assigned_manager: UserSummary | null;
   assigned_banker: UserSummary | null;
+  assigned_telecaller: UserSummary | null;
   created_by: UserSummary | null;
   updated_by: UserSummary | null;
   pd_completed_at: string | null;
   pd_completed_by: UserSummary | null;
+  /** The full Full-PD dataset, once submitted (mirrors `GET leads/:id/pd`'s `pd_details`, exposed here too so the overview page can render a summary without a second request). */
+  pd_details: PdDetails | null;
   created_at: string | null;
   updated_at: string | null;
   /** Always true for every role except Banker; for a Banker, whether an approved access request grants them contact/document/update rights on this lead. */
@@ -197,6 +273,8 @@ export interface Lead {
   can_change_status: boolean;
   /** Whether the current actor may assign/reassign this lead — mirrors LoanLeadPolicy::assign(). */
   can_assign: boolean;
+  /** Whether the current actor may complete the Full PD workflow — mirrors LoanLeadPolicy::submitPd() (Super Admin, Manager, Telecaller; false once pd_completed_at is set). */
+  can_submit_pd: boolean;
 }
 
 export interface LeadStatusHistoryEntry {
