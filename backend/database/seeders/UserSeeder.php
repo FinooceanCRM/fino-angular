@@ -86,6 +86,9 @@ class UserSeeder extends Seeder
         // Independent roles.
         $this->make('Connector One', 'connector1@finoocean.test', UserRole::Connector);
         $this->make('Connector Two', 'connector2@finoocean.test', UserRole::Connector);
+        // Connector Three joins under Connector Two (see ConnectorSeeder), demonstrating
+        // the referral chain One -> Two -> Three for the override-commission cascade.
+        $this->make('Connector Three', 'connector3@finoocean.test', UserRole::Connector);
         $this->make('Banker One', 'banker1@finoocean.test', UserRole::Banker);
         $this->make('Banker Two', 'banker2@finoocean.test', UserRole::Banker);
         $this->make('Telecaller One', 'telecaller1@finoocean.test', UserRole::Telecaller, [
@@ -94,6 +97,9 @@ class UserSeeder extends Seeder
         $this->make('Telecaller Two', 'telecaller2@finoocean.test', UserRole::Telecaller, [
             'department' => Department::HomeLoan->value,
         ]);
+        $this->make('Affiliate One', 'affiliate1@finoocean.test', UserRole::Affiliate);
+        $this->make('Affiliate Two', 'affiliate2@finoocean.test', UserRole::Affiliate);
+        $this->make('Affiliate Three', 'affiliate3@finoocean.test', UserRole::Affiliate);
     }
 
     /**

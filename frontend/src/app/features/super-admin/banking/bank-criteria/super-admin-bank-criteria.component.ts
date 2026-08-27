@@ -20,7 +20,7 @@ import { LOAN_TYPE_CATALOGUE } from '../../data/models/lead.model';
 import { BankCriteria } from '../../data/models/banker.model';
 import { BankingDataProvider } from '../../data/providers/banking-data.provider';
 
-/** Criteria management table — mock bank products, local create/toggle only, no HTTP. */
+/** Criteria management table — real bank products via `BankingDataProvider` (Phase 2). */
 @Component({
   selector: 'app-super-admin-bank-criteria',
   standalone: true,

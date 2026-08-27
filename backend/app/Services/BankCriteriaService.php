@@ -11,8 +11,10 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 /** Bank criteria management (Phase 9). */
 class BankCriteriaService extends BaseService
 {
-    public function __construct(private readonly BankCriteriaRepositoryInterface $criteria)
-    {
+    public function __construct(
+        private readonly BankCriteriaRepositoryInterface $criteria,
+        private readonly NotificationService $notifications,
+    ) {
     }
 
     /**
@@ -38,7 +40,22 @@ class BankCriteriaService extends BaseService
             $attributes['banker_id'] = $actor->id;
         }
 
-        return $this->criteria->create($attributes);
+        $created = $this->criteria->create($attributes);
+
+        $recipientIds = User::query()
+            ->whereIn('role', [UserRole::Manager->value, UserRole::Employee->value, UserRole::Connector->value])
+            ->pluck('id')
+            ->all();
+
+        $this->notifications->notifyMany(
+            $recipientIds,
+            'bank_criteria.created',
+            'New bank criteria submitted',
+            sprintf('%s submitted new lending criteria for %s — %s.', $actor->name, $created->bank_name, $created->product_name),
+            ['bank_criteria_id' => $created->id],
+        );
+
+        return $created;
     }
 
     /**

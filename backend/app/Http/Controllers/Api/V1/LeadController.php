@@ -42,6 +42,7 @@ class LeadController extends BaseApiController
             'assigned_relationship_manager_id' => $request->query('assigned_relationship_manager_id'),
             'assigned_banker_id' => $request->query('assigned_banker_id'),
             'connector_id' => $request->query('connector_id'),
+            'created_by' => $request->query('created_by'),
             'banker_bucket' => $request->query('banker_bucket'),
             'min_amount' => $request->query('min_amount'),
             'max_amount' => $request->query('max_amount'),

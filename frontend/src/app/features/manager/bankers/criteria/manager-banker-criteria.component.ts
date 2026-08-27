@@ -15,7 +15,7 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
 
 import { BankCriteria } from '@features/super-admin/data/models/banker.model';
 
-import { LOAN_TYPE_CATALOGUE, loanTypeLabel } from '../../leads/data/models/lead.model';
+import { LOAN_TYPE_CATALOGUE, loanTypeLabel } from '../../data/models/lead-catalogue.model';
 import { ManagerBankerDataProvider } from '../data/manager-banker.provider';
 
 /** Banker Criteria — read-only reference view of the bank products leads are matched against. */

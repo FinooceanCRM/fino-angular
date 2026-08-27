@@ -129,6 +129,10 @@
         <span class="lead-table__ref">{{ row.reference }}</span>
       </ng-template>
 
+      <ng-template appTableCell="source" let-row>
+        <span [matTooltip]="sourceTooltip(row)" matTooltipClass="app-tooltip--multiline">{{ sourceLabel(row) }}</span>
+      </ng-template>
+
       <ng-template appTableCell="loan" let-row>
         {{ loanTypeLabel(row.loan_type) }} · {{ row.loan_amount | number: '1.0-0' }}
       </ng-template>

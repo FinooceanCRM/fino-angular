@@ -1,13 +1,13 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, inject, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, ElementRef, ViewChild, computed, effect, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { Router } from '@angular/router';
 
+import { SEARCH_TYPE_LABEL, SEARCH_TYPE_ORDER, SearchResult, SearchResultType } from '@core/models/search.model';
+import { SearchService } from '@core/services/search.service';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
-
-import { SEARCH_TYPE_LABEL, SEARCH_TYPE_ORDER, SearchResult, SearchResultType } from '../../data/models/search.model';
-import { GlobalSearchDataProvider } from '../../data/providers/global-search.provider';
 
 const GROUP_LIMIT = 5;
 
@@ -26,7 +26,7 @@ interface ResultGroup {
 @Component({
   selector: 'app-super-admin-search-overlay',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule, EmptyStateComponent],
+  imports: [MatButtonModule, MatIconModule, MatProgressBarModule, EmptyStateComponent],
   templateUrl: './super-admin-search-overlay.component.html',
   styleUrl: './super-admin-search-overlay.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,20 +34,17 @@ interface ResultGroup {
 export class SuperAdminSearchOverlayComponent implements AfterViewInit {
   private readonly dialogRef = inject(MatDialogRef<SuperAdminSearchOverlayComponent>);
   private readonly router = inject(Router);
-  private readonly searchData = inject(GlobalSearchDataProvider);
+  private readonly search = inject(SearchService);
 
   @ViewChild('searchInput') private readonly searchInput?: ElementRef<HTMLInputElement>;
 
   protected readonly query = signal('');
   protected readonly activeIndex = signal(0);
+  protected readonly loading = signal(false);
+  protected readonly allResults = signal<SearchResult[]>([]);
 
   protected readonly groups = computed<ResultGroup[]>(() => {
-    const term = this.query();
-    if (!term.trim()) {
-      return [];
-    }
-
-    const all = this.searchData.search(term);
+    const all = this.allResults();
     return SEARCH_TYPE_ORDER.map((type) => {
       const matches = all.filter((r) => r.type === type);
       return { type, label: SEARCH_TYPE_LABEL[type], items: matches.slice(0, GROUP_LIMIT), total: matches.length };
@@ -56,6 +53,23 @@ export class SuperAdminSearchOverlayComponent implements AfterViewInit {
 
   protected readonly flatResults = computed(() => this.groups().flatMap((g) => g.items));
   protected readonly totalCount = computed(() => this.groups().reduce((sum, g) => sum + g.total, 0));
+
+  constructor() {
+    effect(() => {
+      const term = this.query();
+      if (!term.trim()) {
+        this.allResults.set([]);
+        this.loading.set(false);
+        return;
+      }
+
+      this.loading.set(true);
+      this.search.search(term).subscribe((response) => {
+        this.allResults.set(response.results);
+        this.loading.set(false);
+      });
+    });
+  }
 
   ngAfterViewInit(): void {
     this.searchInput?.nativeElement.focus();
@@ -92,7 +106,7 @@ export class SuperAdminSearchOverlayComponent implements AfterViewInit {
 
   protected select(result: SearchResult): void {
     this.dialogRef.close();
-    void this.router.navigate(result.route, { queryParams: result.queryParams });
+    void this.router.navigate(result.route, { queryParams: result.query_params ?? undefined });
   }
 
   protected viewAll(): void {

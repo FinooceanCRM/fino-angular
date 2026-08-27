@@ -27,6 +27,16 @@ class ConnectorPolicy
         return $actor->hasRole(UserRole::Connector) && (bool) $actor->is_active;
     }
 
+    public function viewNetwork(User $actor): bool
+    {
+        return $actor->hasRole(UserRole::Connector);
+    }
+
+    public function viewCommissions(User $actor): bool
+    {
+        return $actor->hasRole(UserRole::Connector);
+    }
+
     public function view(User $actor, Connector $connector): bool
     {
         return $actor->id === $connector->user_id

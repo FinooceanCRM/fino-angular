@@ -9,6 +9,7 @@ export interface NavItem {
 /** Profile route for the signed-in user's role, mirroring the original toolbar's role switch. */
 export function profileLink(auth: AuthService): string | null {
   if (auth.hasRole('connector')) return '/connector/profile';
+  if (auth.hasRole('affiliate')) return '/affiliate/profile';
   if (auth.hasRole('banker')) return '/banker/profile';
   if (auth.hasRole('telecaller')) return '/telecaller/profile';
   if (auth.hasRole('employee')) return '/employee/profile';
@@ -27,6 +28,20 @@ export function roleNavItems(auth: AuthService): NavItem[] {
   if (auth.hasRole('connector')) {
     return [
       { label: 'Connector dashboard', link: '/connector/dashboard', icon: 'dashboard' },
+      { label: 'My Submitted Leads', link: '/connector/leads/my-submitted', icon: 'link' },
+      { label: 'My network', link: '/connector/network', icon: 'hub' },
+      { label: 'Commissions', link: '/connector/commissions', icon: 'payments' },
+      { label: 'Payouts', link: '/connector/payouts', icon: 'account_balance_wallet' },
+      ...profileItem,
+    ];
+  }
+
+  if (auth.hasRole('affiliate')) {
+    return [
+      { label: 'Affiliate dashboard', link: '/affiliate/dashboard', icon: 'dashboard' },
+      { label: 'Referrals', link: '/affiliate/referrals', icon: 'groups' },
+      { label: 'Commissions', link: '/affiliate/commissions', icon: 'payments' },
+      { label: 'Payouts', link: '/affiliate/payouts', icon: 'account_balance_wallet' },
       ...profileItem,
     ];
   }
@@ -35,6 +50,7 @@ export function roleNavItems(auth: AuthService): NavItem[] {
     return [
       { label: 'Employee dashboard', link: '/employee/dashboard', icon: 'dashboard' },
       { label: 'My Leads', link: '/employee/leads', icon: 'assignment_ind' },
+      { label: 'My Submitted Leads', link: '/employee/leads/my-submitted', icon: 'link' },
       ...profileItem,
       { label: 'My team', link: '/employee/team', icon: 'groups' },
     ];
@@ -45,6 +61,14 @@ export function roleNavItems(auth: AuthService): NavItem[] {
       { label: 'RM dashboard', link: '/relationship-manager/dashboard', icon: 'dashboard' },
       { label: 'Employees', link: '/relationship-manager/employees', icon: 'groups' },
       { label: 'Connectors', link: '/relationship-manager/connectors', icon: 'hub' },
+      { label: 'My Submitted Leads', link: '/relationship-manager/leads/my-submitted', icon: 'link' },
+      // Activities — Calls/Meetings/Tasks/Reminders tabs (Phase 4), scoped
+      // to this RM's team; a filtered view over the same Tasks API as the
+      // shared Tasks module below, not a separate feature.
+      { label: 'Follow-ups', link: '/relationship-manager/follow-ups', icon: 'event_repeat' },
+      // KYC Verification (Phase 5, Part B) — real Document feature, scoped
+      // to this RM's own leads.
+      { label: 'KYC verification', link: '/relationship-manager/kyc', icon: 'fact_check' },
       ...profileItem,
     ];
   }
@@ -58,6 +82,7 @@ export function roleNavItems(auth: AuthService): NavItem[] {
         icon: 'supervisor_account',
       },
       { label: 'Employees', link: '/manager/employees', icon: 'groups' },
+      { label: 'My Submitted Leads', link: '/manager/leads/my-submitted', icon: 'link' },
       // Bankers' "Send Request" / "Request Full Details" access requests
       // land here for approval — the Access approvals tab is the real,
       // API-backed one (the other Approval Center tabs are still mock data).
@@ -67,7 +92,19 @@ export function roleNavItems(auth: AuthService): NavItem[] {
   }
 
   if (auth.hasRole('super_admin')) {
-    return [{ label: 'Super Admin dashboard', link: '/super-admin/dashboard', icon: 'dashboard' }];
+    return [
+      { label: 'Super Admin dashboard', link: '/super-admin/dashboard', icon: 'dashboard' },
+      // Bankers' "Request Full Details" access requests land here for
+      // approval — same real, API-backed workflow as the Manager's
+      // "Access approvals" tab (see manager.routes.ts `approvals`).
+      { label: 'Approvals', link: '/super-admin/approvals', icon: 'fact_check' },
+      // Real backend feature since Phase 0 (see AuditLogController /
+      // AuditLogService) — the platform-wide audit trail.
+      { label: 'Audit Logs', link: '/super-admin/audit-logs', icon: 'history' },
+      // Real backend feature since Phase 1 (see SettingsController /
+      // SettingsService) — the singleton platform settings document.
+      { label: 'Settings', link: '/super-admin/settings', icon: 'settings' },
+    ];
   }
 
   if (auth.hasRole('banker')) {
@@ -100,6 +137,11 @@ export function roleNavItems(auth: AuthService): NavItem[] {
 /** Loan management workspace (Phase 9), shared by every authenticated role. */
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { label: 'Leads', link: '/leads', icon: 'assignment' },
+  // Customer Management (Phase 3) — shared by every authenticated role,
+  // same as Leads/Banks/Documents/Reports/Notifications below.
+  { label: 'Customers', link: '/customers', icon: 'groups' },
+  // Tasks (Phase 4) — shared by every authenticated role, same as Customers.
+  { label: 'Tasks', link: '/tasks', icon: 'checklist' },
   { label: 'Banks', link: '/banks', icon: 'account_balance' },
   { label: 'Documents', link: '/documents', icon: 'description' },
   { label: 'Reports', link: '/reports', icon: 'bar_chart' },
@@ -109,8 +151,10 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
 /**
  * Adds "Users" to the shared workspace items for roles with users.view; drops
  * "Leads" for Bankers, who already have "My Leads" in their own section; and
- * drops "Documents" for Connectors, who lose document access on a lead the
- * moment it's submitted (see lead-detail.component.ts `isConnector`).
+ * drops "Documents" for Connectors and Affiliates, who both lose document
+ * access on a lead the moment it's submitted (see lead-detail.component.ts
+ * `isConnector`) — Affiliates get the same treatment as their closest
+ * analog, Connector, having their own dedicated "Referrals" list instead.
  */
 export function workspaceNavItems(auth: AuthService): NavItem[] {
   let items = WORKSPACE_NAV_ITEMS;
@@ -119,7 +163,7 @@ export function workspaceNavItems(auth: AuthService): NavItem[] {
     items = items.filter((item) => item.link !== '/leads');
   }
 
-  if (auth.hasRole('connector')) {
+  if (auth.hasRole('connector') || auth.hasRole('affiliate')) {
     items = items.filter((item) => item.link !== '/documents');
   }
 

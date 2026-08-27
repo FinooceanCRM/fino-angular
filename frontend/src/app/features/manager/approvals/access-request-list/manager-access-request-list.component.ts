@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,6 +31,7 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
   selector: 'app-manager-access-request-list',
   standalone: true,
   imports: [
+    CurrencyPipe,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -62,13 +63,19 @@ export class ManagerAccessRequestListComponent {
   protected readonly selected = signal<AccessRequest | undefined>(undefined);
 
   protected readonly columns: TableColumn<AccessRequest>[] = [
-    { key: 'title', label: 'Request' },
-    { key: 'banker', label: 'Requested by' },
-    { key: 'created_at', label: 'Requested' },
+    { key: 'name', label: 'Name' },
+    { key: 'loan_type', label: 'Loan type' },
+    { key: 'loan_amount', label: 'Loan amount' },
+    { key: 'city', label: 'City' },
+    { key: 'banker', label: 'Banker' },
     { key: 'status', label: 'Status' },
   ];
 
   constructor() {
+    this.load();
+  }
+
+  protected reload(): void {
     this.load();
   }
 
@@ -95,7 +102,11 @@ export class ManagerAccessRequestListComponent {
   }
 
   protected leadReference(row: AccessRequest): string | null {
-    return row.lead ? `${row.lead.reference} — ${row.lead.applicant_name}` : null;
+    return row.lead ? row.lead.reference : null;
+  }
+
+  protected loanTypeLabel(value: string): string {
+    return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   protected review(row: AccessRequest): void {

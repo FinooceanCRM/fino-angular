@@ -10,13 +10,37 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { CatalogueOption, Lead, PaginationMeta } from '@core/models/lead.model';
+import { CatalogueOption, Lead, PaginationMeta, UserSummary } from '@core/models/lead.model';
 import { AuthService } from '@core/services/auth.service';
 import { LeadService } from '@core/services/lead.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
+
+const ROLE_LABEL: Record<string, string> = {
+  relationship_manager: 'Relationship Manager',
+  employee: 'Employee',
+  manager: 'Manager',
+  banker: 'Banker',
+  telecaller: 'Telecaller',
+  connector: 'Connector',
+  super_admin: 'Super Admin',
+  affiliate: 'Affiliate',
+};
+
+/** Short prefix used in the Source column, e.g. "con-Rahul Sharma". */
+const SOURCE_PREFIX: Record<string, string> = {
+  connector: 'con',
+  manager: 'mgr',
+  relationship_manager: 'rm',
+  employee: 'emp',
+  banker: 'bank',
+  telecaller: 'tc',
+  super_admin: 'admin',
+  affiliate: 'aff',
+};
 
 @Component({
   selector: 'app-lead-list',
@@ -33,6 +57,7 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
     MatProgressBarModule,
     MatSelectModule,
     MatTableModule,
+    MatTooltipModule,
     PageHeaderComponent,
     ReactiveFormsModule,
     RouterLink,
@@ -51,7 +76,7 @@ export class LeadListComponent implements OnInit {
   /** Telecallers work leads assigned to them; they don't create new ones. */
   readonly canCreateLead = !this.auth.hasRole('telecaller');
 
-  readonly columns = ['reference', 'applicant', 'loan', 'assignee', 'status', 'created', 'actions'];
+  readonly columns = ['reference', 'applicant', 'source', 'loan', 'assignee', 'status', 'created', 'actions'];
 
   readonly rows = signal<Lead[]>([]);
   readonly meta = signal<PaginationMeta>({
@@ -121,5 +146,32 @@ export class LeadListComponent implements OnInit {
   onPage(event: PageEvent): void {
     this.pageSize = event.pageSize;
     this.load(event.pageIndex);
+  }
+
+  /** Who this lead came from — the connector if one is attached, else whoever created it, else organic. */
+  sourcePerson(row: Lead): UserSummary | null {
+    return row.connector ?? row.created_by ?? null;
+  }
+
+  sourceLabel(row: Lead): string {
+    const person = this.sourcePerson(row);
+    if (!person) {
+      return '—';
+    }
+    const prefix = SOURCE_PREFIX[person.role] ?? person.role;
+    return `${prefix}-${person.name}`;
+  }
+
+  sourceTooltip(row: Lead): string {
+    const person = this.sourcePerson(row);
+    if (!person) {
+      return 'No source recorded — organic/direct lead.';
+    }
+    return [
+      `Name - ${person.name}`,
+      `Email - ${person.email}`,
+      `Mob - ${person.phone ?? '—'}`,
+      `Source - ${ROLE_LABEL[person.role] ?? person.role}`,
+    ].join('\n');
   }
 }

@@ -1,14 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
 
-import { AUDIT_EVENT_CATEGORY_ICON } from '@features/super-admin/data/models/audit-log.model';
-import { AuditLogDataProvider } from '@features/super-admin/data/providers/audit-log-data.provider';
-import { ManagerLeadDataProvider } from '@features/manager/leads/data/providers/lead-data.provider';
-
-import { currentRmId } from '../../leads/current-rm';
-import { RelationshipManagerActivityDataProvider } from '../../activities/data/relationship-manager-activity.provider';
+import { AUDIT_EVENT_CATEGORY_ICON, AuditLogEntry } from '@core/models/audit-log.model';
+import { ManagedUser } from '@core/models/user.model';
+import { Task } from '@core/models/task.model';
+import { AuditLogService } from '@core/services/audit-log.service';
+import { TaskService } from '@core/services/task.service';
+import { UserService } from '@core/services/user.service';
 
 const ACTIVITY_TYPE_ICON: Record<string, string> = {
   call: 'call',
@@ -17,7 +17,11 @@ const ACTIVITY_TYPE_ICON: Record<string, string> = {
   reminder: 'notifications_active',
 };
 
-/** Employee Activities — the platform audit trail plus the RM's own scheduled items, both filtered to this RM's employees. */
+/**
+ * Employee Activities — the platform audit trail plus the RM's own team
+ * tasks (Phase 4: real `TaskService`, `assigned_to: 'team'` — same scoping
+ * as the Activities tabs), both filtered to this RM's employees.
+ */
 @Component({
   selector: 'app-relationship-manager-team-activities',
   standalone: true,
@@ -27,20 +31,38 @@ const ACTIVITY_TYPE_ICON: Record<string, string> = {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RelationshipManagerTeamActivitiesComponent {
-  private readonly leadData = inject(ManagerLeadDataProvider);
-  private readonly auditLog = inject(AuditLogDataProvider);
-  private readonly rmActivities = inject(RelationshipManagerActivityDataProvider);
-  private readonly rmId = currentRmId();
+  private readonly auditLog = inject(AuditLogService);
+  private readonly taskService = inject(TaskService);
+  private readonly userService = inject(UserService);
 
-  private readonly employeeNames = computed(() =>
-    this.leadData.employeesOfRm(this.rmId ?? 0).map((employee) => employee.name),
-  );
+  private readonly employees = signal<ManagedUser[]>([]);
+  private readonly employeeNames = computed(() => this.employees().map((employee) => employee.name));
+
+  private readonly teamTasks = signal<Task[]>([]);
+  private readonly auditEntries = signal<AuditLogEntry[]>([]);
+
+  constructor() {
+    // GET /users is already scoped server-side to this RM's own employees.
+    this.userService.list({ role: 'employee', perPage: 200 }).subscribe({
+      next: (employees) => this.employees.set(employees),
+      error: () => this.employees.set([]),
+    });
+
+    this.taskService.list({ assigned_to: 'team', per_page: 200 }).subscribe({
+      next: (page) => this.teamTasks.set(page.items),
+      error: () => this.teamTasks.set([]),
+    });
+
+    this.auditLog.list({ per_page: 200 }).subscribe({
+      next: (result) => this.auditEntries.set(result.items),
+      error: () => this.auditEntries.set([]),
+    });
+  }
 
   protected readonly entries = computed<TimelineEntry[]>(() => {
     const names = new Set(this.employeeNames());
 
-    const auditEntries = this.auditLog
-      .entries()
+    const auditEntries = this.auditEntries()
       .filter((entry) => names.has(entry.actor_name))
       .map((entry) => ({
         icon: AUDIT_EVENT_CATEGORY_ICON[entry.category],
@@ -49,14 +71,13 @@ export class RelationshipManagerTeamActivitiesComponent {
         time: entry.timestamp,
       }));
 
-    const scheduledEntries = this.rmActivities
-      .activities()
-      .filter((activity) => names.has(activity.assignedTo))
-      .map((activity) => ({
-        icon: ACTIVITY_TYPE_ICON[activity.type] ?? 'event',
-        title: `${activity.assignedTo} — ${activity.title}`,
-        subtitle: activity.relatedTo,
-        time: activity.dueAt,
+    const scheduledEntries = this.teamTasks()
+      .filter((task) => task.assigned_to && names.has(task.assigned_to.name))
+      .map((task) => ({
+        icon: ACTIVITY_TYPE_ICON[task.type] ?? 'event',
+        title: `${task.assigned_to!.name} — ${task.title}`,
+        subtitle: task.related_to,
+        time: task.due_at,
       }));
 
     return [...auditEntries, ...scheduledEntries]

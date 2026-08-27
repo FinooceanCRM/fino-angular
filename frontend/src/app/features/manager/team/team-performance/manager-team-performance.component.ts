@@ -6,7 +6,7 @@ import { StatCardComponent } from '@shared/components/stat-card.component';
 
 import { UserRole } from '@features/super-admin/data/models/user.model';
 
-import { ManagerTeamDataProvider, TeamPerformance } from '../data/manager-team.provider';
+import { ManagerTeamDataProvider, TeamPerformance } from '../data/manager-team-data.provider';
 
 interface RankedPerformance extends TeamPerformance {
   id: number;

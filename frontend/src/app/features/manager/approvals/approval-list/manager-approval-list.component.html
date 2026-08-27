@@ -9,7 +9,7 @@
       <p class="approval-list__drawer-subtitle">{{ row.subtitle }}</p>
 
       @if (leadReference(row); as ref) {
-        <a class="approval-list__lead-link" [routerLink]="['/manager/leads', row.leadId!]">{{ ref }}</a>
+        <a class="approval-list__lead-link" [routerLink]="['/manager/leads', row.lead_id!]">{{ ref }}</a>
       }
 
       <div class="approval-list__meta">
@@ -17,15 +17,18 @@
           [label]="row.status === 'pending' ? 'Pending' : row.status === 'approved' ? 'Approved' : 'Rejected'"
           [colour]="statusColour(row.status)"
         />
-        <span>Requested by {{ row.requestedBy }} ({{ row.requestedByRole }}) · {{ row.requestedAt | date: 'medium' }}</span>
+        <span>
+          Requested by {{ row.requested_by?.name ?? 'Unknown' }} ({{ row.requested_by?.role ?? '—' }}) ·
+          {{ row.requested_at | date: 'medium' }}
+        </span>
       </div>
 
-      @if (row.decidedBy) {
+      @if (row.decided_by) {
         <p class="approval-list__decision">
-          {{ row.status === 'approved' ? 'Approved' : 'Rejected' }} by {{ row.decidedBy }} on
-          {{ row.decidedAt | date: 'medium' }}
-          @if (row.decisionRemarks) {
-            — "{{ row.decisionRemarks }}"
+          {{ row.status === 'approved' ? 'Approved' : 'Rejected' }} by {{ row.decided_by.name }} on
+          {{ row.decided_at | date: 'medium' }}
+          @if (row.decision_remarks) {
+            — "{{ row.decision_remarks }}"
           }
         </p>
       }
@@ -70,11 +73,15 @@
       <mat-card-content class="approval-list__toolbar-row">
         <mat-form-field appearance="outline" class="approval-list__status">
           <mat-label>Status</mat-label>
-          <mat-select [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <mat-select [ngModel]="statusFilter()" (ngModelChange)="setStatusFilter($event)">
             <mat-option value="pending">Pending</mat-option>
             <mat-option value="all">All</mat-option>
           </mat-select>
         </mat-form-field>
+
+        <button mat-icon-button type="button" matTooltip="Refresh" aria-label="Refresh" (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+        </button>
       </mat-card-content>
     </mat-card>
 
@@ -83,11 +90,12 @@
         <app-table
           [columns]="columns"
           [rows]="rows()"
+          [loading]="loading()"
           emptyMessage="Nothing waiting on you here."
           itemLabel="requests"
         >
-          <ng-template appTableCell="title" let-row>
-            <span class="approval-list__title">{{ row.title }}</span>
+          <ng-template appTableCell="name" let-row>
+            <span class="approval-list__title">{{ row.lead?.applicant_name ?? row.title }}</span>
             <span class="approval-list__subtitle">
               {{ row.subtitle }}
               @if (leadReference(row); as ref) {
@@ -96,8 +104,20 @@
             </span>
           </ng-template>
 
-          <ng-template appTableCell="requestedAt" let-row>
-            {{ row.requestedAt | date: 'mediumDate' }}
+          <ng-template appTableCell="loan_type" let-row>
+            {{ row.lead ? loanTypeLabel(row.lead.loan_type) : '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="loan_amount" let-row>
+            {{ row.lead ? (row.lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0') : '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="city" let-row>
+            {{ row.lead?.city ?? '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="banker" let-row>
+            {{ row.lead?.banker?.name ?? '—' }}
           </ng-template>
 
           <ng-template appTableCell="status" let-row>

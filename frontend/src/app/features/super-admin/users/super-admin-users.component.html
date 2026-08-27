@@ -1,6 +1,24 @@
 <app-page-header
   title="Users"
-  subtitle="Managers, Relationship Managers, Employees, Connectors and Bankers."
+  subtitle="Managers, Relationship Managers, Employees, Connectors, Bankers and Affiliates."
 />
 
-<app-empty-state icon="manage_accounts" message="This section hasn't been implemented yet." />
+<div class="users-overview">
+  @for (section of sections; track section.link) {
+    <a class="users-overview__card" [routerLink]="section.link">
+      <mat-card>
+        <mat-card-content class="users-overview__content">
+          <span class="users-overview__icon">
+            <mat-icon>{{ section.icon }}</mat-icon>
+          </span>
+          <h2 class="users-overview__title">{{ section.title }}</h2>
+          <p class="users-overview__description">{{ section.description }}</p>
+          <span class="users-overview__link">
+            Open
+            <mat-icon>arrow_forward</mat-icon>
+          </span>
+        </mat-card-content>
+      </mat-card>
+    </a>
+  }
+</div>

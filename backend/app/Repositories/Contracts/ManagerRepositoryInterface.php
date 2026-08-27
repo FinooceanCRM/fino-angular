@@ -37,6 +37,11 @@ interface ManagerRepositoryInterface
      */
     public function findOwnedRelationshipManager(User $manager, int $relationshipManagerId): ?User;
 
+    /**
+     * A single Employee under this Manager's own Relationship Managers, or null.
+     */
+    public function findOwnedEmployee(User $manager, int $employeeId): ?User;
+
     public function countRelationshipManagers(User $manager): int;
 
     public function countEmployees(User $manager): int;

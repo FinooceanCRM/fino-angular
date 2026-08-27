@@ -3,13 +3,13 @@ import { MatTabsModule } from '@angular/material/tabs';
 
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 
-import { ManagerTeamDataProvider } from '../team/data/manager-team.provider';
+import { ManagerTeamDataProvider } from '../team/data/manager-team-data.provider';
 import { ManagerTeamActivityComponent } from '../team/team-activity/manager-team-activity.component';
 import { ManagerTeamHierarchyComponent } from '../team/team-hierarchy/manager-team-hierarchy.component';
 import { ManagerTeamPerformanceComponent } from '../team/team-performance/manager-team-performance.component';
 import { ManagerTeamTableComponent } from '../team/team-table/manager-team-table.component';
 
-/** Employee Management — directory, team hierarchy, performance and activity, backed by mock data. */
+/** Employee Management — directory, team hierarchy, performance and activity, backed by real data (see `ManagerTeamDataProvider`). */
 @Component({
   selector: 'app-manager-employees',
   standalone: true,

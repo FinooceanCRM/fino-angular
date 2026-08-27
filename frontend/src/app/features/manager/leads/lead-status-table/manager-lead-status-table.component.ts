@@ -15,14 +15,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
-import { AssignableUser } from '@core/models/lead.model';
+import { AssignableUser, UserSummary } from '@core/models/lead.model';
 import { LeadService } from '@core/services/lead.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
-import { Lead, LEAD_STATUS_CATALOGUE, LOAN_TYPE_CATALOGUE, TERMINAL_LEAD_STATUSES } from '../data/models/lead.model';
+import { Lead, LEAD_STATUS_CATALOGUE, LOAN_TYPE_CATALOGUE, TERMINAL_LEAD_STATUSES } from '../../data/models/lead-catalogue.model';
 import {
   ManagerReassignDialogComponent,
   ManagerReassignDialogResult,
@@ -34,6 +34,21 @@ const ROLE_LABEL: Record<string, string> = {
   manager: 'Manager',
   banker: 'Banker',
   telecaller: 'Telecaller',
+  connector: 'Connector',
+  super_admin: 'Super Admin',
+  affiliate: 'Affiliate',
+};
+
+/** Short prefix used in the Source column, e.g. "con-Rahul Sharma". */
+const SOURCE_PREFIX: Record<string, string> = {
+  connector: 'con',
+  manager: 'mgr',
+  relationship_manager: 'rm',
+  employee: 'emp',
+  banker: 'bank',
+  telecaller: 'tc',
+  super_admin: 'admin',
+  affiliate: 'aff',
 };
 
 /**
@@ -81,6 +96,8 @@ export class ManagerLeadStatusTableComponent {
   readonly scopeToBankerId = input<number | null>(null);
   /** When set, further restricts the bucket to leads created by this user — the Telecaller-scoped "My Submitted Leads" view. */
   readonly scopeToCreatedBy = input<number | null>(null);
+  /** When set, further restricts the bucket to leads attributed to this Connector — the Connector-scoped "My Submitted Leads" view. */
+  readonly scopeToConnectorId = input<number | null>(null);
   /** Row-action "View" and the reassign pool both key off this — lets the same component serve both the Manager and RM route trees. */
   readonly basePath = input('/manager/leads');
   /** Employees can see who a lead is assigned to but can't reassign it — hides the select column, bulk bar and row reassign action. */
@@ -124,6 +141,7 @@ export class ManagerLeadStatusTableComponent {
     ...(this.allowReassign() ? [{ key: 'select', label: '' }] : []),
     { key: 'reference', label: 'Reference' },
     { key: 'applicant_name', label: 'Applicant' },
+    { key: 'source', label: 'Source' },
     { key: 'loan', label: 'Loan' },
     { key: 'city', label: 'City', formatter: (row) => row.city ?? '—' },
     { key: 'assignee', label: 'Assigned to' },
@@ -154,10 +172,11 @@ export class ManagerLeadStatusTableComponent {
       const employeeId = this.scopeToEmployeeId();
       const bankerId = this.scopeToBankerId();
       const createdBy = this.scopeToCreatedBy();
+      const connectorId = this.scopeToConnectorId();
       const page = this.pageIndex();
       const size = this.pageSize();
 
-      this.load(f, bucket, rmId, employeeId, bankerId, createdBy, page, size);
+      this.load(f, bucket, rmId, employeeId, bankerId, createdBy, connectorId, page, size);
     });
   }
 
@@ -168,6 +187,7 @@ export class ManagerLeadStatusTableComponent {
     employeeId: number | null,
     bankerId: number | null,
     createdBy: number | null,
+    connectorId: number | null,
     page: number,
     size: number,
   ): void {
@@ -190,6 +210,7 @@ export class ManagerLeadStatusTableComponent {
         assigned_employee_id: employeeId ?? undefined,
         assigned_banker_id: bankerId ?? undefined,
         created_by: createdBy ?? undefined,
+        connector_id: connectorId ?? undefined,
         page: page + 1,
         per_page: size,
       })
@@ -209,6 +230,33 @@ export class ManagerLeadStatusTableComponent {
 
   protected roleLabel(role: string): string {
     return ROLE_LABEL[role] ?? role;
+  }
+
+  /** Who this lead came from — the connector if one is attached, else whoever created it, else organic. */
+  protected sourcePerson(row: Lead): UserSummary | null {
+    return row.connector ?? row.created_by ?? null;
+  }
+
+  protected sourceLabel(row: Lead): string {
+    const person = this.sourcePerson(row);
+    if (!person) {
+      return '—';
+    }
+    const prefix = SOURCE_PREFIX[person.role] ?? person.role;
+    return `${prefix}-${person.name}`;
+  }
+
+  protected sourceTooltip(row: Lead): string {
+    const person = this.sourcePerson(row);
+    if (!person) {
+      return 'No source recorded — organic/direct lead.';
+    }
+    return [
+      `Name - ${person.name}`,
+      `Email - ${person.email}`,
+      `Mob - ${person.phone ?? '—'}`,
+      `Source - ${this.roleLabel(person.role)}`,
+    ].join('\n');
   }
 
   protected loanTypeLabel(value: string): string {
@@ -345,6 +393,7 @@ export class ManagerLeadStatusTableComponent {
       this.scopeToEmployeeId(),
       this.scopeToBankerId(),
       this.scopeToCreatedBy(),
+      this.scopeToConnectorId(),
       this.pageIndex(),
       this.pageSize(),
     );

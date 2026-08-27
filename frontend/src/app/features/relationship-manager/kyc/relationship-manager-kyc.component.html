@@ -20,13 +20,19 @@
 
 <mat-card class="kyc__table-card">
   <mat-card-content>
-    <app-table [columns]="columns" [rows]="rows()" emptyMessage="Nothing waiting on you here." itemLabel="documents">
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      [loading]="loading()"
+      emptyMessage="Nothing waiting on you here."
+      itemLabel="documents"
+    >
       <ng-template appTableCell="lead" let-row>
-        <a [routerLink]="['/relationship-manager/leads', row.leadId]">{{ leadLabel(row) }}</a>
+        <a [routerLink]="['/relationship-manager/leads', row.loan_lead_id]">{{ leadLabel(row) }}</a>
       </ng-template>
 
       <ng-template appTableCell="uploadedAt" let-row>
-        {{ row.uploadedAt | date: 'mediumDate' }}
+        {{ row.created_at | date: 'mediumDate' }}
       </ng-template>
 
       <ng-template appTableCell="status" let-row>
@@ -34,8 +40,8 @@
           [label]="row.status === 'pending' ? 'Pending' : row.status === 'verified' ? 'Verified' : 'Rejected'"
           [colour]="statusColour(row)"
         />
-        @if (row.status === 'rejected' && row.rejectionReason) {
-          <div class="kyc__reason">"{{ row.rejectionReason }}"</div>
+        @if (row.status === 'rejected' && row.remarks) {
+          <div class="kyc__reason">"{{ row.remarks }}"</div>
         }
       </ng-template>
 

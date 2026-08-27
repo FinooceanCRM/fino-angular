@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from '@core/guards/auth.guard';
 
-/** Customer management, shared by every authenticated role — mock data, no HTTP. */
+/** Customer management (Phase 3), shared by every authenticated role — row-scoped by the API. */
 export const customersRoutes: Routes = [
   {
     path: '',

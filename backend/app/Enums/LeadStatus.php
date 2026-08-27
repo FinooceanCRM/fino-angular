@@ -42,24 +42,23 @@ enum LeadStatus: string
     }
 
     /**
-     * Statuses reachable directly from this one via changeStatus(). Every
-     * non-terminal status may also be closed out administratively.
+     * Statuses reachable directly from this one via changeStatus(). Any
+     * non-terminal status may jump directly to any other status (including
+     * Disbursed without stepping through the intermediate statuses first);
+     * Closed remains terminal and has no further transitions.
      *
      * @return array<int, self>
      */
     public function allowedNextStatuses(): array
     {
-        return match ($this) {
-            self::New => [self::Assigned, self::Closed],
-            self::Assigned => [self::InProgress, self::DocumentsPending, self::UnderReview, self::Rejected, self::Closed],
-            self::InProgress => [self::DocumentsPending, self::UnderReview, self::Rejected, self::Closed],
-            self::DocumentsPending => [self::InProgress, self::UnderReview, self::Rejected, self::Closed],
-            self::UnderReview => [self::Approved, self::Rejected, self::DocumentsPending, self::Closed],
-            self::Approved => [self::Disbursed, self::Rejected, self::Closed],
-            self::Rejected => [self::Assigned, self::InProgress, self::Closed],
-            self::Disbursed => [self::Closed],
-            self::Closed => [],
-        };
+        if ($this->isTerminal()) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            self::cases(),
+            fn (self $s): bool => $s !== $this,
+        ));
     }
 
     public function canTransitionTo(self $target): bool

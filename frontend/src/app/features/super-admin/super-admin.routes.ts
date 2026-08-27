@@ -71,6 +71,42 @@ export const superAdminRoutes: Routes = [
       import('./users/bankers/super-admin-bankers.component').then((m) => m.SuperAdminBankersComponent),
   },
   {
+    // Affiliate Management (Phase 8) — view/suspend affiliates and set a
+    // per-affiliate commission_rate override. Not a generic UserRoleTableComponent
+    // instance like the roles above: affiliates need the Phase 6
+    // super-admin/affiliates endpoints, not the generic /users CRUD.
+    path: 'users/affiliates',
+    title: 'Affiliates — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./users/affiliates/super-admin-affiliates.component').then(
+        (m) => m.SuperAdminAffiliatesComponent,
+      ),
+  },
+  {
+    // Not previously routed (dead code, unreachable) — wired up alongside
+    // the Phase 0 permissions matrix so the rewired component is actually
+    // reachable. Linked from the Roles page's "Manage permissions" action.
+    path: 'users/permissions',
+    title: 'Permission Assignment — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./users/permissions/super-admin-permissions.component').then(
+        (m) => m.SuperAdminPermissionsComponent,
+      ),
+  },
+  {
+    // Same as `users/permissions` above — previously unreachable.
+    path: 'users/roles',
+    title: 'Roles — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./users/roles/super-admin-roles.component').then((m) => m.SuperAdminRolesComponent),
+  },
+  {
     path: 'leads',
     title: 'Super Admin leads — FINOOCEAN',
     canActivate: [authGuard, roleGuard],
@@ -145,6 +181,19 @@ export const superAdminRoutes: Routes = [
     loadComponent: () =>
       import('./leads/lead-detail/super-admin-lead-detail.component').then(
         (m) => m.SuperAdminLeadDetailComponent,
+      ),
+  },
+  {
+    // Bankers' "Request Full Details" access requests land here for
+    // approval — same LeadAccessRequestController workflow as the
+    // Manager's "Access approvals" tab (see manager.routes.ts `approvals`).
+    path: 'approvals',
+    title: 'Approvals — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./approvals/super-admin-approvals.component').then(
+        (m) => m.SuperAdminApprovalsComponent,
       ),
   },
   {
@@ -231,6 +280,104 @@ export const superAdminRoutes: Routes = [
     loadComponent: () =>
       import('./notifications/super-admin-notifications.component').then(
         (m) => m.SuperAdminNotificationsComponent,
+      ),
+  },
+  {
+    // Commissions module (connector/affiliate commission, payouts,
+    // accounting) — pre-existing components with no route registration at
+    // all before Phase 8; wired up here so they're actually reachable.
+    path: 'commissions',
+    title: 'Commissions — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./commissions/super-admin-commissions.component').then(
+        (m) => m.SuperAdminCommissionsComponent,
+      ),
+  },
+  {
+    path: 'commissions/connector-commission',
+    title: 'Connector Commission — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./commissions/connector-commission/super-admin-connector-commission.component').then(
+        (m) => m.SuperAdminConnectorCommissionComponent,
+      ),
+  },
+  {
+    path: 'commissions/affiliate-commission',
+    title: 'Affiliate Commission — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./commissions/affiliate-commission/super-admin-affiliate-commission.component').then(
+        (m) => m.SuperAdminAffiliateCommissionComponent,
+      ),
+  },
+  {
+    path: 'commissions/payouts',
+    title: 'Payouts — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./commissions/payouts/super-admin-payouts.component').then(
+        (m) => m.SuperAdminPayoutsComponent,
+      ),
+  },
+  {
+    path: 'commissions/accounting',
+    title: 'Accounting — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./commissions/accounting/super-admin-accounting.component').then(
+        (m) => m.SuperAdminAccountingComponent,
+      ),
+  },
+  {
+    path: 'audit-logs',
+    title: 'Audit Logs — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./audit-logs/super-admin-audit-logs.component').then(
+        (m) => m.SuperAdminAuditLogsComponent,
+      ),
+  },
+  {
+    // Must stay after 'audit-logs' so it never shadows it.
+    path: 'audit-logs/:id',
+    title: 'Audit log details — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./audit-logs/audit-log-detail/super-admin-audit-log-detail.component').then(
+        (m) => m.SuperAdminAuditLogDetailComponent,
+      ),
+  },
+  {
+    // Platform configuration (Phase 1) — General, Matching Engine,
+    // Notifications, Security. A single tab-switcher page (MatTabGroup, no
+    // child router-outlet), so only one route is needed for all 4 sections.
+    path: 'settings',
+    title: 'Settings — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./settings/super-admin-settings.component').then((m) => m.SuperAdminSettingsComponent),
+  },
+  {
+    // Global search (Phase 1) — full-results view behind the search
+    // overlay's "View all" and the overlay's own `viewAll()` navigation.
+    // Previously not routed at all (dead code, unreachable).
+    path: 'search',
+    title: 'Search — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./search/search-results/super-admin-search-results.component').then(
+        (m) => m.SuperAdminSearchResultsComponent,
       ),
   },
 ];

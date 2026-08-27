@@ -131,8 +131,8 @@ export class SuperAdminDashboardComponent {
       todayCount === yesterdayCount ? undefined : `${todayCount >= yesterdayCount ? '↑' : '↓'} ${Math.abs(todayCount - yesterdayCount)} vs yesterday`;
 
     const totalCommission =
-      this.commissionData.connectorCommissions().reduce((sum, row) => sum + row.commission_amount, 0) +
-      this.commissionData.affiliates().reduce((sum, row) => sum + row.commission_earned, 0);
+      this.commissionData.connectors().reduce((sum, row) => sum + (row.commission_accrued ?? 0), 0) +
+      this.commissionData.affiliates().reduce((sum, row) => sum + (row.commission_accrued ?? 0), 0);
 
     const monthlyAccrued = bucketByMonth(
       this.commissionData.ledger().filter((e) => e.type === 'connector_commission_accrued' || e.type === 'affiliate_commission_accrued'),

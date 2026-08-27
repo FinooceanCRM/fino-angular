@@ -1,0 +1,94 @@
+<div class="page">
+  <header class="brand">
+    <span class="brand__name">FINOOCEAN</span>
+  </header>
+
+  <main class="card">
+    @if (submitted()) {
+      <div class="confirmation">
+        <h1>Thank you!</h1>
+        <p>
+          We've received your details and someone from our team will reach out
+          to you shortly.
+        </p>
+      </div>
+    } @else {
+      <h1>Get a call back about your loan</h1>
+      <p class="subtitle">Share a few details and we'll take it from there.</p>
+
+      @if (error(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="applicant_name">Full name</label>
+          <input id="applicant_name" type="text" formControlName="applicant_name" autocomplete="name" />
+          @if (form.controls.applicant_name.touched && form.controls.applicant_name.hasError('required')) {
+            <span class="field-error">Your name is required.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="applicant_phone">Phone number</label>
+          <input id="applicant_phone" type="tel" formControlName="applicant_phone" autocomplete="tel" />
+          @if (form.controls.applicant_phone.touched && form.controls.applicant_phone.hasError('required')) {
+            <span class="field-error">A phone number is required.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="applicant_email">Email (optional)</label>
+          <input id="applicant_email" type="email" formControlName="applicant_email" autocomplete="email" />
+          @if (form.controls.applicant_email.touched && form.controls.applicant_email.hasError('email')) {
+            <span class="field-error">Enter a valid email address.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="loan_type">Loan type</label>
+          <select id="loan_type" formControlName="loan_type">
+            <option value="" disabled>Select a loan type</option>
+            @for (type of loanTypes; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select>
+          @if (form.controls.loan_type.touched && form.controls.loan_type.hasError('required')) {
+            <span class="field-error">Please select a loan type.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="loan_amount">Loan amount (₹)</label>
+          <input id="loan_amount" type="number" min="1" formControlName="loan_amount" />
+          @if (form.controls.loan_amount.touched && form.controls.loan_amount.hasError('required')) {
+            <span class="field-error">Enter the loan amount you need.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" type="text" formControlName="city" autocomplete="address-level2" />
+          @if (form.controls.city.touched && form.controls.city.hasError('required')) {
+            <span class="field-error">Your city is required.</span>
+          }
+        </div>
+
+        <!-- Honeypot: genuinely off-screen (not type="hidden"/display:none),
+             so simple bots that blindly fill every input still catch it. -->
+        <div class="hp-field" aria-hidden="true">
+          <label for="website">Leave this field blank</label>
+          <input id="website" type="text" formControlName="website" tabindex="-1" autocomplete="off" />
+        </div>
+
+        <div class="field">
+          <div #captchaContainer class="h-captcha"></div>
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="submitting()">
+          {{ submitting() ? 'Submitting…' : 'Submit' }}
+        </button>
+      </form>
+    }
+  </main>
+</div>

@@ -5,7 +5,7 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
 
 import { RelationshipManagerActivityListComponent } from '../activities/activity-list/relationship-manager-activity-list.component';
 
-/** Follow-ups — Calls, Meetings, Tasks and Reminders, backed by mock data. */
+/** Follow-ups — Calls, Meetings, Tasks and Reminders, backed by the real Tasks API (Phase 4), scoped to this RM's team. */
 @Component({
   selector: 'app-relationship-manager-follow-ups',
   standalone: true,

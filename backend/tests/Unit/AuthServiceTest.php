@@ -22,7 +22,8 @@ class AuthServiceTest extends TestCase
     {
         User::factory()->role(UserRole::Manager)->create(['email' => 'svc@example.test']);
 
-        $result = $this->service()->login('svc@example.test', 'Password123!');
+        // UserFactory's default password is '12345678', not 'Password123!'.
+        $result = $this->service()->login('svc@example.test', '12345678');
 
         $this->assertSame('svc@example.test', $result['user']->email);
         $this->assertNotEmpty($result['token']);

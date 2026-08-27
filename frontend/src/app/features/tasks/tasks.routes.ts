@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from '@core/guards/auth.guard';
 
-/** Task management, shared by every authenticated role — mock data, no HTTP. */
+/** Task management (Phase 4), shared by every authenticated role — backed by the real TaskService, row-scoped by the API. */
 export const tasksRoutes: Routes = [
   {
     path: '',

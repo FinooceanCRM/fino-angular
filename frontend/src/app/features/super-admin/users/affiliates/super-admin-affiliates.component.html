@@ -1,0 +1,53 @@
+<app-page-header title="Affiliates" subtitle="Manage Affiliate accounts, commission rates and status." />
+
+<mat-card class="toolbar">
+  <mat-card-content>
+    <form class="filters" [formGroup]="filters">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Name, email or referral code" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Status</mat-label>
+        <mat-select formControlName="status">
+          <mat-option value="">All statuses</mat-option>
+          <mat-option value="pending_verification">Pending verification</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+          <mat-option value="suspended">Suspended</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+<mat-card class="table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      [loading]="loading()"
+      [length]="meta().total"
+      [pageIndex]="meta().current_page - 1"
+      [pageSize]="meta().per_page"
+      emptyMessage="No affiliates match the current filters."
+      itemLabel="affiliates"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="commission_rate" let-row>
+        {{ row.commission_rate !== null ? row.commission_rate + '%' : 'Global default' }}
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <button mat-icon-button type="button" (click)="edit(row)" aria-label="Edit affiliate">
+          <mat-icon>edit</mat-icon>
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

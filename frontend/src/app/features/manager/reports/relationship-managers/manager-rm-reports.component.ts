@@ -15,7 +15,7 @@ import { BarDatum } from '@features/super-admin/data/models/report.model';
 import { defaultFrom, defaultTo, inRange } from '@features/super-admin/data/report-date-range.util';
 import { HorizontalBarListComponent } from '@features/super-admin/reports/charts/horizontal-bar-list.component';
 
-import { ManagerLeadDataProvider } from '../../leads/data/providers/lead-data.provider';
+import { ManagerLeadsDataProvider } from '../../data/providers/manager-leads.provider';
 
 interface RmReportRow {
   relationshipManager: string;
@@ -46,7 +46,7 @@ interface RmReportRow {
 })
 export class ManagerRmReportsComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly leadData = inject(ManagerLeadDataProvider);
+  private readonly leadData = inject(ManagerLeadsDataProvider);
 
   protected readonly range = this.fb.nonNullable.group({
     from: defaultFrom(120),

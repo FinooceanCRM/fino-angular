@@ -1,5 +1,9 @@
 <app-page-header title="Roles" subtitle="The eight-role permission system — module access at a glance." />
 
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
 <div class="roles-grid">
   @for (role of roles(); track role.value) {
     <mat-card class="role-card">
@@ -8,11 +12,7 @@
           <span class="role-card__icon"><mat-icon>{{ role.icon }}</mat-icon></span>
           <div class="role-card__heading">
             <h3 class="role-card__title">{{ role.label }}</h3>
-            @if (role.hasLiveUsers) {
-              <app-status-pill [label]="role.userCount + ' user' + (role.userCount === 1 ? '' : 's')" colour="primary" />
-            } @else {
-              <app-status-pill label="Permission-only role" colour="accent" />
-            }
+            <app-status-pill [label]="role.userCount + ' user' + (role.userCount === 1 ? '' : 's')" colour="primary" />
           </div>
         </div>
 

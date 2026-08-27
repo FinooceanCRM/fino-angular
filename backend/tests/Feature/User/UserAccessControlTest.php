@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\User;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -86,6 +87,7 @@ class UserAccessControlTest extends TestCase
             'email' => 'new.rm@finoocean.test',
             'password' => 'password123',
             'role' => UserRole::RelationshipManager->value,
+            'department' => Department::PersonalLoan->value,
         ])
             ->assertCreated()
             ->assertJsonPath('data.manager_id', $manager->id);

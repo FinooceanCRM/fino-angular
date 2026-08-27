@@ -17,8 +17,8 @@
   <mat-form-field appearance="outline" class="field">
     <mat-label>Assigned to</mat-label>
     <mat-select [ngModel]="assignedTo()" (ngModelChange)="assignedTo.set($event)">
-      @for (person of assignableTo(); track person) {
-        <mat-option [value]="person">{{ person }}</mat-option>
+      @for (person of assignableTo(); track person.id) {
+        <mat-option [value]="person.id">{{ person.name }}</mat-option>
       }
     </mat-select>
   </mat-form-field>

@@ -19,13 +19,20 @@ use Illuminate\Database\Eloquent\Builder;
  * actor's own department (department isolation).
  *
  * Super Admin  -> every lead
- * Manager      -> leads assigned to them, to their RMs or to those RMs' employees.
+ * Manager      -> leads assigned to them, to their RMs or to those RMs' employees,
+ *                 plus every lead they personally submitted ("My Submitted
+ *                 Leads" — e.g. via their own personal referral link).
  *                 NOT department-scoped: one Manager runs all three
  *                 departments (PL/HL/ML) at once, split across separate RMs.
- * RM           -> leads assigned to them or to their employees, in their own department
- * Employee     -> leads assigned to them (cascaded onto their own creations at Lead::create time)
+ * RM           -> leads assigned to them or to their employees, in their own
+ *                 department, plus every lead they personally submitted
+ *                 (that part is not department-scoped, same carve-out as
+ *                 Telecaller's below).
+ * Employee     -> leads assigned to them (cascaded onto their own creations at
+ *                 Lead::create time), plus every lead they personally submitted.
  * Connector    -> leads they submitted
- * Banker       -> leads assigned to them, plus leads matched against their own bank_criteria
+ * Banker       -> leads assigned to them, plus leads matched against their own
+ *                 bank_criteria, plus every lead they personally submitted.
  * Telecaller   -> employee-generated leads in their own department (the PD call queue),
  *                 every lead explicitly assigned to them by Super
  *                 Admin/Manager/RM for PD calling, plus every lead they
@@ -58,20 +65,33 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
 
                 $q->where('assigned_manager_id', $actor->id)
                     ->orWhereIn('assigned_relationship_manager_id', $rmIds ?: [0])
-                    ->orWhereIn('assigned_employee_id', $employeeIds ?: [0]);
+                    ->orWhereIn('assigned_employee_id', $employeeIds ?: [0])
+                    ->orWhere('created_by', $actor->id);
             }),
             UserRole::RelationshipManager => $query->where(function (Builder $q) use ($actor): void {
                 $employeeIds = User::query()
                     ->where('relationship_manager_id', $actor->id)
                     ->pluck('id')->all();
 
-                $q->where('assigned_relationship_manager_id', $actor->id)
-                    ->orWhereIn('assigned_employee_id', $employeeIds ?: [0]);
-            })->where('department', $actor->department?->value),
-            UserRole::Employee => $query->where('assigned_employee_id', $actor->id),
+                $q->where(function (Builder $assigned) use ($actor, $employeeIds): void {
+                    $assigned->where('assigned_relationship_manager_id', $actor->id)
+                        ->orWhereIn('assigned_employee_id', $employeeIds ?: [0]);
+                })->where('department', $actor->department?->value);
+
+                $q->orWhere('created_by', $actor->id);
+            }),
+            UserRole::Employee => $query->where(function (Builder $q) use ($actor): void {
+                $q->where('assigned_employee_id', $actor->id)
+                    ->orWhere('created_by', $actor->id);
+            }),
             UserRole::Connector => $query->where(function (Builder $q) use ($actor): void {
                 $q->where('connector_id', $actor->id)->orWhere('created_by', $actor->id);
             }),
+            // An affiliate sees leads submitted through their own referral
+            // link — never a creator themselves (public referral submissions
+            // always have created_by = null), so unlike Connector this is a
+            // single condition.
+            UserRole::Affiliate => $query->where('affiliate_id', $actor->id),
             // A banker sees leads assigned to them, every lead currently
             // matched against one of their own bank_criteria rows (so they
             // can find something to request access to), and every lead they

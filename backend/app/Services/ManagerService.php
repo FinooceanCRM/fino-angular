@@ -25,6 +25,7 @@ class ManagerService extends BaseService
 {
     public function __construct(
         private readonly ManagerRepositoryInterface $profiles,
+        private readonly AuditLogService $auditLog,
     ) {
     }
 
@@ -179,6 +180,7 @@ class ManagerService extends BaseService
                         'designation' => $profile?->designation,
                         'branch' => $profile?->branch,
                         'region' => $profile?->region,
+                        'created_at' => $rm->created_at?->toIso8601String(),
                         'employee_count' => $assigned->count(),
                         'active_employee_count' => $assigned
                             ->filter(fn (User $employee): bool => (bool) $employee->is_active)
@@ -310,6 +312,7 @@ class ManagerService extends BaseService
                         'employee_code' => $profile?->employee_code,
                         'designation' => $profile?->designation,
                         'department' => $profile?->department,
+                        'created_at' => $employee->created_at?->toIso8601String(),
                         'relationship_manager' => $rm === null ? null : [
                             'id' => $rm->id,
                             'name' => $rm->name,
@@ -320,6 +323,53 @@ class ManagerService extends BaseService
                 ->values()
                 ->all(),
         ];
+    }
+
+    /**
+     * Moves an Employee under this Manager to a different Relationship
+     * Manager who also reports to this Manager — the Team Assignment
+     * workflow. The employee's `manager_id` is untouched since the target RM
+     * is already validated to report to the same Manager.
+     */
+    public function reassignEmployee(
+        User $actor,
+        int $employeeId,
+        int $relationshipManagerId,
+        ?string $remarks,
+    ): User {
+        $this->assertManager($actor);
+
+        $employee = $this->profiles->findOwnedEmployee($actor, $employeeId);
+        if ($employee === null) {
+            throw new DomainException('This employee is not part of your team.', 403);
+        }
+
+        $relationshipManager = $this->profiles->findOwnedRelationshipManager($actor, $relationshipManagerId);
+        if ($relationshipManager === null) {
+            throw new DomainException('This Relationship Manager is not part of your team.', 422);
+        }
+
+        return $this->transaction(function () use ($actor, $employee, $relationshipManager, $remarks): User {
+            $employee->fill(['relationship_manager_id' => $relationshipManager->id])->save();
+
+            $this->auditLog->record(
+                $actor,
+                'Reassigned',
+                'User',
+                $employee->name,
+                trim(sprintf(
+                    '%s reassigned %s to %s (Relationship Manager).%s',
+                    $actor->name,
+                    $employee->name,
+                    $relationshipManager->name,
+                    $remarks ? ' — '.$remarks : '',
+                )),
+                'team_assignment',
+                $employee->id,
+            );
+
+            return $employee->refresh();
+        });
     }
 
     /**

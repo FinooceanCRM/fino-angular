@@ -19,8 +19,8 @@ import { bucketByWeek, defaultFrom, defaultTo, inRange } from '@features/super-a
 import { HorizontalBarListComponent } from '@features/super-admin/reports/charts/horizontal-bar-list.component';
 import { TrendChartComponent, TrendPoint } from '@features/super-admin/reports/charts/trend-chart.component';
 
-import { Lead, LEAD_STATUS_CATALOGUE, LOAN_TYPE_CATALOGUE } from '../../leads/data/models/lead.model';
-import { ManagerLeadDataProvider } from '../../leads/data/providers/lead-data.provider';
+import { Lead, LEAD_STATUS_CATALOGUE, LOAN_TYPE_CATALOGUE } from '../../data/models/lead-catalogue.model';
+import { ManagerLeadsDataProvider } from '../../data/providers/manager-leads.provider';
 
 const PILL_COLOUR_VAR: Record<string, string> = {
   default: 'var(--app-status-default-fg)',
@@ -61,7 +61,7 @@ export class ManagerLeadReportsComponent {
   readonly subtitle = input("Volume, status mix and loan-type breakdown of your team's lead pipeline.");
 
   private readonly fb = inject(FormBuilder);
-  private readonly leadData = inject(ManagerLeadDataProvider);
+  private readonly leadData = inject(ManagerLeadsDataProvider);
 
   protected readonly range = this.fb.nonNullable.group({
     from: defaultFrom(120),

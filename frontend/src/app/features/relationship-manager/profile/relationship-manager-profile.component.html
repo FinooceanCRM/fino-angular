@@ -18,7 +18,7 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>Email</mat-label>
-                <input matInput [value]="email" disabled />
+                <input matInput [value]="email()" disabled />
                 <mat-hint>Email changes are handled by an administrator.</mat-hint>
               </mat-form-field>
 
@@ -29,7 +29,7 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>RM code</mat-label>
-                <input matInput [value]="rmCode" disabled />
+                <input matInput [value]="rmCode()" disabled />
               </mat-form-field>
 
               <mat-form-field appearance="outline">
@@ -49,7 +49,7 @@
 
               <mat-form-field appearance="outline">
                 <mat-label>Date of joining</mat-label>
-                <input matInput [value]="dateOfJoining | date: 'mediumDate'" disabled />
+                <input matInput [value]="dateOfJoining() | date: 'mediumDate'" disabled />
               </mat-form-field>
             </div>
 
@@ -107,7 +107,7 @@
               <mat-slide-toggle formControlName="emailNotifications">Email notifications</mat-slide-toggle>
               <mat-slide-toggle formControlName="smsNotifications">SMS notifications</mat-slide-toggle>
               <mat-slide-toggle formControlName="notifyOnLeadAssignment">Notify me when a lead is assigned to me</mat-slide-toggle>
-              <mat-slide-toggle formControlName="notifyOnFollowUpDue">Notify me when a follow-up is due</mat-slide-toggle>
+              <mat-slide-toggle formControlName="notifyOnLeadApproval">Notify me when a lead is approved</mat-slide-toggle>
             </div>
 
             <div class="actions">

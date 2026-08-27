@@ -1,6 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -8,18 +7,17 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { RouterLink } from '@angular/router';
 
+import { AUDIT_EVENT_CATEGORY_LABEL, AuditLogEntry } from '@core/models/audit-log.model';
+import { AuditLogService } from '@core/services/audit-log.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
-import { AUDIT_EVENT_CATEGORY_LABEL, AuditEventCategory, AuditLogEntry } from '../data/models/audit-log.model';
-import { AuditLogDataProvider } from '../data/providers/audit-log-data.provider';
-import { defaultFrom, defaultTo, inRange } from '../data/report-date-range.util';
-
-/** Audit log table — every recorded platform action, mock data only, no HTTP. */
+/** Audit log table — real backend data, filters and pagination sent to the server (Phase 0). */
 @Component({
   selector: 'app-super-admin-audit-logs',
   standalone: true,
@@ -32,6 +30,7 @@ import { defaultFrom, defaultTo, inRange } from '../data/report-date-range.util'
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatProgressBarModule,
     MatSelectModule,
     PageHeaderComponent,
     TableCellDirective,
@@ -41,50 +40,28 @@ import { defaultFrom, defaultTo, inRange } from '../data/report-date-range.util'
   styleUrl: './super-admin-audit-logs.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SuperAdminAuditLogsComponent {
+export class SuperAdminAuditLogsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
-  private readonly auditLogData = inject(AuditLogDataProvider);
+  private readonly auditLogs = inject(AuditLogService);
 
-  protected readonly entityTypes = this.auditLogData.entityTypes;
   protected readonly categoryLabel = AUDIT_EVENT_CATEGORY_LABEL;
-  protected readonly categories = Object.entries(AUDIT_EVENT_CATEGORY_LABEL) as [AuditEventCategory, string][];
-  protected readonly rows = this.auditLogData.entries;
+  protected readonly categories = Object.entries(AUDIT_EVENT_CATEGORY_LABEL);
+
+  protected readonly rows = signal<AuditLogEntry[]>([]);
+  protected readonly entityTypes = signal<string[]>([]);
+  protected readonly loading = signal(false);
+  protected readonly error = signal<string | null>(null);
+
+  protected readonly total = signal(0);
+  protected readonly pageIndex = signal(0);
+  protected readonly pageSize = signal(15);
 
   protected readonly filters = this.fb.nonNullable.group({
     search: '',
     entityType: '',
     category: '',
-    from: defaultFrom(365),
-    to: defaultTo(),
-  });
-
-  private readonly filterValues = toSignal(this.filters.valueChanges, { initialValue: this.filters.getRawValue() });
-
-  protected readonly pageIndex = signal(0);
-  protected readonly pageSize = signal(15);
-
-  protected readonly filteredRows = computed(() => {
-    const f = this.filterValues();
-    const search = (f.search ?? '').trim().toLowerCase();
-    const from = f.from ?? defaultFrom(365);
-    const to = f.to ?? defaultTo();
-
-    return this.rows().filter((entry) => {
-      const matchesSearch =
-        !search ||
-        entry.actor_name.toLowerCase().includes(search) ||
-        entry.entity_label.toLowerCase().includes(search) ||
-        entry.description.toLowerCase().includes(search);
-      const matchesType = !f.entityType || entry.entity_type === f.entityType;
-      const matchesCategory = !f.category || entry.category === f.category;
-      const matchesRange = inRange(entry.timestamp, from, to);
-      return matchesSearch && matchesType && matchesCategory && matchesRange;
-    });
-  });
-
-  protected readonly pagedRows = computed(() => {
-    const start = this.pageIndex() * this.pageSize();
-    return this.filteredRows().slice(start, start + this.pageSize());
+    from: '',
+    to: '',
   });
 
   protected readonly columns: TableColumn<AuditLogEntry>[] = [
@@ -97,12 +74,48 @@ export class SuperAdminAuditLogsComponent {
     { key: 'ip_address', label: 'IP address' },
   ];
 
+  ngOnInit(): void {
+    this.load(0);
+  }
+
+  protected load(pageIndex: number): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    const f = this.filters.getRawValue();
+
+    this.auditLogs
+      .list({
+        search: f.search || undefined,
+        entity_type: f.entityType || undefined,
+        category: f.category || undefined,
+        from: f.from || undefined,
+        to: f.to || undefined,
+        page: pageIndex + 1,
+        per_page: this.pageSize(),
+      })
+      .subscribe({
+        next: (result) => {
+          this.rows.set(result.items);
+          this.entityTypes.set(result.meta.entity_types ?? []);
+          this.total.set(result.meta.total ?? result.items.length);
+          this.pageIndex.set((result.meta.current_page ?? 1) - 1);
+          this.pageSize.set(result.meta.per_page ?? this.pageSize());
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set('Audit logs could not be loaded.');
+          this.loading.set(false);
+        },
+      });
+  }
+
   protected onPage(event: PageEvent): void {
     this.pageSize.set(event.pageSize);
-    this.pageIndex.set(event.pageIndex);
+    this.load(event.pageIndex);
   }
 
   protected categoryLabelFor(entry: AuditLogEntry): string {
-    return this.categoryLabel[entry.category];
+    return this.categoryLabel[entry.category] ?? entry.category;
   }
 }

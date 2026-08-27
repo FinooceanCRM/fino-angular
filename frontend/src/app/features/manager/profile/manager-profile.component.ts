@@ -11,9 +11,12 @@ import { MatTabsModule } from '@angular/material/tabs';
 
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 
-import { ManagerProfileDataProvider } from './data/manager-profile.provider';
+import { NormalizedApiError } from '@core/interceptors/error.interceptor';
+import { ManagerProfile } from '@core/models/manager.model';
+import { AuthService } from '@core/services/auth.service';
+import { ManagerService } from '@core/services/manager.service';
 
-/** Profile — User profile, Settings and Password management, all backed by mock state (no HTTP). */
+/** Profile — User profile (real `managers/profile`), Settings (real `auth/preferences`) and Password management (real `auth/password`). */
 @Component({
   selector: 'app-manager-profile',
   standalone: true,
@@ -33,67 +36,38 @@ import { ManagerProfileDataProvider } from './data/manager-profile.provider';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ManagerProfileComponent {
-  private readonly data = inject(ManagerProfileDataProvider);
+  private readonly managerApi = inject(ManagerService);
+  private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
 
-  protected readonly email = this.data.profile().email;
-  protected readonly managerCode = this.data.profile().managerCode;
+  protected readonly profile = signal<ManagerProfile | null>(null);
+
+  protected readonly email = signal('');
+  protected readonly managerCode = signal('');
 
   // ---------- User profile ----------
   protected readonly profileForm = this.fb.nonNullable.group({
-    name: [this.data.profile().name, [Validators.required, Validators.minLength(2)]],
-    phone: [this.data.profile().phone],
-    alternatePhone: [this.data.profile().alternatePhone],
-    designation: [this.data.profile().designation],
-    branch: [this.data.profile().branch],
-    region: [this.data.profile().region],
-    addressLine1: [this.data.profile().addressLine1],
-    addressLine2: [this.data.profile().addressLine2],
-    city: [this.data.profile().city],
-    state: [this.data.profile().state],
-    pincode: [this.data.profile().pincode, [Validators.pattern(/^$|^[0-9]{4,10}$/)]],
+    name: ['', [Validators.required, Validators.minLength(2)]],
+    phone: [''],
+    alternatePhone: [''],
+    designation: [''],
+    branch: [''],
+    region: [''],
+    addressLine1: [''],
+    addressLine2: [''],
+    city: [''],
+    state: [''],
+    pincode: ['', [Validators.pattern(/^$|^[0-9]{4,10}$/)]],
   });
-
-  protected saveProfile(): void {
-    if (this.profileForm.invalid) {
-      this.profileForm.markAllAsTouched();
-      return;
-    }
-
-    this.data.updateProfile(this.profileForm.getRawValue());
-    this.snackBar.open('Profile updated.', 'Dismiss', { duration: 4000 });
-  }
-
-  protected resetProfile(): void {
-    const profile = this.data.profile();
-    this.profileForm.reset({
-      name: profile.name,
-      phone: profile.phone,
-      alternatePhone: profile.alternatePhone,
-      designation: profile.designation,
-      branch: profile.branch,
-      region: profile.region,
-      addressLine1: profile.addressLine1,
-      addressLine2: profile.addressLine2,
-      city: profile.city,
-      state: profile.state,
-      pincode: profile.pincode,
-    });
-  }
 
   // ---------- Settings ----------
   protected readonly settingsForm = this.fb.nonNullable.group({
-    emailNotifications: [this.data.settings().emailNotifications],
-    smsNotifications: [this.data.settings().smsNotifications],
-    notifyOnAssignment: [this.data.settings().notifyOnAssignment],
-    notifyOnApproval: [this.data.settings().notifyOnApproval],
+    emailNotifications: [true],
+    smsNotifications: [false],
+    notifyOnAssignment: [true],
+    notifyOnApproval: [true],
   });
-
-  protected saveSettings(): void {
-    this.data.updateSettings(this.settingsForm.getRawValue());
-    this.snackBar.open('Settings saved.', 'Dismiss', { duration: 4000 });
-  }
 
   // ---------- Password management ----------
   protected readonly passwordForm = this.fb.nonNullable.group({
@@ -103,6 +77,99 @@ export class ManagerProfileComponent {
   });
 
   protected readonly passwordError = signal<string | null>(null);
+
+  constructor() {
+    this.managerApi.profile().subscribe({
+      next: (profile) => this.applyProfile(profile),
+      error: () => this.snackBar.open('Could not load your profile.', 'Dismiss', { duration: 4000 }),
+    });
+
+    const user = this.auth.user();
+    if (user) {
+      this.settingsForm.reset({
+        emailNotifications: user.email_notifications,
+        smsNotifications: user.sms_notifications,
+        notifyOnAssignment: user.notify_on_assignment,
+        notifyOnApproval: user.notify_on_approval,
+      });
+    }
+  }
+
+  private applyProfile(profile: ManagerProfile): void {
+    this.profile.set(profile);
+    this.email.set(profile.user.email);
+    this.managerCode.set(profile.manager_code ?? '—');
+    this.resetProfile();
+  }
+
+  protected saveProfile(): void {
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
+
+    const raw = this.profileForm.getRawValue();
+
+    this.managerApi
+      .updateProfile({
+        name: raw.name,
+        phone: raw.phone || null,
+        designation: raw.designation || null,
+        branch: raw.branch || null,
+        region: raw.region || null,
+        alternate_phone: raw.alternatePhone || null,
+        address_line1: raw.addressLine1 || null,
+        address_line2: raw.addressLine2 || null,
+        city: raw.city || null,
+        state: raw.state || null,
+        pincode: raw.pincode || null,
+      })
+      .subscribe({
+        next: (profile) => {
+          this.applyProfile(profile);
+          this.snackBar.open('Profile updated.', 'Dismiss', { duration: 4000 });
+        },
+        error: (err: NormalizedApiError) =>
+          this.snackBar.open(err.message ?? 'Could not update your profile.', 'Dismiss', { duration: 4000 }),
+      });
+  }
+
+  protected resetProfile(): void {
+    const profile = this.profile();
+    if (!profile) {
+      return;
+    }
+
+    this.profileForm.reset({
+      name: profile.user.name,
+      phone: profile.user.phone ?? '',
+      alternatePhone: profile.alternate_phone ?? '',
+      designation: profile.designation ?? '',
+      branch: profile.branch ?? '',
+      region: profile.region ?? '',
+      addressLine1: profile.address_line1 ?? '',
+      addressLine2: profile.address_line2 ?? '',
+      city: profile.city ?? '',
+      state: profile.state ?? '',
+      pincode: profile.pincode ?? '',
+    });
+  }
+
+  protected saveSettings(): void {
+    const raw = this.settingsForm.getRawValue();
+
+    this.auth
+      .updatePreferences({
+        email_notifications: raw.emailNotifications,
+        sms_notifications: raw.smsNotifications,
+        notify_on_assignment: raw.notifyOnAssignment,
+        notify_on_approval: raw.notifyOnApproval,
+      })
+      .subscribe({
+        next: () => this.snackBar.open('Settings saved.', 'Dismiss', { duration: 4000 }),
+        error: () => this.snackBar.open('Could not save your settings.', 'Dismiss', { duration: 4000 }),
+      });
+  }
 
   protected changePassword(): void {
     this.passwordError.set(null);
@@ -119,13 +186,19 @@ export class ManagerProfileComponent {
       return;
     }
 
-    const success = this.data.changePassword(currentPassword, newPassword);
-    if (!success) {
-      this.passwordError.set('Current password is incorrect.');
-      return;
-    }
-
-    this.passwordForm.reset({ currentPassword: '', newPassword: '', confirmPassword: '' });
-    this.snackBar.open('Password changed.', 'Dismiss', { duration: 4000 });
+    this.auth
+      .changePassword({
+        current_password: currentPassword,
+        password: newPassword,
+        password_confirmation: confirmPassword,
+      })
+      .subscribe({
+        next: () => {
+          this.passwordForm.reset({ currentPassword: '', newPassword: '', confirmPassword: '' });
+          this.snackBar.open('Password changed.', 'Dismiss', { duration: 4000 });
+        },
+        error: (err: NormalizedApiError) =>
+          this.passwordError.set(err.message ?? 'The current password is incorrect.'),
+      });
   }
 }

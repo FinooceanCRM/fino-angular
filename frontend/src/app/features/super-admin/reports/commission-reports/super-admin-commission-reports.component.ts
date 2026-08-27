@@ -84,18 +84,18 @@ export class SuperAdminCommissionReportsComponent {
     { label: 'Affiliate', value: this.summary().affiliateAccrued, colour: 'var(--mat-sys-tertiary)' },
   ]);
 
-  protected readonly topConnectors = computed<BarDatum[]>(() => {
-    const { from = defaultFrom(180), to = defaultTo() } = this.rangeValues();
-    const inWindow = this.commissionData.connectorCommissions().filter((row) => inRange(row.earned_at, from, to));
-    const byConnector = new Map<string, number>();
-    for (const row of inWindow) {
-      byConnector.set(row.connector_name, (byConnector.get(row.connector_name) ?? 0) + row.commission_amount);
-    }
-    return [...byConnector.entries()]
-      .map(([label, value]) => ({ label, value }))
+  /**
+   * All-time top earners, not windowed by the date-range filter above —
+   * connector commissions are only available as a per-connector aggregate
+   * (GET super-admin/connectors), not as dated per-lead rows.
+   */
+  protected readonly topConnectors = computed<BarDatum[]>(() =>
+    [...this.commissionData.connectors()]
+      .map((row) => ({ label: row.user.name, value: row.commission_accrued ?? 0 }))
+      .filter((datum) => datum.value > 0)
       .sort((a, b) => b.value - a.value)
-      .slice(0, 6);
-  });
+      .slice(0, 6),
+  );
 
   protected readonly trend = computed<TrendPoint[]>(() => {
     const { from = defaultFrom(180), to = defaultTo() } = this.rangeValues();

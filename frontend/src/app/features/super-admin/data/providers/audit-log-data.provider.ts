@@ -1,3 +1,10 @@
+// Phase 0: the real audit trail (see @core/services/audit-log.service.ts) now
+// backs the Audit Logs list/detail pages and the Permissions/Roles pages.
+// This mock provider is kept only as the write-sink other not-yet-migrated
+// mock providers (Lead, User) — and the deliberately-unused
+// permission-data.provider.ts — still call `.record()` on. Settings and
+// Manager Team have since been migrated to real Services and no longer
+// reference it; delete this once Lead/User are rewired too.
 import { Injectable, inject, signal } from '@angular/core';
 
 import { AuthService } from '@core/services/auth.service';

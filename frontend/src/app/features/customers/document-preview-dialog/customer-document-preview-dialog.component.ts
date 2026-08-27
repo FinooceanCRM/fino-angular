@@ -1,20 +1,24 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 
+import { CustomerDocument, DocumentType } from '@core/models/customer.model';
+import { CustomerDocumentService } from '@core/services/customer-document.service';
 import { ModalComponent } from '@shared/components/modal.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
-
-import { CustomerDocument, DocumentType, documentTypeLabel } from '../data/customer-document.provider';
 
 export interface CustomerDocumentPreviewDialogData {
   document: CustomerDocument;
 }
 
-const TYPE_ICON: Record<DocumentType, string> = {
+const TYPE_ICON: Partial<Record<DocumentType, string>> = {
   aadhaar: 'fingerprint',
+  aadhaar_front: 'fingerprint',
+  aadhaar_back: 'fingerprint',
   pan: 'badge',
+  pan_card: 'badge',
   bank_statement: 'account_balance',
   income_proof: 'payments',
   other: 'description',
@@ -24,20 +28,19 @@ const STATUS_LABEL: Record<CustomerDocument['status'], string> = { pending: 'Pen
 const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'accent', verified: 'success', rejected: 'warn' };
 
 /**
- * Document preview — there's no real file storage in this build, so this is
- * an honest metadata preview (type, size, upload date) with a placeholder
- * visual, not a fabricated document viewer. Mirrors the same pattern already
- * used by Super Admin's Lead Details document preview.
+ * Document preview — real file storage since Phase 3 (unlike the earlier
+ * mock), so this offers an actual Download alongside the metadata summary.
+ * Still no in-browser rendering, mirroring the same pattern already used by
+ * Super Admin's Lead Details document preview.
  */
 @Component({
   selector: 'app-customer-document-preview-dialog',
   standalone: true,
-  imports: [DatePipe, DecimalPipe, MatIconModule, ModalComponent, StatusPillComponent],
+  imports: [DatePipe, DecimalPipe, MatButtonModule, MatIconModule, ModalComponent, StatusPillComponent],
   template: `
-    <app-modal [title]="data.document.file_name" [showActions]="false">
+    <app-modal [title]="data.document.original_name" [showActions]="true">
       <div class="preview">
         <mat-icon class="preview__icon">{{ icon }}</mat-icon>
-        <p class="preview__hint">No live preview in this demo — mock document, no file storage.</p>
       </div>
 
       <dl class="meta">
@@ -48,8 +51,13 @@ const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'ac
         <dt>Size</dt>
         <dd>{{ data.document.size_bytes / 1024 | number: '1.0-0' }} KB</dd>
         <dt>Uploaded</dt>
-        <dd>{{ data.document.uploaded_at | date: 'medium' }}</dd>
+        <dd>{{ data.document.created_at | date: 'medium' }}</dd>
       </dl>
+
+      <button modal-actions mat-flat-button color="primary" type="button" (click)="download()">
+        <mat-icon>download</mat-icon>
+        Download
+      </button>
     </app-modal>
   `,
   styles: [
@@ -69,12 +77,6 @@ const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'ac
         width: 2.5rem;
         height: 2.5rem;
         color: var(--mat-sys-primary);
-      }
-      .preview__hint {
-        margin: 0;
-        font-size: 0.8rem;
-        color: var(--app-status-default-fg);
-        text-align: center;
       }
       .meta {
         margin: 0;
@@ -100,9 +102,21 @@ const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'ac
 })
 export class CustomerDocumentPreviewDialogComponent {
   protected readonly data = inject<CustomerDocumentPreviewDialogData>(MAT_DIALOG_DATA);
+  private readonly documents = inject(CustomerDocumentService);
 
-  protected readonly icon = TYPE_ICON[this.data.document.document_type];
-  protected readonly typeLabel = documentTypeLabel(this.data.document.document_type);
+  protected readonly icon = TYPE_ICON[this.data.document.document_type] ?? 'description';
+  protected readonly typeLabel = this.data.document.document_type_label;
   protected readonly statusLabel = STATUS_LABEL[this.data.document.status];
   protected readonly statusColour = STATUS_COLOUR[this.data.document.status];
+
+  protected download(): void {
+    this.documents.download(this.data.document).subscribe((blob) => {
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = this.data.document.original_name;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    });
+  }
 }

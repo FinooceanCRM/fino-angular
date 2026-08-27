@@ -91,6 +91,16 @@ export const managerRoutes: Routes = [
       ),
   },
   {
+    path: 'leads/my-submitted',
+    title: 'My submitted leads — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['manager'] },
+    loadComponent: () =>
+      import('./leads/my-submitted/manager-my-submitted-leads.component').then(
+        (m) => m.ManagerMySubmittedLeadsComponent,
+      ),
+  },
+  {
     path: 'leads/:id/timeline',
     title: 'Lead timeline — FINOOCEAN',
     canActivate: [authGuard, roleGuard],

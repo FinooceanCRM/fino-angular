@@ -10,7 +10,7 @@ import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { EntityHeaderComponent } from '@shared/components/entity-header.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
 
-import { STATUS_STEP_ICON } from '../data/models/lead.model';
+import { STATUS_STEP_ICON } from '../../data/models/lead-catalogue.model';
 
 /** Lead Timeline — the full status-change history for one lead, from the real `leads/:id` endpoint. */
 @Component({

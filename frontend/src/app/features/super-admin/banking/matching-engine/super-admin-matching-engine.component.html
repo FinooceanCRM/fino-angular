@@ -3,8 +3,6 @@
 <div class="matching__stats">
   <app-stat-card icon="assignment" [value]="overview().totalLeads" label="Total leads" accent="primary" />
   <app-stat-card icon="account_balance" [value]="overview().activeProducts" label="Active bank products" accent="accent" />
-  <app-stat-card icon="task_alt" [value]="overview().leadsWithMatch" label="Leads with a match" accent="accent" />
-  <app-stat-card icon="insights" [value]="overview().avgMatches" label="Avg. matches per lead" />
 </div>
 
 <mat-card class="matching__picker-card">
@@ -20,9 +18,9 @@
       </mat-select>
     </mat-form-field>
 
-    <button mat-flat-button color="primary" type="button" (click)="run()">
+    <button mat-flat-button color="primary" type="button" [disabled]="running()" (click)="run()">
       <mat-icon>bolt</mat-icon>
-      Run matching engine
+      {{ running() ? 'Running…' : 'Run matching engine' }}
     </button>
   </mat-card-content>
 </mat-card>

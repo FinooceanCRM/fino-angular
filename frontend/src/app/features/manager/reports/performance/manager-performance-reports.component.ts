@@ -16,7 +16,7 @@ import { bucketByWeek, defaultFrom, defaultTo, inRange } from '@features/super-a
 import { HorizontalBarListComponent } from '@features/super-admin/reports/charts/horizontal-bar-list.component';
 import { TrendChartComponent, TrendPoint } from '@features/super-admin/reports/charts/trend-chart.component';
 
-import { ManagerLeadDataProvider } from '../../leads/data/providers/lead-data.provider';
+import { ManagerLeadsDataProvider } from '../../data/providers/manager-leads.provider';
 
 const FUNNEL_STAGES: { value: string; label: string }[] = [
   { value: 'new', label: 'New' },
@@ -26,6 +26,29 @@ const FUNNEL_STAGES: { value: string; label: string }[] = [
   { value: 'approved', label: 'Approved' },
   { value: 'disbursed', label: 'Disbursed' },
 ];
+
+/**
+ * How far each status is along the pipeline, mirroring the same ordering the
+ * mock's per-status PROGRESSION table encoded. A lead currently in a given
+ * status is inferred to have passed through every earlier-ranked stage —
+ * real, derived from the lead's actual current status rather than a
+ * synthesised history — since `GET leads` (a list endpoint) doesn't carry
+ * each lead's full status-history (only the detail endpoint does, and
+ * fetching that per-lead here would mean one request per lead). `rejected`
+ * shares `under_review`'s rank: a rejected lead reached review but never
+ * "approved".
+ */
+const STAGE_RANK: Record<string, number> = {
+  new: 0,
+  assigned: 1,
+  in_progress: 2,
+  documents_pending: 3,
+  under_review: 4,
+  rejected: 4,
+  approved: 5,
+  disbursed: 6,
+  closed: 6,
+};
 
 interface TeamRow {
   employee: string;
@@ -57,7 +80,7 @@ interface TeamRow {
 })
 export class ManagerPerformanceReportsComponent {
   private readonly fb = inject(FormBuilder);
-  private readonly leadData = inject(ManagerLeadDataProvider);
+  private readonly leadData = inject(ManagerLeadsDataProvider);
 
   protected readonly range = this.fb.nonNullable.group({
     from: defaultFrom(120),
@@ -71,45 +94,47 @@ export class ManagerPerformanceReportsComponent {
     return this.leadData.leads().filter((lead) => inRange(lead.created_at, from, to));
   });
 
-  private readonly histories = computed(() =>
-    this.filteredLeads().map((lead) => ({ lead, history: this.leadData.historyFor(lead) })),
+  /** Leads that have reached a final decision (approved, rejected or disbursed). */
+  private readonly decidedLeads = computed(() =>
+    this.filteredLeads().filter((lead) => ['approved', 'disbursed', 'rejected'].includes(lead.status)),
   );
 
   protected readonly summary = computed(() => {
     const leads = this.filteredLeads();
-    const decisions = this.histories().flatMap(({ history }) =>
-      history.filter((entry) => ['approved', 'disbursed', 'rejected'].includes(entry.to_status)),
-    );
+    const decided = this.decidedLeads();
     const disbursed = leads.filter((lead) => lead.status === 'disbursed').length;
-    const decided = decisions.length;
 
-    const daySpans = this.histories()
-      .map(({ lead, history }) => {
-        const decision = history.find((entry) => ['approved', 'disbursed', 'rejected'].includes(entry.to_status));
-        if (!decision || !lead.created_at || !decision.created_at) {
+    // Approximates "days to decision" as `updated_at - created_at` for a
+    // decided lead — real timestamps, not synthesised ones, though it can
+    // overstate the span if a lead was edited again after its decision.
+    const daySpans = decided
+      .map((lead) => {
+        if (!lead.created_at || !lead.updated_at) {
           return null;
         }
-        return (new Date(decision.created_at).getTime() - new Date(lead.created_at).getTime()) / 86400000;
+        return (new Date(lead.updated_at).getTime() - new Date(lead.created_at).getTime()) / 86400000;
       })
-      .filter((value): value is number => value !== null);
+      .filter((value): value is number => value !== null && value >= 0);
 
     const avgDays = daySpans.length ? daySpans.reduce((sum, value) => sum + value, 0) / daySpans.length : 0;
     const activeEmployees = new Set(leads.map((lead) => lead.assigned_employee?.name).filter(Boolean)).size;
 
     return {
-      conversionRate: decided ? Math.round((disbursed / decided) * 1000) / 10 : 0,
+      conversionRate: decided.length ? Math.round((disbursed / decided.length) * 1000) / 10 : 0,
       avgDaysToDecision: Math.round(avgDays * 10) / 10,
       activeEmployees,
-      decisionsMade: decided,
+      decisionsMade: decided.length,
     };
   });
 
-  protected readonly funnel = computed<BarDatum[]>(() =>
-    FUNNEL_STAGES.map((stage) => ({
+  /** Stage-reached counts inferred from each lead's current status — see `STAGE_RANK` above. */
+  protected readonly funnel = computed<BarDatum[]>(() => {
+    const leads = this.filteredLeads();
+    return FUNNEL_STAGES.map((stage) => ({
       label: stage.label,
-      value: this.histories().filter(({ history }) => history.some((entry) => entry.to_status === stage.value)).length,
-    })),
-  );
+      value: leads.filter((lead) => (STAGE_RANK[lead.status] ?? 0) >= STAGE_RANK[stage.value]).length,
+    }));
+  });
 
   protected readonly teamPerformance = computed<TeamRow[]>(() => {
     const byEmployee = new Map<string, { total: number; approved: number; disbursed: number }>();
@@ -138,12 +163,11 @@ export class ManagerPerformanceReportsComponent {
     this.teamPerformance().map((row) => ({ label: row.employee, value: row.total })),
   );
 
+  /** Weekly count of leads that reached Approved or Disbursed, bucketed by `updated_at` (see `summary` above for the same approximation). */
   protected readonly trend = computed<TrendPoint[]>(() => {
     const { from = defaultFrom(120), to = defaultTo() } = this.rangeValues();
-    const outcomeEvents = this.histories().flatMap(({ history }) =>
-      history.filter((entry) => entry.to_status === 'approved' || entry.to_status === 'disbursed'),
-    );
-    return bucketByWeek(outcomeEvents, (entry) => entry.created_at, from, to);
+    const outcomeLeads = this.filteredLeads().filter((lead) => lead.status === 'approved' || lead.status === 'disbursed');
+    return bucketByWeek(outcomeLeads, (lead) => lead.updated_at, from, to);
   });
 
   protected readonly teamColumns: TableColumn<TeamRow>[] = [

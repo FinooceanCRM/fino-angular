@@ -36,4 +36,24 @@ class DocumentPolicy
                 UserRole::RelationshipManager,
             ], true);
     }
+
+    /**
+     * KYC review (Phase 5, Part B) — RM-only workflow in the mock (every
+     * `RelationshipManagerKycDataProvider` action reviews the RM's own
+     * leads); Manager/Super Admin also granted, matching the hierarchy-role
+     * shape used elsewhere (e.g. {@see self::delete()}).
+     */
+    public function verify(User $actor, Document $document): bool
+    {
+        return $actor->is_active && in_array($actor->roleEnum(), [
+            UserRole::SuperAdmin,
+            UserRole::Manager,
+            UserRole::RelationshipManager,
+        ], true);
+    }
+
+    public function reject(User $actor, Document $document): bool
+    {
+        return $this->verify($actor, $document);
+    }
 }

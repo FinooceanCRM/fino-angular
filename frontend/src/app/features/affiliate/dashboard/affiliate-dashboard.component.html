@@ -1,0 +1,144 @@
+<app-page-header title="Affiliate dashboard" subtitle="Your independent affiliate workspace" />
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <mat-card class="affiliate-dashboard__error">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
+
+@if (data(); as dashboard) {
+  <div class="affiliate-dashboard">
+    <mat-card class="affiliate-dashboard__welcome">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>waving_hand</mat-icon>
+        <mat-card-title>{{ dashboard.welcome.headline }}</mat-card-title>
+        <mat-card-subtitle>{{ dashboard.welcome.message }}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-actions class="affiliate-dashboard__actions">
+        <a mat-stroked-button routerLink="/affiliate/profile">
+          <mat-icon>badge</mat-icon>
+          Manage profile
+        </a>
+        <a mat-stroked-button routerLink="/affiliate/referrals">
+          <mat-icon>groups</mat-icon>
+          Referrals
+        </a>
+        <a mat-stroked-button routerLink="/affiliate/commissions">
+          <mat-icon>payments</mat-icon>
+          Commissions
+        </a>
+        <a mat-stroked-button routerLink="/affiliate/payouts">
+          <mat-icon>account_balance_wallet</mat-icon>
+          Payouts
+        </a>
+      </mat-card-actions>
+    </mat-card>
+
+    <mat-card class="affiliate-dashboard__referral">
+      <mat-card-header>
+        <mat-card-title>Your referral link</mat-card-title>
+        <mat-card-subtitle>
+          Share this link — every submission through it is attributed to you.
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="affiliate-dashboard__referral-content">
+        <div class="affiliate-dashboard__referral-row">
+          <span class="affiliate-dashboard__referral-label">Referral code</span>
+          <code>{{ dashboard.referral.code }}</code>
+        </div>
+        <div class="affiliate-dashboard__referral-row">
+          <span class="affiliate-dashboard__referral-label">Referral link</span>
+          <code class="affiliate-dashboard__referral-link">{{ dashboard.referral.link }}</code>
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Copy link"
+            aria-label="Copy referral link"
+            (click)="copyLink(dashboard.referral.link)"
+          >
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <div class="affiliate-dashboard__stats">
+      <app-stat-card
+        icon="groups"
+        [value]="dashboard.totals.referral_count"
+        label="Referrals"
+        accent="primary"
+      />
+      <app-stat-card
+        icon="task_alt"
+        [value]="dashboard.totals.converted_count"
+        label="Converted"
+        accent="accent"
+      />
+      <app-stat-card
+        icon="payments"
+        [value]="'₹' + (dashboard.totals.commission_accrued | number: '1.0-2')"
+        label="Commission accrued"
+      />
+      <app-stat-card
+        icon="check_circle"
+        [value]="'₹' + (dashboard.totals.commission_paid | number: '1.0-2')"
+        label="Commission paid"
+        accent="accent"
+      />
+      <app-stat-card
+        icon="hourglass_top"
+        [value]="'₹' + (dashboard.totals.pending_payout | number: '1.0-2')"
+        label="Pending payout"
+      />
+    </div>
+
+    <app-notifications-panel class="affiliate-dashboard__notifications" />
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>User information</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <mat-list>
+          <mat-list-item>
+            <span matListItemTitle>{{ dashboard.user.name }}</span>
+            <span matListItemLine>Name</span>
+          </mat-list-item>
+          <mat-list-item>
+            <span matListItemTitle>{{ dashboard.user.email }}</span>
+            <span matListItemLine>Email</span>
+          </mat-list-item>
+          <mat-list-item>
+            <span matListItemTitle>{{ dashboard.user.phone ?? '—' }}</span>
+            <span matListItemLine>Phone</span>
+          </mat-list-item>
+          <mat-list-item>
+            <span matListItemTitle>{{ dashboard.user.member_since | date: 'mediumDate' }}</span>
+            <span matListItemLine>Member since</span>
+          </mat-list-item>
+        </mat-list>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card>
+      <mat-card-header>
+        <mat-card-title>Account status</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="affiliate-dashboard__status">
+        <app-status-pill
+          [label]="dashboard.account_status.status"
+          [colour]="dashboard.account_status.is_active ? 'success' : 'default'"
+        />
+        <app-status-pill
+          [label]="dashboard.account_status.email_verified ? 'Email verified' : 'Email not verified'"
+          [colour]="dashboard.account_status.email_verified ? 'success' : 'accent'"
+        />
+      </mat-card-content>
+    </mat-card>
+  </div>
+}

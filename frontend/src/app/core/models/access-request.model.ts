@@ -5,6 +5,8 @@ export interface AccessRequestLeadSummary {
   reference: string;
   applicant_name: string;
   loan_type: string;
+  loan_amount: number;
+  city: string | null;
   status: string;
 }
 

@@ -15,7 +15,7 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
 
 import { UserFormModalComponent, UserFormModalResult } from '@features/super-admin/users/user-form-modal/user-form-modal.component';
 
-import { ManagerTeamDataProvider } from '../../team/data/manager-team.provider';
+import { ManagerTeamDataProvider } from '../../team/data/manager-team-data.provider';
 import { ManagerTeamActivityComponent } from '../../team/team-activity/manager-team-activity.component';
 import { ManagerTeamPerformanceCardsComponent } from '../../team/team-performance-cards/manager-team-performance-cards.component';
 

@@ -13,7 +13,7 @@ import { EntityHeaderComponent } from '@shared/components/entity-header.componen
 
 import { UserFormModalComponent, UserFormModalResult } from '@features/super-admin/users/user-form-modal/user-form-modal.component';
 
-import { ManagerTeamDataProvider } from '../../team/data/manager-team.provider';
+import { ManagerTeamDataProvider } from '../../team/data/manager-team-data.provider';
 import {
   ManagerTeamAssignDialogComponent,
   ManagerTeamAssignDialogResult,

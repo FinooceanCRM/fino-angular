@@ -1,0 +1,178 @@
+<div class="page">
+  <header class="brand">
+    <span class="brand__name">FINOOCEAN</span>
+  </header>
+
+  <main class="card">
+    @if (step() === 'done') {
+      <div class="confirmation">
+        <h1>You're verified</h1>
+        <p>Your connector account is active. You can log in now.</p>
+      </div>
+    } @else if (step() === 'otp') {
+      <h1>Enter your code</h1>
+      <p class="subtitle">
+        We've sent a 6-digit code by SMS to your phone number. Enter it below to activate your account.
+      </p>
+
+      @if (error(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+
+      @if (devOtp(); as code) {
+        <p class="dev-hint">Dev mode: your code is <strong>{{ code }}</strong> (no SMS gateway is configured).</p>
+      }
+
+      <form [formGroup]="otpForm" (ngSubmit)="verifyOtp()" novalidate>
+        <div class="field">
+          <label for="otp">Verification code</label>
+          <input
+            id="otp"
+            type="text"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            formControlName="otp"
+          />
+          @if (otpForm.controls.otp.touched && otpForm.controls.otp.hasError('required')) {
+            <span class="field-error">Enter the code we sent you.</span>
+          }
+          @if (otpForm.controls.otp.touched && otpForm.controls.otp.hasError('pattern')) {
+            <span class="field-error">Enter the 6-digit code.</span>
+          }
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="verifying()">
+          {{ verifying() ? 'Verifying…' : 'Verify' }}
+        </button>
+
+        <button type="button" class="link-btn" [disabled]="resending()" (click)="resendOtp()">
+          {{ resending() ? 'Sending…' : "Didn't get a code? Resend" }}
+        </button>
+      </form>
+    } @else {
+      <h1>Become a Finoocean connector</h1>
+      <p class="subtitle">
+        @if (inviteCode) {
+          You're joining under invite code <strong>{{ inviteCode }}</strong>.
+        } @else {
+          Sign up to start referring customers and earning commissions.
+        }
+      </p>
+
+      @if (error(); as message) {
+        <p class="form-error" role="alert">{{ message }}</p>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <h2 class="section-title">Account</h2>
+
+        <div class="field">
+          <label for="name">Full name</label>
+          <input id="name" type="text" formControlName="name" autocomplete="name" />
+          @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+            <span class="field-error">Your name is required.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" type="email" formControlName="email" autocomplete="email" />
+          @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+            <span class="field-error">Email is required.</span>
+          }
+          @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+            <span class="field-error">Enter a valid email address.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="phone">Phone number</label>
+          <input id="phone" type="tel" formControlName="phone" autocomplete="tel" placeholder="10-digit mobile number" />
+          <span class="field-hint">We'll send a verification code to this number.</span>
+          @if (form.controls.phone.touched && form.controls.phone.hasError('required')) {
+            <span class="field-error">A phone number is required.</span>
+          }
+          @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+            <span class="field-error">Enter a valid phone number (10 to 15 digits).</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" type="password" formControlName="password" autocomplete="new-password" />
+          @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+            <span class="field-error">Password must be at least 8 characters.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="password_confirmation">Confirm password</label>
+          <input
+            id="password_confirmation"
+            type="password"
+            formControlName="password_confirmation"
+            autocomplete="new-password"
+          />
+        </div>
+
+        <h2 class="section-title">Business details (optional)</h2>
+
+        <div class="field">
+          <label for="company_name">Company name</label>
+          <input id="company_name" type="text" formControlName="company_name" />
+        </div>
+
+        <div class="field">
+          <label for="contact_person">Contact person</label>
+          <input id="contact_person" type="text" formControlName="contact_person" />
+        </div>
+
+        <div class="field">
+          <label for="alternate_phone">Alternate phone</label>
+          <input id="alternate_phone" type="tel" formControlName="alternate_phone" autocomplete="tel" />
+        </div>
+
+        <div class="field">
+          <label for="address_line1">Address</label>
+          <input id="address_line1" type="text" formControlName="address_line1" />
+        </div>
+
+        <div class="field">
+          <label for="city">City</label>
+          <input id="city" type="text" formControlName="city" autocomplete="address-level2" />
+        </div>
+
+        <div class="field">
+          <label for="state">State</label>
+          <input id="state" type="text" formControlName="state" autocomplete="address-level1" />
+        </div>
+
+        <div class="field">
+          <label for="pincode">Pincode</label>
+          <input id="pincode" type="text" formControlName="pincode" />
+          @if (form.controls.pincode.touched && form.controls.pincode.hasError('pattern')) {
+            <span class="field-error">Enter 4 to 10 digits.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="pan_number">PAN number</label>
+          <input id="pan_number" type="text" formControlName="pan_number" />
+          @if (form.controls.pan_number.touched && form.controls.pan_number.hasError('pattern')) {
+            <span class="field-error">PAN must be 10 alphanumeric characters.</span>
+          }
+        </div>
+
+        <div class="field">
+          <label for="gst_number">GST number</label>
+          <input id="gst_number" type="text" formControlName="gst_number" />
+        </div>
+
+        <button type="submit" class="submit-btn" [disabled]="submitting()">
+          {{ submitting() ? 'Submitting…' : 'Sign up' }}
+        </button>
+      </form>
+    }
+  </main>
+</div>

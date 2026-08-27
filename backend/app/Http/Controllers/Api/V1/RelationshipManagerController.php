@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\RelationshipManager\UpdateRelationshipManagerProfileRequest;
+use App\Http\Resources\DocumentResource;
 use App\Http\Resources\RelationshipManagerProfileResource;
 use App\Models\RelationshipManager;
+use App\Services\DocumentService;
 use App\Services\RelationshipManagerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,8 +18,10 @@ use Illuminate\Http\Request;
  */
 class RelationshipManagerController extends BaseApiController
 {
-    public function __construct(private readonly RelationshipManagerService $relationshipManagers)
-    {
+    public function __construct(
+        private readonly RelationshipManagerService $relationshipManagers,
+        private readonly DocumentService $documents,
+    ) {
     }
 
     /** GET /api/v1/relationship-managers/dashboard */
@@ -63,5 +67,20 @@ class RelationshipManagerController extends BaseApiController
         $this->authorize('viewConnectors', RelationshipManager::class);
 
         return $this->respondSuccess($this->relationshipManagers->connectorsFor($request->user()));
+    }
+
+    /**
+     * GET /api/v1/relationship-managers/kyc-documents — KYC review queue
+     * (Phase 5, Part B): documents on this RM's own leads, filtered to
+     * KYC-relevant document types. Replaces the mock
+     * `RelationshipManagerKycDataProvider`.
+     */
+    public function kycDocuments(Request $request): JsonResponse
+    {
+        $this->authorize('viewKycDocuments', RelationshipManager::class);
+
+        $documents = $this->documents->kycQueueForRm($request->user(), $request->query('status'));
+
+        return $this->respondSuccess(DocumentResource::collection($documents)->resolve($request));
     }
 }

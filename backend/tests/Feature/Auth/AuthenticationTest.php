@@ -87,6 +87,14 @@ class AuthenticationTest extends TestCase
             ->postJson('/api/v1/auth/logout')
             ->assertOk();
 
+        // Laravel's auth guard caches the resolved user for the lifetime of
+        // the guard instance, which persists across sequential test-client
+        // calls within one test method (unlike separate real HTTP requests,
+        // which each get a fresh guard) — without this, the second call
+        // below would reuse the first call's cached resolution and never
+        // actually re-check the (now-deleted) token against the database.
+        $this->app['auth']->forgetGuards();
+
         $this->withHeader('Authorization', "Bearer {$token}")
             ->getJson('/api/v1/auth/me')
             ->assertStatus(401);
@@ -94,17 +102,23 @@ class AuthenticationTest extends TestCase
         $this->assertSame(0, $user->fresh()->tokens()->count());
     }
 
+    /**
+     * Exercises the `role` middleware against a real role-gated route
+     * (super-admin/dashboard, ->middleware('role:super_admin')) rather than
+     * a dedicated test-only endpoint — there is no /auth/admin-check route
+     * in this app.
+     */
     public function test_role_middleware_blocks_other_roles(): void
     {
         Sanctum::actingAs($this->user(UserRole::Employee));
 
-        $this->getJson('/api/v1/auth/admin-check')->assertStatus(403);
+        $this->getJson('/api/v1/super-admin/dashboard')->assertStatus(403);
     }
 
     public function test_role_middleware_allows_matching_role(): void
     {
         Sanctum::actingAs($this->user(UserRole::SuperAdmin));
 
-        $this->getJson('/api/v1/auth/admin-check')->assertOk();
+        $this->getJson('/api/v1/super-admin/dashboard')->assertOk();
     }
 }

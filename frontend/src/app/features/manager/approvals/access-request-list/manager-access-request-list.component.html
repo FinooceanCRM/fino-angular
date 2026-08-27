@@ -48,6 +48,10 @@
             <mat-option value="all">All</mat-option>
           </mat-select>
         </mat-form-field>
+
+        <button mat-icon-button type="button" matTooltip="Refresh" aria-label="Refresh" (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+        </button>
       </mat-card-content>
     </mat-card>
 
@@ -60,8 +64,8 @@
           emptyMessage="Nothing waiting on you here."
           itemLabel="requests"
         >
-          <ng-template appTableCell="title" let-row>
-            <span class="access-request-list__title">Access request</span>
+          <ng-template appTableCell="name" let-row>
+            <span class="access-request-list__title">{{ row.lead?.applicant_name ?? 'Unknown applicant' }}</span>
             <span class="access-request-list__subtitle">
               @if (leadReference(row); as ref) {
                 {{ ref }}
@@ -69,12 +73,20 @@
             </span>
           </ng-template>
 
-          <ng-template appTableCell="banker" let-row>
-            {{ row.banker?.name ?? 'Unknown' }}
+          <ng-template appTableCell="loan_type" let-row>
+            {{ row.lead ? loanTypeLabel(row.lead.loan_type) : '—' }}
           </ng-template>
 
-          <ng-template appTableCell="created_at" let-row>
-            {{ row.created_at | date: 'mediumDate' }}
+          <ng-template appTableCell="loan_amount" let-row>
+            {{ row.lead ? (row.lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0') : '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="city" let-row>
+            {{ row.lead?.city ?? '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="banker" let-row>
+            {{ row.banker?.name ?? 'Unknown' }}
           </ng-template>
 
           <ng-template appTableCell="status" let-row>

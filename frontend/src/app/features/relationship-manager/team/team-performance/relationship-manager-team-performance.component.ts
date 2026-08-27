@@ -1,11 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
 
-import { ManagerLeadDataProvider } from '@features/manager/leads/data/providers/lead-data.provider';
+import { ManagedUser } from '@core/models/user.model';
+import { UserService } from '@core/services/user.service';
 
-import { currentRmId } from '../../leads/current-rm';
+import { ManagerLeadsDataProvider } from '@features/manager/data/providers/manager-leads.provider';
 
 interface EmployeePerformanceRow {
   id: number;
@@ -16,7 +17,7 @@ interface EmployeePerformanceRow {
   conversionRatePct: number;
 }
 
-/** Team Performance — real lead counts per employee, computed from the same `ManagerLeadDataProvider` the Leads pages use. */
+/** Team Performance — real lead counts per employee, computed from `ManagerLeadsDataProvider` (`GET leads`, already scoped to this RM's own leads). */
 @Component({
   selector: 'app-relationship-manager-team-performance',
   standalone: true,
@@ -26,11 +27,21 @@ interface EmployeePerformanceRow {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RelationshipManagerTeamPerformanceComponent {
-  private readonly leadData = inject(ManagerLeadDataProvider);
-  private readonly rmId = currentRmId();
+  private readonly leadData = inject(ManagerLeadsDataProvider);
+  private readonly userService = inject(UserService);
+
+  private readonly employees = signal<ManagedUser[]>([]);
+
+  constructor() {
+    // GET /users is already scoped server-side to this RM's own employees.
+    this.userService.list({ role: 'employee', perPage: 200 }).subscribe({
+      next: (employees) => this.employees.set(employees),
+      error: () => this.employees.set([]),
+    });
+  }
 
   protected readonly ranked = computed<EmployeePerformanceRow[]>(() => {
-    const employees = this.leadData.employeesOfRm(this.rmId ?? 0);
+    const employees = this.employees();
     const leads = this.leadData.leads();
 
     return employees

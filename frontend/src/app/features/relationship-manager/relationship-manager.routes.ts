@@ -114,6 +114,16 @@ export const relationshipManagerRoutes: Routes = [
       ),
   },
   {
+    path: 'leads/my-submitted',
+    title: 'My submitted leads — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['relationship_manager'] },
+    loadComponent: () =>
+      import('./leads/my-submitted/relationship-manager-my-submitted-leads.component').then(
+        (m) => m.RelationshipManagerMySubmittedLeadsComponent,
+      ),
+  },
+  {
     path: 'leads/:id/timeline',
     title: 'Lead timeline — FINOOCEAN',
     canActivate: [authGuard, roleGuard],
@@ -132,6 +142,33 @@ export const relationshipManagerRoutes: Routes = [
     loadComponent: () =>
       import('./leads/lead-detail/relationship-manager-lead-detail.component').then(
         (m) => m.RelationshipManagerLeadDetailComponent,
+      ),
+  },
+  {
+    // Activities — Calls/Meetings/Tasks/Reminders tabs (Phase 4), backed by
+    // the real Tasks API scoped to this RM's team via `assigned_to=team`.
+    // Previously unrouted (RelationshipManagerFollowUpsComponent existed
+    // but nothing linked to it).
+    path: 'follow-ups',
+    title: 'Follow-ups — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['relationship_manager'] },
+    loadComponent: () =>
+      import('./follow-ups/relationship-manager-follow-ups.component').then(
+        (m) => m.RelationshipManagerFollowUpsComponent,
+      ),
+  },
+  {
+    // KYC Verification (Phase 5, Part B), backed by the real Document
+    // feature scoped to this RM's own leads. Previously unrouted
+    // (RelationshipManagerKycComponent existed but nothing linked to it).
+    path: 'kyc',
+    title: 'KYC verification — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['relationship_manager'] },
+    loadComponent: () =>
+      import('./kyc/relationship-manager-kyc.component').then(
+        (m) => m.RelationshipManagerKycComponent,
       ),
   },
   {

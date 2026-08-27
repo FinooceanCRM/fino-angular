@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
-import { PROCESSING_STATUSES } from '../data/models/lead.model';
+import { PROCESSING_STATUSES } from '../../data/models/lead-catalogue.model';
 import { ManagerLeadStatusTableComponent } from '../lead-status-table/manager-lead-status-table.component';
 
 @Component({

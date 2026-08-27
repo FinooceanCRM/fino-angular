@@ -9,13 +9,16 @@ use App\Http\Requests\Auth\UpdatePreferencesRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use App\Services\AuthService;
+use App\Services\LeadReferralService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class AuthController extends BaseApiController
 {
-    public function __construct(private readonly AuthService $auth)
-    {
+    public function __construct(
+        private readonly AuthService $auth,
+        private readonly LeadReferralService $leadReferral,
+    ) {
     }
 
     public function login(LoginRequest $request): JsonResponse
@@ -73,5 +76,14 @@ class AuthController extends BaseApiController
         $updated = $this->auth->updatePreferences($user, $request->validated());
 
         return $this->respondSuccess(new UserResource($updated), 'Preferences updated successfully.');
+    }
+
+    /** Personal lead-capture referral link — see {@see LeadReferralService}. */
+    public function leadReferralLink(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $request->user();
+
+        return $this->respondSuccess($this->leadReferral->getOrCreate($user));
     }
 }

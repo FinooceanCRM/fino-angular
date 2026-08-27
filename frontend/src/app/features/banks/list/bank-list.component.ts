@@ -50,9 +50,11 @@ export class BankListComponent implements OnInit {
 
   readonly rows = signal<BankCriteria[]>([]);
   readonly loanTypes = signal<CatalogueOption[]>([]);
+  readonly employmentTypes = signal<CatalogueOption[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly activeFilter = signal('');
+  readonly showAdvanced = signal(false);
 
   readonly filteredRows = computed(() => {
     const filter = this.activeFilter();
@@ -63,11 +65,21 @@ export class BankListComponent implements OnInit {
     bank_name: ['', Validators.required],
     product_name: ['', Validators.required],
     loan_type: ['home', Validators.required],
-    min_loan_amount: [100000, [Validators.required, Validators.min(0)]],
-    max_loan_amount: [5000000],
-    min_monthly_income: [25000, [Validators.required, Validators.min(0)]],
     min_credit_score: [700],
+    min_monthly_income: [25000, [Validators.required, Validators.min(0)]],
     interest_rate: [10.5],
+    max_tenure_months: [null as number | null],
+    max_loan_amount: [5000000],
+    min_loan_amount: [100000, [Validators.required, Validators.min(0)]],
+    processing_fee: [''],
+    min_age: [null as number | null, [Validators.min(18), Validators.max(99)]],
+    max_age: [null as number | null, [Validators.min(18), Validators.max(99)]],
+    foir_dbr: [null as number | null, [Validators.min(0), Validators.max(100)]],
+    employment_type: [''],
+    business_vintage_years: [null as number | null, Validators.min(0)],
+    eligible_locations: [''],
+    negative_profile_rules: [''],
+    special_conditions: [''],
     is_active: [true],
   });
 
@@ -87,7 +99,10 @@ export class BankListComponent implements OnInit {
   ngOnInit(): void {
     this.load();
     this.leads.metadata().subscribe({
-      next: (metadata) => this.loanTypes.set(metadata.loan_types),
+      next: (metadata) => {
+        this.loanTypes.set(metadata.loan_types);
+        this.employmentTypes.set(metadata.employment_types);
+      },
       error: () => undefined,
     });
   }
@@ -111,7 +126,30 @@ export class BankListComponent implements OnInit {
       return;
     }
 
-    this.banks.create(this.form.getRawValue() as BankCriteriaPayload).subscribe({
+    const raw = this.form.getRawValue();
+    const payload: BankCriteriaPayload = {
+      bank_name: raw.bank_name,
+      product_name: raw.product_name,
+      loan_type: raw.loan_type,
+      min_loan_amount: raw.min_loan_amount,
+      max_loan_amount: raw.max_loan_amount || null,
+      min_monthly_income: raw.min_monthly_income,
+      min_credit_score: raw.min_credit_score || null,
+      min_age: raw.min_age || null,
+      max_age: raw.max_age || null,
+      employment_type: raw.employment_type || null,
+      interest_rate: raw.interest_rate || null,
+      max_tenure_months: raw.max_tenure_months || null,
+      processing_fee: raw.processing_fee.trim() || null,
+      foir_dbr: raw.foir_dbr || null,
+      business_vintage_years: raw.business_vintage_years || null,
+      eligible_locations: raw.eligible_locations.trim() || null,
+      negative_profile_rules: raw.negative_profile_rules.trim() || null,
+      special_conditions: raw.special_conditions.trim() || null,
+      is_active: raw.is_active,
+    };
+
+    this.banks.create(payload).subscribe({
       next: () => {
         this.form.reset({
           loan_type: 'home',

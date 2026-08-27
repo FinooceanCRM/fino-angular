@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Enums\DocumentType;
 use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Requests\Document\RejectDocumentRequest;
 use App\Http\Requests\Document\UploadDocumentRequest;
 use App\Http\Resources\DocumentResource;
 use App\Models\Document;
@@ -77,5 +78,27 @@ class DocumentController extends BaseApiController
         $this->documents->delete($document);
 
         return $this->respondSuccess(null, 'Document deleted.');
+    }
+
+    /** POST /api/v1/documents/{document}/verify — KYC review (Phase 5, Part B). */
+    public function verify(Request $request, Document $document): JsonResponse
+    {
+        $this->leads->findVisible($request->user(), (int) $document->loan_lead_id);
+        $this->authorize('verify', $document);
+
+        $updated = $this->documents->verify($request->user(), $document);
+
+        return $this->respondSuccess((new DocumentResource($updated))->resolve($request), 'Document verified.');
+    }
+
+    /** POST /api/v1/documents/{document}/reject — KYC review (Phase 5, Part B). */
+    public function reject(RejectDocumentRequest $request, Document $document): JsonResponse
+    {
+        $this->leads->findVisible($request->user(), (int) $document->loan_lead_id);
+        $this->authorize('reject', $document);
+
+        $updated = $this->documents->reject($request->user(), $document, $request->validated('reason'));
+
+        return $this->respondSuccess((new DocumentResource($updated))->resolve($request), 'Document rejected.');
     }
 }

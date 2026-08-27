@@ -1,5 +1,9 @@
 <app-page-header title="Search" subtitle="Leads, Users, Employees, Connectors and Bankers — one search across the platform." />
 
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
 <mat-form-field appearance="outline" class="search-results__field">
   <mat-label>Search</mat-label>
   <input

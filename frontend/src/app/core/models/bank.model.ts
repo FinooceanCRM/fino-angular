@@ -18,6 +18,13 @@ export interface BankCriteria {
   max_age: number | null;
   employment_type: string | null;
   interest_rate: number | null;
+  max_tenure_months: number | null;
+  processing_fee: string | null;
+  foir_dbr: number | null;
+  business_vintage_years: number | null;
+  eligible_locations: string | null;
+  negative_profile_rules: string | null;
+  special_conditions: string | null;
   eligibility_rules: EligibilityRule[];
   is_active: boolean;
   banker_id: number | null;
@@ -33,8 +40,17 @@ export interface BankCriteriaPayload {
   max_loan_amount?: number | null;
   min_monthly_income: number;
   min_credit_score?: number | null;
+  min_age?: number | null;
+  max_age?: number | null;
   employment_type?: string | null;
   interest_rate?: number | null;
+  max_tenure_months?: number | null;
+  processing_fee?: string | null;
+  foir_dbr?: number | null;
+  business_vintage_years?: number | null;
+  eligible_locations?: string | null;
+  negative_profile_rules?: string | null;
+  special_conditions?: string | null;
   eligibility_rules?: EligibilityRule[];
   is_active: boolean;
 }

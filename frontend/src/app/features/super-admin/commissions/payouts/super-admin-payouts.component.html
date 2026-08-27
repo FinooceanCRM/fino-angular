@@ -45,8 +45,14 @@
       </ng-template>
 
       <ng-template #rowActions let-row>
-        @if (row.status === 'pending' || row.status === 'processing') {
+        @if (row.status === 'pending') {
+          <button mat-stroked-button type="button" (click)="approve(row)">Approve</button>
+        }
+        @if (row.status === 'processing') {
           <button mat-stroked-button type="button" (click)="markPaid(row)">Mark as paid</button>
+        }
+        @if (row.status === 'pending' || row.status === 'processing') {
+          <button mat-stroked-button type="button" color="warn" (click)="reject(row)">Reject</button>
         }
       </ng-template>
     </app-table>

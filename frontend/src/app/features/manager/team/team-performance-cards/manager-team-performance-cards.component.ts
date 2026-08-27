@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 
 import { StatCardComponent } from '@shared/components/stat-card.component';
 
-import { ManagerTeamDataProvider } from '../data/manager-team.provider';
+import { ManagerTeamDataProvider } from '../data/manager-team-data.provider';
 
 /** Individual performance stat cards, embedded on the Employee/RM "View page". */
 @Component({

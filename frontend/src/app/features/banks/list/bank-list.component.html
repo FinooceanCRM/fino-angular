@@ -16,50 +16,110 @@
 @if (canManage()) {
   <mat-card class="bank-list__form-card">
     <mat-card-header>
-      <mat-card-title>Add a bank product</mat-card-title>
+      <mat-card-title>Submit Bank Criteria</mat-card-title>
+      <mat-card-subtitle>Notify Manager + Employee + Connector</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
-      <form class="bank-list__form-grid" [formGroup]="form" (ngSubmit)="create()">
-        <mat-form-field appearance="outline">
-          <mat-label>Bank name</mat-label>
-          <input matInput formControlName="bank_name" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Product name</mat-label>
-          <input matInput formControlName="product_name" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Loan type</mat-label>
-          <mat-select formControlName="loan_type">
-            @for (type of loanTypes(); track type.value) {
-              <mat-option [value]="type.value">{{ type.label }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Minimum amount</mat-label>
-          <input matInput type="number" formControlName="min_loan_amount" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Maximum amount</mat-label>
-          <input matInput type="number" formControlName="max_loan_amount" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Minimum monthly income</mat-label>
-          <input matInput type="number" formControlName="min_monthly_income" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Minimum credit score</mat-label>
-          <input matInput type="number" formControlName="min_credit_score" />
-        </mat-form-field>
-        <mat-form-field appearance="outline">
-          <mat-label>Interest rate (%)</mat-label>
-          <input matInput type="number" formControlName="interest_rate" />
-        </mat-form-field>
-        <mat-checkbox formControlName="is_active">Active</mat-checkbox>
-        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
-          Save product
-        </button>
+      <form [formGroup]="form" (ngSubmit)="create()">
+        <div class="bank-list__form-section">
+          <h3 class="bank-list__form-section-title">Basic Criteria</h3>
+          <div class="bank-list__form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Bank Name</mat-label>
+              <input matInput formControlName="bank_name" placeholder="Example: HDFC" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Select Loan Category</mat-label>
+              <mat-select formControlName="loan_type">
+                @for (type of loanTypes(); track type.value) {
+                  <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Min CIBIL</mat-label>
+              <input matInput type="number" formControlName="min_credit_score" placeholder="Example: 720" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Min Income / Turnover (INR)</mat-label>
+              <input matInput type="number" formControlName="min_monthly_income" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Interest Rate (%)</mat-label>
+              <input matInput type="number" formControlName="interest_rate" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Max Tenure (Months)</mat-label>
+              <input matInput type="number" formControlName="max_tenure_months" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Max Loan Amount (INR)</mat-label>
+              <input matInput type="number" formControlName="max_loan_amount" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Processing Fees (INR / %)</mat-label>
+              <input matInput formControlName="processing_fee" />
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="bank-list__form-section bank-list__form-section--advanced">
+          <div class="bank-list__form-section-header">
+            <h3 class="bank-list__form-section-title">Advanced Criteria (Optional)</h3>
+            <button mat-button type="button" (click)="showAdvanced.set(!showAdvanced())">
+              {{ showAdvanced() ? 'Hide' : 'Show' }}
+            </button>
+          </div>
+
+          @if (showAdvanced()) {
+            <div class="bank-list__form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Min Age Limit</mat-label>
+                <input matInput type="number" formControlName="min_age" placeholder="Example: 21" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Max Age Limit</mat-label>
+                <input matInput type="number" formControlName="max_age" placeholder="Example: 60" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>FOIR / DBR (%)</mat-label>
+                <input matInput type="number" formControlName="foir_dbr" placeholder="Example: 55" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Employment / Business Type</mat-label>
+                <mat-select formControlName="employment_type">
+                  <mat-option value="">Any</mat-option>
+                  @for (type of employmentTypes(); track type.value) {
+                    <mat-option [value]="type.value">{{ type.label }}</mat-option>
+                  }
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Business Vintage (Years)</mat-label>
+                <input matInput type="number" formControlName="business_vintage_years" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Eligible Cities/States</mat-label>
+                <input matInput formControlName="eligible_locations" placeholder="Example: Pune,Mumbai" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Negative Profile Rules (Optional)</mat-label>
+                <input matInput formControlName="negative_profile_rules" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="bank-list__form-span-2">
+                <mat-label>Special conditions / notes (Excel policy based)</mat-label>
+                <textarea matInput rows="3" formControlName="special_conditions"></textarea>
+              </mat-form-field>
+            </div>
+          }
+        </div>
+
+        <div class="bank-list__form-actions">
+          <mat-checkbox formControlName="is_active">Active</mat-checkbox>
+          <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid">
+            Submit Bank Criteria
+          </button>
+        </div>
       </form>
     </mat-card-content>
   </mat-card>

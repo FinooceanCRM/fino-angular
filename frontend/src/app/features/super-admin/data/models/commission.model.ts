@@ -1,34 +1,23 @@
 /** The Super Admin module's "Commissions" interface group. */
 
-export interface ConnectorCommissionRow {
-  id: number;
-  connector_id: number;
-  connector_name: string;
-  lead_reference: string;
-  applicant_name: string;
-  loan_type: string;
-  loan_amount: number;
-  commission_rate: number;
-  commission_amount: number;
-  status: 'accrued' | 'paid' | 'pending';
-  earned_at: string;
-  paid_at: string | null;
-}
+import { AffiliateProfile } from '@core/models/affiliate.model';
+import { ConnectorProfile } from '@core/models/connector.model';
 
-export interface Affiliate {
-  id: number;
-  name: string;
-  email: string;
-  referral_code: string;
-  tier: 'Bronze' | 'Silver' | 'Gold';
-  referrals: number;
-  conversions: number;
-  commission_rate: number;
-  commission_earned: number;
-  commission_paid: number;
-  status: 'active' | 'inactive';
-  joined_at: string;
-}
+/**
+ * Backed by the real AffiliateResource (GET super-admin/affiliates) —
+ * see core/models/affiliate.model.ts. No `tier` field: v1 has no tiers
+ * (locked decision), so there's nothing to alias here.
+ */
+export type Affiliate = AffiliateProfile;
+
+/**
+ * Backed by the real ConnectorProfileResource (GET super-admin/connectors)
+ * — see core/models/connector.model.ts. One row per connector, aggregated
+ * (referral_count/commission_accrued/etc.), same shape as `Affiliate` —
+ * there is no per-lead-per-level commission ledger endpoint, mirroring how
+ * Affiliate Commission already works.
+ */
+export type Connector = ConnectorProfile;
 
 export interface Payout {
   id: number;

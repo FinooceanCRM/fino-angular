@@ -13,7 +13,7 @@ interface RankedBankerPerformance extends BankerPerformance {
   bank: string;
 }
 
-/** Banker Performance — ranks the bankers engaged with the manager's leads, using real counts from the Leads mock data. */
+/** Banker Performance — ranks the bankers engaged with the manager's leads, using real counts from the manager's real leads (`ManagerLeadsDataProvider`). */
 @Component({
   selector: 'app-manager-banker-performance',
   standalone: true,

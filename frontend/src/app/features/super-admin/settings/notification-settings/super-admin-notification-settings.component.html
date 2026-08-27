@@ -1,3 +1,5 @@
+<mat-progress-bar *ngIf="loading()" mode="indeterminate" />
+
 <form class="notif-settings" [formGroup]="form" (ngSubmit)="save()">
   <section class="notif-settings__section">
     <h3 class="notif-settings__title">Delivery channels</h3>

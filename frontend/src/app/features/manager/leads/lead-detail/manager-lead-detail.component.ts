@@ -30,7 +30,7 @@ import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { EntityHeaderComponent } from '@shared/components/entity-header.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
 
-import { STATUS_STEP_ICON, loanTypeLabel } from '../data/models/lead.model';
+import { STATUS_STEP_ICON, loanTypeLabel } from '../../data/models/lead-catalogue.model';
 
 /** Lead Details — read-only overview backed by the real `leads/:id` endpoint. */
 @Component({

@@ -23,6 +23,18 @@
           <mat-icon>badge</mat-icon>
           Manage profile
         </a>
+        <a mat-stroked-button routerLink="/connector/network">
+          <mat-icon>hub</mat-icon>
+          My network
+        </a>
+        <a mat-stroked-button routerLink="/connector/commissions">
+          <mat-icon>payments</mat-icon>
+          Commissions
+        </a>
+        <a mat-stroked-button routerLink="/connector/payouts">
+          <mat-icon>account_balance_wallet</mat-icon>
+          Payouts
+        </a>
         <a mat-stroked-button routerLink="/leads">
           <mat-icon>assignment</mat-icon>
           Leads
@@ -33,6 +45,37 @@
         </a>
       </mat-card-actions>
     </mat-card>
+
+    <mat-card class="connector-dashboard__referral">
+      <mat-card-header>
+        <mat-card-title>Your invite link</mat-card-title>
+        <mat-card-subtitle>
+          Share this link to invite others as connectors under you — they'll join your
+          network, and you'll earn a share of the commission on what they refer.
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content class="connector-dashboard__referral-content">
+        <div class="connector-dashboard__referral-row">
+          <span class="connector-dashboard__referral-label">Referral code</span>
+          <code>{{ dashboard.referral.code }}</code>
+        </div>
+        <div class="connector-dashboard__referral-row">
+          <span class="connector-dashboard__referral-label">Invite link</span>
+          <code class="connector-dashboard__referral-link">{{ dashboard.referral.link }}</code>
+          <button
+            mat-icon-button
+            type="button"
+            matTooltip="Copy link"
+            aria-label="Copy invite link"
+            (click)="copyLink(dashboard.referral.link)"
+          >
+            <mat-icon>content_copy</mat-icon>
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <app-lead-link-card />
 
     <div class="connector-dashboard__stats">
       <app-stat-card
@@ -51,6 +94,22 @@
         icon="hourglass_top"
         [value]="dashboard.stats.in_progress_leads"
         label="In progress"
+      />
+      <app-stat-card
+        icon="hub"
+        [value]="dashboard.referral.direct_referrals"
+        label="Direct network"
+      />
+      <app-stat-card
+        icon="payments"
+        [value]="'₹' + (dashboard.network_totals.commission_accrued | number: '1.0-2')"
+        label="Commission accrued"
+      />
+      <app-stat-card
+        icon="check_circle"
+        [value]="'₹' + (dashboard.network_totals.commission_paid | number: '1.0-2')"
+        label="Commission paid"
+        accent="accent"
       />
     </div>
 

@@ -9,6 +9,7 @@ import { RouterLink } from '@angular/router';
 
 import { BankerDashboard } from '@core/models/banker.model';
 import { BankerService } from '@core/services/banker.service';
+import { LeadLinkCardComponent } from '@shared/components/lead-link-card.component';
 import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
@@ -26,6 +27,7 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
     MatIconModule,
     MatListModule,
     MatProgressBarModule,
+    LeadLinkCardComponent,
     NotificationsPanelComponent,
     PageHeaderComponent,
     StatCardComponent,

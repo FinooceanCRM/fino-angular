@@ -1,16 +1,23 @@
 <div class="commission-page__header">
-  <app-page-header title="Connector Commission" subtitle="1% of loan amount, accrued once a lead is approved." />
+  <app-page-header
+    title="Connector Commission"
+    subtitle="Base commission on own leads, plus a decaying override cascading up the referral chain."
+  />
   <button mat-stroked-button type="button" (click)="export()">
     <mat-icon>download</mat-icon>
     Export CSV
   </button>
 </div>
 
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
 <div class="commission-page__summary">
-  <app-stat-card icon="payments" [value]="'₹' + (summary().total | number: '1.0-0')" label="Total commission" accent="primary" />
-  <app-stat-card icon="task_alt" [value]="'₹' + (summary().paid | number: '1.0-0')" label="Paid out" accent="accent" />
-  <app-stat-card icon="hourglass_top" [value]="'₹' + (summary().outstanding | number: '1.0-0')" label="Outstanding" />
-  <app-stat-card icon="hub" [value]="summary().activeConnectors" label="Earning connectors" />
+  <app-stat-card icon="groups" [value]="summary().totalConnectors" label="Total connectors" accent="primary" />
+  <app-stat-card icon="link" [value]="summary().totalReferrals" label="Total leads" accent="accent" />
+  <app-stat-card icon="payments" [value]="'₹' + (summary().totalEarned | number: '1.0-0')" label="Commission earned" />
+  <app-stat-card icon="trending_up" [value]="summary().conversionRate + '%'" label="Disbursal rate" />
 </div>
 
 <mat-card class="commission-page__toolbar">
@@ -18,17 +25,7 @@
     <form class="commission-page__filters" [formGroup]="filters">
       <mat-form-field appearance="outline">
         <mat-label>Search</mat-label>
-        <input matInput formControlName="search" placeholder="Connector, lead reference or applicant" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Status</mat-label>
-        <mat-select formControlName="status">
-          <mat-option value="">All statuses</mat-option>
-          <mat-option value="accrued">Accrued</mat-option>
-          <mat-option value="pending">Pending</mat-option>
-          <mat-option value="paid">Paid</mat-option>
-        </mat-select>
+        <input matInput formControlName="search" placeholder="Name, email or referral code" />
       </mat-form-field>
     </form>
   </mat-card-content>
@@ -36,21 +33,21 @@
 
 <mat-card class="commission-page__table-card">
   <mat-card-content>
-    <app-table [columns]="columns" [rows]="filteredRows()" emptyMessage="No commission records match the current filters.">
-      <ng-template appTableCell="loan" let-row>
-        {{ row.loan_type }} · ₹{{ row.loan_amount | number: '1.0-0' }}
-      </ng-template>
-
-      <ng-template appTableCell="commission" let-row>
-        ₹{{ row.commission_amount | number: '1.0-0' }} ({{ row.commission_rate }}%)
+    <app-table
+      [columns]="columns"
+      [rows]="filteredRows()"
+      [loading]="loading()"
+      emptyMessage="No connectors match the current filters."
+    >
+      <ng-template appTableCell="earned" let-row>
+        ₹{{ row.commission_accrued ?? 0 | number: '1.0-0' }}
+        @if (row.commission_rate !== null) {
+          ({{ row.commission_rate }}%)
+        }
       </ng-template>
 
       <ng-template appTableCell="status" let-row>
-        <app-status-pill [label]="row.status" [colour]="colourFor(row.status)" />
-      </ng-template>
-
-      <ng-template appTableCell="earned_at" let-row>
-        {{ row.earned_at | date: 'mediumDate' }}
+        <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
       </ng-template>
     </app-table>
   </mat-card-content>

@@ -48,4 +48,13 @@ export class DocumentService {
   remove(id: number): Observable<null> {
     return this.api.delete<null>(`documents/${id}`);
   }
+
+  /** KYC review (Phase 5, Part B). */
+  verify(documentId: number): Observable<LeadDocument> {
+    return this.api.post<LeadDocument>(`documents/${documentId}/verify`);
+  }
+
+  reject(documentId: number, reason: string): Observable<LeadDocument> {
+    return this.api.post<LeadDocument>(`documents/${documentId}/reject`, { reason });
+  }
 }

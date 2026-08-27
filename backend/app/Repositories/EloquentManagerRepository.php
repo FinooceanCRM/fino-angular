@@ -59,6 +59,13 @@ class EloquentManagerRepository implements ManagerRepositoryInterface
             ->first();
     }
 
+    public function findOwnedEmployee(User $manager, int $employeeId): ?User
+    {
+        return $this->employeeQuery($manager)
+            ->whereKey($employeeId)
+            ->first();
+    }
+
     public function countRelationshipManagers(User $manager): int
     {
         return $this->relationshipManagerQuery($manager)->count();

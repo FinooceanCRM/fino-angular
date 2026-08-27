@@ -6,11 +6,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
-import { ManagerLeadDataProvider } from '@features/manager/leads/data/providers/lead-data.provider';
-import { currentEmployeeId } from '@features/employee/current-employee';
+import { Lead } from '@core/models/lead.model';
+import { TaskActivityType, TaskDraft, TaskPriority } from '@core/models/task.model';
+import { LeadService } from '@core/services/lead.service';
 import { ModalComponent } from '@shared/components/modal.component';
-
-import { TaskActivityType, TaskDraft, TaskPriority } from '../data/task.provider';
 
 export interface TaskFormDialogData {
   type: TaskActivityType;
@@ -87,15 +86,15 @@ const TYPE_LABEL: Record<TaskActivityType, string> = { call: 'call', meeting: 'm
 export class TaskFormDialogComponent {
   protected readonly data = inject<TaskFormDialogData>(MAT_DIALOG_DATA);
   protected readonly dialogRef = inject(MatDialogRef<TaskFormDialogComponent, TaskDraft>);
-  private readonly leadData = inject(ManagerLeadDataProvider);
-  private readonly employeeId = currentEmployeeId();
+  private readonly leadService = inject(LeadService);
 
   protected readonly typeLabel = TYPE_LABEL[this.data.type];
   protected readonly dialogTitle = `New ${this.typeLabel}`;
 
-  protected readonly myLeads = computed(() =>
-    this.leadData.leads().filter((lead) => lead.assigned_employee?.id === this.employeeId),
-  );
+  // The API already row-scopes `GET leads` to what the signed-in actor may
+  // see (own + team, per role — same hierarchy scoping every other module
+  // uses), so no client-side "my leads" filter is needed here.
+  protected readonly myLeads = signal<Lead[]>([]);
 
   protected readonly title = signal('');
   protected readonly description = signal('');
@@ -105,21 +104,27 @@ export class TaskFormDialogComponent {
 
   protected readonly canSubmit = computed(() => this.title().trim().length > 0 && this.dueDate().length > 0);
 
+  constructor() {
+    this.leadService.list({ per_page: 100 }).subscribe({
+      next: (page) => this.myLeads.set(page.items),
+      error: () => this.myLeads.set([]),
+    });
+  }
+
   protected submit(): void {
     if (!this.canSubmit()) {
       return;
     }
 
-    const lead = this.leadId() !== null ? this.leadData.getById(this.leadId()!) : undefined;
+    const lead = this.leadId() !== null ? this.myLeads().find((candidate) => candidate.id === this.leadId()) : undefined;
 
     this.dialogRef.close({
       type: this.data.type,
       title: this.title().trim(),
       description: this.description().trim() || null,
-      leadId: lead?.id ?? null,
-      relatedTo: lead ? `${lead.reference} — ${lead.applicant_name}` : 'General',
+      lead_id: lead?.id ?? null,
       priority: this.priority(),
-      dueAt: new Date(this.dueDate() + 'T10:00:00').toISOString(),
+      due_at: new Date(this.dueDate() + 'T10:00:00').toISOString(),
     });
   }
 }

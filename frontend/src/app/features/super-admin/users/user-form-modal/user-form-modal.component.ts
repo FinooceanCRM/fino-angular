@@ -6,15 +6,22 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
 import { ModalComponent } from '@shared/components/modal.component';
-
-import { ManagedUser } from '../../data/models/user.model';
 
 export interface UserFormModalData {
   mode: 'create' | 'edit';
   roleLabel: string;
-  user?: ManagedUser;
+  user?: { name: string; email: string; phone: string | null; is_active: boolean };
+  /**
+   * When set, an additional required Department picker is shown (used when
+   * creating a Relationship Manager, whose department the backend requires
+   * at creation — see `StoreRelationshipManagerRequest`). Omitted entirely
+   * for roles with no department of their own (e.g. Employee, who inherits
+   * one from their Relationship Manager).
+   */
+  departmentOptions?: { value: string; label: string }[];
 }
 
 export interface UserFormModalResult {
@@ -23,6 +30,7 @@ export interface UserFormModalResult {
   phone: string | null;
   password?: string;
   is_active: boolean;
+  department?: string;
 }
 
 /**
@@ -40,6 +48,7 @@ export interface UserFormModalResult {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatSelectModule,
     ModalComponent,
   ],
   templateUrl: './user-form-modal.component.html',
@@ -63,6 +72,10 @@ export class UserFormModalComponent {
       this.data.mode === 'create' ? [Validators.required, Validators.minLength(8)] : [Validators.minLength(8)],
     ],
     is_active: [this.data.user?.is_active ?? true],
+    department: [
+      '',
+      this.data.departmentOptions ? [Validators.required] : [],
+    ],
   });
 
   protected submit(): void {
@@ -81,6 +94,10 @@ export class UserFormModalComponent {
 
     if (raw.password) {
       result.password = raw.password;
+    }
+
+    if (this.data.departmentOptions) {
+      result.department = raw.department;
     }
 
     this.dialogRef.close(result);

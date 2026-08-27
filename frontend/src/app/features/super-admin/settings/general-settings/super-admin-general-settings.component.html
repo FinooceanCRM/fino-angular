@@ -1,3 +1,5 @@
+<mat-progress-bar *ngIf="loading()" mode="indeterminate" />
+
 <form class="gen-settings" [formGroup]="form" (ngSubmit)="save()">
   <section class="gen-settings__section" formGroupName="company">
     <h3 class="gen-settings__title">Company information</h3>

@@ -377,27 +377,7 @@
     <!-- 8. Commission history -->
     <mat-tab label="Commission history">
       <div class="tab-panel">
-        @if (commissionHistory().length === 0) {
-          <app-empty-state icon="payments" message="No commission recorded for this lead." />
-        } @else {
-          <ul class="commission-list">
-            @for (row of commissionHistory(); track row.id) {
-              <li class="commission-list__item">
-                <span class="commission-list__icon"><mat-icon>hub</mat-icon></span>
-                <span class="commission-list__body">
-                  <span class="commission-list__title">{{ row.connector_name }}</span>
-                  <span class="commission-list__subtitle">
-                    ₹{{ row.commission_amount | number: '1.0-0' }} ({{ row.commission_rate }}%) · earned {{ row.earned_at | date: 'mediumDate' }}
-                  </span>
-                </span>
-                <app-status-pill
-                  [label]="row.status"
-                  [colour]="row.status === 'paid' ? 'success' : row.status === 'accrued' ? 'primary' : 'default'"
-                />
-              </li>
-            }
-          </ul>
-        }
+        <app-empty-state icon="payments" message="No commission recorded for this lead." />
       </div>
     </mat-tab>
 

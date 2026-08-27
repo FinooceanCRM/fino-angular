@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use App\Enums\DocumentType;
 use App\Models\Document;
+use App\Models\LoanLead;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -32,6 +33,14 @@ class DocumentResource extends JsonResource
             'uploaded_by' => $this->whenLoaded('uploader', fn (): ?array => $this->uploader ? [
                 'id' => $this->uploader->id,
                 'name' => $this->uploader->name,
+            ] : null),
+            // Lead reference/applicant name — populated when the `loanLead`
+            // relation is eager-loaded (the RM KYC queue's primary use of
+            // this Resource; Phase 5, Part B), null otherwise.
+            'lead' => $this->when($this->relationLoaded('loanLead'), fn (): ?array => $this->loanLead instanceof LoanLead ? [
+                'id' => $this->loanLead->id,
+                'reference' => $this->loanLead->reference,
+                'applicant_name' => $this->loanLead->applicant_name,
             ] : null),
             'download_url' => url('/api/v1/documents/'.$this->id.'/download'),
             'created_at' => optional($this->created_at)->toIso8601String(),

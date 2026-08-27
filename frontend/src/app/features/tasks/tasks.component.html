@@ -81,8 +81,8 @@
         <span class="priority-dot" [class]="'priority-dot--' + row.priority">{{ priorityLabel(row) }}</span>
       </ng-template>
 
-      <ng-template appTableCell="dueAt" let-row>
-        {{ row.dueAt | date: 'mediumDate' }}
+      <ng-template appTableCell="due_at" let-row>
+        {{ row.due_at | date: 'mediumDate' }}
       </ng-template>
 
       <ng-template appTableCell="status" let-row>

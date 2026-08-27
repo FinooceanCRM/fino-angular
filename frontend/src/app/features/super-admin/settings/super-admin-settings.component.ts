@@ -11,9 +11,9 @@ import { SuperAdminSecuritySettingsComponent } from './security-settings/super-a
 
 /**
  * Platform configuration — General, Matching Engine, Notifications and
- * Security. Backed by `SettingsDataProvider`: a "Save" mutates the shared
- * signal and records an audit entry, but nothing survives a hard reload
- * since there is no settings API yet.
+ * Security. Each tab is its own child component backed by `SettingsService`
+ * (Phase 1): loads the singleton settings document on init and PUTs its own
+ * section back on "Save", which also records an audit entry server-side.
  */
 @Component({
   selector: 'app-super-admin-settings',

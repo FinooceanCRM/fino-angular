@@ -6,9 +6,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
+import { Customer, CustomerDraft, CustomerSegment } from '@core/models/customer.model';
 import { ModalComponent } from '@shared/components/modal.component';
-
-import { Customer, CustomerDraft, CustomerSegment } from '../data/customer.provider';
 
 export interface CustomerFormDialogData {
   customer?: Customer;

@@ -32,6 +32,9 @@
   <span class="topbar__spacer"></span>
 
   @if (auth.isAuthenticated()) {
+    @if (auth.hasRole('super_admin')) {
+      <app-super-admin-search-trigger />
+    }
     <button
       mat-icon-button
       type="button"

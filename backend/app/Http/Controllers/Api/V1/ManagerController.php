@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Api\BaseApiController;
+use App\Http\Requests\Manager\ReassignEmployeeRequest;
 use App\Http\Requests\Manager\StoreRelationshipManagerRequest;
 use App\Http\Requests\Manager\UpdateManagerProfileRequest;
 use App\Http\Requests\Manager\UpdateRelationshipManagerRequest;
@@ -94,5 +95,21 @@ class ManagerController extends BaseApiController
         $this->authorize('viewEmployees', Manager::class);
 
         return $this->respondSuccess($this->managers->employeesFor($request->user()));
+    }
+
+    /** PUT /api/v1/managers/employees/{employee}/reassign */
+    public function reassignEmployee(ReassignEmployeeRequest $request, int $employee): JsonResponse
+    {
+        $updated = $this->managers->reassignEmployee(
+            $request->user(),
+            $employee,
+            (int) $request->validated('relationship_manager_id'),
+            $request->validated('remarks'),
+        );
+
+        return $this->respondSuccess(
+            (new UserResource($updated))->resolve($request),
+            'Employee reassigned.',
+        );
     }
 }

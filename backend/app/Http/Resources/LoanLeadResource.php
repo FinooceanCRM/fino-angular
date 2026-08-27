@@ -102,6 +102,7 @@ class LoanLeadResource extends JsonResource
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'phone' => $user->phone,
             'role' => $user->role instanceof UserRole ? $user->role->value : (string) $user->role,
         ];
     }

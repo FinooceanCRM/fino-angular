@@ -15,6 +15,7 @@ class UserService extends BaseService
     public function __construct(
         private readonly UserRepositoryInterface $users,
         private readonly UserHierarchyService $hierarchy,
+        private readonly AuditLogService $auditLog,
     ) {
     }
 
@@ -39,7 +40,21 @@ class UserService extends BaseService
         $attributes['email'] = mb_strtolower(trim($attributes['email']));
         $attributes['is_active'] = $attributes['is_active'] ?? true;
 
-        return $this->transaction(fn (): User => $this->users->create($attributes));
+        return $this->transaction(function () use ($actor, $attributes, $role): User {
+            $created = $this->users->create($attributes);
+
+            $this->auditLog->record(
+                $actor,
+                'Created',
+                'User',
+                $created->name,
+                sprintf('%s created %s user %s.', $actor->name, $role->label(), $created->name),
+                'user_creation',
+                $created->id,
+            );
+
+            return $created;
+        });
     }
 
     /**
@@ -73,17 +88,41 @@ class UserService extends BaseService
             $attributes['email'] = mb_strtolower(trim($attributes['email']));
         }
 
-        return $this->transaction(function () use ($target, $attributes): User {
+        return $this->transaction(function () use ($actor, $target, $attributes): User {
             /** @var User $updated */
             $updated = $this->users->update($target->id, $attributes);
+
+            $this->auditLog->record(
+                $actor,
+                'Updated',
+                'User',
+                $updated->name,
+                sprintf('%s updated user %s.', $actor->name, $updated->name),
+                'user_update',
+                $updated->id,
+            );
 
             return $updated;
         });
     }
 
-    public function delete(User $target): bool
+    public function delete(User $actor, User $target): bool
     {
-        return $this->transaction(fn (): bool => $this->users->delete($target->id));
+        return $this->transaction(function () use ($actor, $target): bool {
+            $deleted = $this->users->delete($target->id);
+
+            $this->auditLog->record(
+                $actor,
+                'Deactivated',
+                'User',
+                $target->name,
+                sprintf('%s deactivated user %s.', $actor->name, $target->name),
+                'user_update',
+                $target->id,
+            );
+
+            return $deleted;
+        });
     }
 
     private function assertRoleAssignable(User $actor, UserRole $role): void

@@ -216,12 +216,15 @@ class TelecallerModuleTest extends TestCase
 
         Sanctum::actingAs($telecaller);
 
+        // New -> Assigned is the only valid non-terminal transition from New
+        // (see LeadStatus::allowedNextStatuses()); this test is about
+        // ownership-based authorization, not the FSM itself.
         $this->postJson("/api/v1/leads/{$ownLead->id}/status", [
-            'status' => LeadStatus::InProgress->value,
+            'status' => LeadStatus::Assigned->value,
         ])->assertOk();
 
         $this->postJson("/api/v1/leads/{$pdQueueLead->id}/status", [
-            'status' => LeadStatus::InProgress->value,
+            'status' => LeadStatus::Assigned->value,
         ])->assertForbidden();
     }
 

@@ -12,6 +12,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PageEvent } from '@angular/material/paginator';
 
 import { RelationshipManagerRescheduleDialogComponent, RescheduleDialogResult } from '@features/relationship-manager/activities/reschedule-dialog/relationship-manager-reschedule-dialog.component';
+import { Task, TaskActivityType, TaskCounts, TaskDisplayStatus, TaskPriority } from '@core/models/task.model';
+import { TaskService } from '@core/services/task.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
@@ -20,7 +22,6 @@ import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
 import { TaskBucketNavComponent } from './task-bucket-nav/task-bucket-nav.component';
-import { Task, TaskActivityType, TaskDataProvider, TaskDisplayStatus, TaskPriority } from './data/task.provider';
 import { TaskDetailDialogComponent } from './task-detail-dialog/task-detail-dialog.component';
 import { TaskFormDialogComponent, TaskFormDialogData } from './task-form-dialog/task-form-dialog.component';
 
@@ -48,13 +49,15 @@ const TYPE_LABEL: Record<TaskActivityType, string> = { call: 'Call', meeting: 'M
 
 /**
  * Tasks — your to-dos across leads and customers: Calls, Meetings, Tasks and
- * Reminders. Backed entirely by `TaskDataProvider`'s mock state, following
- * the same list + toolbar + `app-table` + dialogs shape as the Relationship
- * Manager module's Activity lists. Parameterized by `type` so the same
- * component serves the "All" page, the Calls/Meetings/Reminders bucket
- * pages, and — with header and stats hidden — the four tabs on Follow-ups.
- * The reschedule dialog is reused directly from the RM module rather than
- * duplicated, since its logic has no RM-specific coupling.
+ * Reminders. Backed by the real `TaskService` (Phase 4). Filtering/
+ * pagination stay client-side over the actor's full visible set (same shape
+ * as Customers in Phase 3) — the backend's own row-scoping already keeps
+ * that set to what this actor may see; `display_status` is computed
+ * server-side so no date-math is reimplemented here. Parameterized by `type`
+ * so the same component serves the "All" page, the Calls/Meetings/Reminders
+ * bucket pages, and — with header and stats hidden — the four tabs on
+ * Follow-ups. The reschedule dialog is reused directly from the RM module
+ * rather than duplicated, since its logic has no RM-specific coupling.
  */
 @Component({
   selector: 'app-tasks',
@@ -86,11 +89,22 @@ export class TasksComponent {
   readonly showHeader = input(true);
   readonly showStats = input(true);
 
-  protected readonly taskData = inject(TaskDataProvider);
+  private readonly taskService = inject(TaskService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
-  protected readonly counts = computed(() => this.taskData.counts(this.type()));
+  protected readonly tasks = signal<Task[]>([]);
+  protected readonly loading = signal(false);
+
+  protected readonly counts = computed<TaskCounts>(() => {
+    const rows = this.byType();
+    return {
+      open: rows.filter((task) => task.status === 'pending').length,
+      overdue: rows.filter((task) => task.display_status === 'overdue').length,
+      dueToday: rows.filter((task) => task.display_status === 'due_today').length,
+      completed: rows.filter((task) => task.status === 'completed').length,
+    };
+  });
 
   protected readonly statusFilter = signal<'all' | 'pending' | 'completed' | 'cancelled'>('all');
   protected readonly priorityFilter = signal<'all' | TaskPriority>('all');
@@ -99,18 +113,20 @@ export class TasksComponent {
   protected readonly pageIndex = signal(0);
   protected readonly pageSize = signal(10);
 
-  protected readonly filteredTasks = computed(() => {
+  private readonly byType = computed(() => {
     const type = this.type();
+    return type ? this.tasks().filter((task) => task.type === type) : this.tasks();
+  });
+
+  protected readonly filteredTasks = computed(() => {
     const status = this.statusFilter();
     const priority = this.priorityFilter();
     const due = this.dueFilter();
 
-    const base = type ? this.taskData.byType(type) : this.taskData.tasks();
-
-    return base.filter((task) => {
+    return this.byType().filter((task) => {
       const matchesStatus = status === 'all' || task.status === status;
       const matchesPriority = priority === 'all' || task.priority === priority;
-      const matchesDue = due === 'all' || this.taskData.displayStatus(task) === due;
+      const matchesDue = due === 'all' || task.display_status === due;
       return matchesStatus && matchesPriority && matchesDue;
     });
   });
@@ -123,11 +139,29 @@ export class TasksComponent {
   protected readonly columns = computed<TableColumn<Task>[]>(() => [
     ...(this.type() === null ? [{ key: 'type', label: 'Type' }] : []),
     { key: 'title', label: 'Title' },
-    { key: 'relatedTo', label: 'Related to' },
+    { key: 'related_to', label: 'Related to' },
     { key: 'priority', label: 'Priority' },
-    { key: 'dueAt', label: 'Due' },
+    { key: 'due_at', label: 'Due' },
     { key: 'status', label: 'Status' },
   ]);
+
+  constructor() {
+    this.reload();
+  }
+
+  private reload(): void {
+    this.loading.set(true);
+    this.taskService.list({ per_page: 200 }).subscribe({
+      next: (page) => {
+        this.tasks.set(page.items);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.snackBar.open('Could not load tasks.', 'Dismiss', { duration: 4000 });
+      },
+    });
+  }
 
   protected typeIcon(task: Task): string {
     return TYPE_ICON[task.type];
@@ -138,11 +172,11 @@ export class TasksComponent {
   }
 
   protected statusLabel(task: Task): string {
-    return STATUS_LABEL[this.taskData.displayStatus(task)];
+    return STATUS_LABEL[task.display_status];
   }
 
   protected statusColour(task: Task): string {
-    return STATUS_COLOUR[this.taskData.displayStatus(task)];
+    return STATUS_COLOUR[task.display_status];
   }
 
   protected priorityLabel(task: Task): string {
@@ -169,8 +203,13 @@ export class TasksComponent {
           return;
         }
 
-        this.taskData.create(draft);
-        this.snackBar.open(`"${draft.title}" added.`, 'Dismiss', { duration: 4000 });
+        this.taskService.create(draft).subscribe({
+          next: () => {
+            this.snackBar.open(`"${draft.title}" added.`, 'Dismiss', { duration: 4000 });
+            this.reload();
+          },
+          error: () => this.snackBar.open('Could not add task.', 'Dismiss', { duration: 4000 }),
+        });
       });
   }
 
@@ -189,8 +228,13 @@ export class TasksComponent {
           return;
         }
 
-        this.taskData.complete(task.id);
-        this.snackBar.open('Marked complete.', 'Dismiss', { duration: 4000 });
+        this.taskService.complete(task.id).subscribe({
+          next: () => {
+            this.snackBar.open('Marked complete.', 'Dismiss', { duration: 4000 });
+            this.reload();
+          },
+          error: () => this.snackBar.open('Could not update task.', 'Dismiss', { duration: 4000 }),
+        });
       });
   }
 
@@ -198,7 +242,7 @@ export class TasksComponent {
     this.dialog
       .open<RelationshipManagerRescheduleDialogComponent, unknown, RescheduleDialogResult>(
         RelationshipManagerRescheduleDialogComponent,
-        { data: { title: task.title, currentDueAt: task.dueAt } },
+        { data: { title: task.title, currentDueAt: task.due_at } },
       )
       .afterClosed()
       .subscribe((result) => {
@@ -206,8 +250,13 @@ export class TasksComponent {
           return;
         }
 
-        this.taskData.reschedule(task.id, result.dueAt);
-        this.snackBar.open('Rescheduled.', 'Dismiss', { duration: 4000 });
+        this.taskService.reschedule(task.id, result.dueAt).subscribe({
+          next: () => {
+            this.snackBar.open('Rescheduled.', 'Dismiss', { duration: 4000 });
+            this.reload();
+          },
+          error: () => this.snackBar.open('Could not reschedule task.', 'Dismiss', { duration: 4000 }),
+        });
       });
   }
 
@@ -222,8 +271,13 @@ export class TasksComponent {
           return;
         }
 
-        this.taskData.cancel(task.id);
-        this.snackBar.open('Cancelled.', 'Dismiss', { duration: 4000 });
+        this.taskService.cancel(task.id).subscribe({
+          next: () => {
+            this.snackBar.open('Cancelled.', 'Dismiss', { duration: 4000 });
+            this.reload();
+          },
+          error: () => this.snackBar.open('Could not cancel task.', 'Dismiss', { duration: 4000 }),
+        });
       });
   }
 }

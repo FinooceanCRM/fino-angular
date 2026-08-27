@@ -9,6 +9,8 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '@core/services/auth.service';
 import { environment } from '@env/environment';
 
+import { SuperAdminSearchTriggerComponent } from '@features/super-admin/search/search-trigger/super-admin-search-trigger.component';
+
 import { NotificationIconComponent } from './notification-icon.component';
 import { UserMenuComponent } from './user-menu.component';
 
@@ -25,6 +27,7 @@ import { UserMenuComponent } from './user-menu.component';
     RouterLink,
     RouterLinkActive,
     NotificationIconComponent,
+    SuperAdminSearchTriggerComponent,
     UserMenuComponent,
   ],
   templateUrl: './topbar.component.html',

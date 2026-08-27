@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { ManagerLeadStatusTableComponent } from '@features/manager/leads/lead-status-table/manager-lead-status-table.component';
-import { PROCESSING_STATUSES } from '@features/manager/leads/data/models/lead.model';
+import { PROCESSING_STATUSES } from '@features/manager/data/models/lead-catalogue.model';
 
 import { currentRmId } from '../current-rm';
 

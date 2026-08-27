@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
+import { LeadDocument } from '@core/models/document.model';
 import {
   AssignedConnectorList,
   AssignedEmployeeList,
@@ -40,5 +41,10 @@ export class RelationshipManagerService {
 
   connectors(): Observable<AssignedConnectorList> {
     return this.api.get<AssignedConnectorList>(`${this.base}/connectors`);
+  }
+
+  /** KYC review queue (Phase 5, Part B) — documents on this RM's own leads. */
+  kycQueue(status?: 'pending' | 'verified' | 'rejected'): Observable<LeadDocument[]> {
+    return this.api.get<LeadDocument[]>(`${this.base}/kyc-documents`, status ? { status } : undefined);
   }
 }

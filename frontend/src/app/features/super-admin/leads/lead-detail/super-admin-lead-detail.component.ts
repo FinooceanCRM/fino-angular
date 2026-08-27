@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -17,13 +17,13 @@ import { EntityHeaderComponent } from '@shared/components/entity-header.componen
 import { StatusPillColour, StatusPillComponent } from '@shared/components/status-pill.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
 
+import { LeadService } from '@core/services/lead.service';
+
 import { AssignBankerModalComponent, AssignBankerModalData } from '../../banking/assign-banker-modal/assign-banker-modal.component';
 import { LeadDocument } from '../../data/models/document.model';
 import { MatchingResult, UserSummary } from '../../data/models/lead.model';
 import { LeadNote } from '../../data/models/note.model';
 import { AuditLogDataProvider } from '../../data/providers/audit-log-data.provider';
-import { BankingDataProvider } from '../../data/providers/banking-data.provider';
-import { CommissionDataProvider } from '../../data/providers/commission-data.provider';
 import { DocumentDataProvider } from '../../data/providers/document-data.provider';
 import { LeadDataProvider } from '../../data/providers/lead-data.provider';
 import { NoteDataProvider } from '../../data/providers/note-data.provider';
@@ -66,7 +66,6 @@ const CURRENT_ACTOR = { name: 'Arjun Mehta', role: 'Super Admin' };
   imports: [
     CurrencyPipe,
     DatePipe,
-    DecimalPipe,
     ReactiveFormsModule,
     RouterLink,
     MatButtonModule,
@@ -92,8 +91,7 @@ export class SuperAdminLeadDetailComponent {
 
   private readonly leadData = inject(LeadDataProvider);
   private readonly userData = inject(UserDataProvider);
-  private readonly bankingData = inject(BankingDataProvider);
-  private readonly commissionData = inject(CommissionDataProvider);
+  private readonly leadService = inject(LeadService);
   private readonly auditLogData = inject(AuditLogDataProvider);
   private readonly documentData = inject(DocumentDataProvider);
   private readonly noteData = inject(NoteDataProvider);
@@ -195,7 +193,13 @@ export class SuperAdminLeadDetailComponent {
   protected runMatching(): void {
     const current = this.lead();
     if (!current) return;
-    this.matchResult.set(this.bankingData.runMatching(current));
+    // Real matching engine (Phase 2) — this tab's `lead` is still sourced
+    // from the mock LeadDataProvider (a later phase's work), so `current.id`
+    // may not resolve to a real backend lead until Leads itself goes real.
+    this.leadService.runMatching(current.id).subscribe({
+      next: (result) => this.matchResult.set(result),
+      error: () => this.matchResult.set(null),
+    });
   }
 
   protected scoreColour(score: number): StatusPillColour {
@@ -237,13 +241,6 @@ export class SuperAdminLeadDetailComponent {
         );
       });
   }
-
-  // ---------- Commission history ----------
-  protected readonly commissionHistory = computed(() => {
-    const current = this.lead();
-    if (!current) return [];
-    return this.commissionData.connectorCommissions().filter((row) => row.lead_reference === current.reference);
-  });
 
   // ---------- Activity log ----------
   protected readonly activityLog = computed(() => {

@@ -8,11 +8,11 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { ModalComponent } from '@shared/components/modal.component';
 
-import { ManagedUser } from '@features/super-admin/data/models/user.model';
+import { TeamMember } from '../data/manager-team-data.provider';
 
 export interface ManagerTeamAssignDialogData {
   employeeName: string;
-  relationshipManagers: ManagedUser[];
+  relationshipManagers: TeamMember[];
   currentRmId: number | null;
 }
 

@@ -36,6 +36,8 @@ class LeadAccessRequestResource extends JsonResource
                 'reference' => $lead->reference,
                 'applicant_name' => $lead->applicant_name,
                 'loan_type' => $lead->loan_type,
+                'loan_amount' => (float) $lead->loan_amount,
+                'city' => $lead->city,
                 'status' => $lead->statusEnum()->value,
             ] : null,
             'banker' => $this->userSummary($this->whenLoaded('banker')),

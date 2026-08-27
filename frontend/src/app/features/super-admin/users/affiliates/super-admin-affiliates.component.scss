@@ -1,0 +1,11 @@
+.toolbar,
+.table-card {
+  margin-top: var(--app-space-4);
+  border-radius: var(--app-radius-md);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-3);
+}

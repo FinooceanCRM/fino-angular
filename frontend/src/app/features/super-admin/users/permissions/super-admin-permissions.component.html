@@ -1,90 +1,96 @@
 <app-page-header title="Permission Assignment" subtitle="Module-level access per role. Changes apply immediately." />
 
-<mat-form-field appearance="outline" class="permissions__role-select">
-  <mat-label>Role</mat-label>
-  <mat-select [ngModel]="selectedRole()" (ngModelChange)="selectedRole.set($event)">
-    @for (role of roles; track role) {
-      <mat-option [value]="role">{{ roleLabel[role] }}</mat-option>
-    }
-  </mat-select>
-</mat-form-field>
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
 
-<div class="permissions__layout">
-  <div class="app-scroll-x">
-    <table class="permission-matrix">
-      <thead>
-        <tr>
-          <th>Module</th>
-          @for (action of allActions; track action) {
-            <th class="permission-matrix__action-head">{{ actionLabel[action] }}</th>
-          }
-        </tr>
-      </thead>
-      <tbody>
-        @for (module of modules; track module.key) {
+@if (selectedRole(); as role) {
+  <mat-form-field appearance="outline" class="permissions__role-select">
+    <mat-label>Role</mat-label>
+    <mat-select [ngModel]="role" (ngModelChange)="selectedRole.set($event)">
+      @for (slug of roleSlugs(); track slug) {
+        <mat-option [value]="slug">{{ roleLabel[slug] }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <div class="permissions__layout">
+    <div class="app-scroll-x">
+      <table class="permission-matrix">
+        <thead>
           <tr>
-            <td class="permission-matrix__module">
-              <mat-icon>{{ module.icon }}</mat-icon>
-              {{ module.label }}
-            </td>
+            <th>Module</th>
             @for (action of allActions; track action) {
-              <td class="permission-matrix__cell">
-                @if (isApplicable(module.key, action)) {
-                  <mat-checkbox
-                    [checked]="isChecked(module.key, action)"
-                    (change)="toggle(module.key, action, $event.checked)"
-                    [attr.aria-label]="actionLabel[action] + ' ' + module.label"
-                  />
-                } @else {
-                  <span class="permission-matrix__na">—</span>
-                }
-              </td>
+              <th class="permission-matrix__action-head">{{ actionLabel[action] }}</th>
             }
           </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          @for (module of modules; track module.key) {
+            <tr>
+              <td class="permission-matrix__module">
+                <mat-icon>{{ module.icon }}</mat-icon>
+                {{ module.label }}
+              </td>
+              @for (action of allActions; track action) {
+                <td class="permission-matrix__cell">
+                  @if (isApplicable(module.key, action)) {
+                    <mat-checkbox
+                      [checked]="isChecked(module.key, action)"
+                      (change)="toggle(module.key, action, $event.checked)"
+                      [attr.aria-label]="actionLabel[action] + ' ' + module.label"
+                    />
+                  } @else {
+                    <span class="permission-matrix__na">—</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
 
-  <div class="permissions__side">
-    <section class="permissions__panel">
-      <h2 class="permissions__panel-title">
-        <mat-icon>visibility</mat-icon>
-        Menu visibility for {{ roleLabel[selectedRole()] }}
-      </h2>
-      <p class="permissions__panel-hint">Derived from the matrix — any module with at least one action granted appears in the sidebar.</p>
-      <ul class="menu-preview">
-        @for (module of modules; track module.key) {
-          <li class="menu-preview__item" [class.menu-preview__item--hidden]="!visibleModuleKeys().has(module.key)">
-            <mat-icon>{{ visibleModuleKeys().has(module.key) ? 'check_circle' : 'remove_circle_outline' }}</mat-icon>
-            {{ module.label }}
-          </li>
-        }
-      </ul>
-    </section>
+    <div class="permissions__side">
+      <section class="permissions__panel">
+        <h2 class="permissions__panel-title">
+          <mat-icon>visibility</mat-icon>
+          Menu visibility for {{ roleLabel[role] }}
+        </h2>
+        <p class="permissions__panel-hint">Derived from the matrix — any module with at least one action granted appears in the sidebar.</p>
+        <ul class="menu-preview">
+          @for (module of modules; track module.key) {
+            <li class="menu-preview__item" [class.menu-preview__item--hidden]="!visibleModuleKeys().has(module.key)">
+              <mat-icon>{{ visibleModuleKeys().has(module.key) ? 'check_circle' : 'remove_circle_outline' }}</mat-icon>
+              {{ module.label }}
+            </li>
+          }
+        </ul>
+      </section>
 
-    <section class="permissions__panel">
-      <h2 class="permissions__panel-title">
-        <mat-icon>lock</mat-icon>
-        Route protection reference
-      </h2>
-      <p class="permissions__panel-hint">
-        Every Super Admin route is currently guarded by the real
-        <code>authGuard</code> + <code>roleGuard</code>, restricted to
-        <strong>super_admin</strong> only — this matrix doesn't change that.
-        It records what each route <em>would</em> be gated to if this system
-        were wired into live guards later.
-      </p>
-      <ul class="route-preview">
-        @for (module of modules; track module.key) {
-          <li class="route-preview__item">
-            <code>{{ module.route }}</code>
-            <span [class.route-preview__value--granted]="visibleModuleKeys().has(module.key)">
-              {{ visibleModuleKeys().has(module.key) ? 'Accessible' : 'Not accessible' }}
-            </span>
-          </li>
-        }
-      </ul>
-    </section>
+      <section class="permissions__panel">
+        <h2 class="permissions__panel-title">
+          <mat-icon>lock</mat-icon>
+          Route protection reference
+        </h2>
+        <p class="permissions__panel-hint">
+          Every Super Admin route is currently guarded by the real
+          <code>authGuard</code> + <code>roleGuard</code>, restricted to
+          <strong>super_admin</strong> only — this matrix doesn't change that.
+          It records what each route <em>would</em> be gated to if this system
+          were wired into live guards later.
+        </p>
+        <ul class="route-preview">
+          @for (module of modules; track module.key) {
+            <li class="route-preview__item">
+              <code>{{ module.route }}</code>
+              <span [class.route-preview__value--granted]="visibleModuleKeys().has(module.key)">
+                {{ visibleModuleKeys().has(module.key) ? 'Accessible' : 'Not accessible' }}
+              </span>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
   </div>
-</div>
+}

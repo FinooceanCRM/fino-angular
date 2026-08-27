@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 
-import { AUDIT_EVENT_CATEGORY_ICON } from '@features/super-admin/data/models/audit-log.model';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
 
-import { ManagerTeamDataProvider } from '../data/manager-team.provider';
+import { AUDIT_EVENT_CATEGORY_ICON } from '@core/models/audit-log.model';
+
+import { ManagerTeamDataProvider } from '../data/manager-team-data.provider';
 
 /** Activity tracking — the platform audit trail, filtered to the given team members. */
 @Component({

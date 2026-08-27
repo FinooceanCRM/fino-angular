@@ -7,6 +7,7 @@ use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
@@ -32,6 +33,7 @@ class User extends Authenticatable
         'sms_notifications',
         'notify_on_assignment',
         'notify_on_approval',
+        'lead_referral_code',
     ];
 
     protected $hidden = ['password', 'remember_token'];
@@ -66,6 +68,11 @@ class User extends Authenticatable
         return $this->belongsTo(self::class, 'employee_id');
     }
 
+    public function affiliate(): HasOne
+    {
+        return $this->hasOne(Affiliate::class);
+    }
+
     /** Direct reports where this user is the manager. */
     public function managedUsers(): HasMany
     {
@@ -86,6 +93,11 @@ class User extends Authenticatable
     public function leadAssignments(): HasMany
     {
         return $this->hasMany(LeadAssignment::class, 'assigned_to');
+    }
+
+    public function affiliateCommissions(): HasMany
+    {
+        return $this->hasMany(AffiliateCommission::class, 'affiliate_id');
     }
 
     public function bankCriteria(): HasMany

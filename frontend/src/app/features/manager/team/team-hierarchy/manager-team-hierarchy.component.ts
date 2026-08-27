@@ -5,7 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 
-import { ManagerTeamDataProvider } from '../data/manager-team.provider';
+import { ManagerTeamDataProvider } from '../data/manager-team-data.provider';
 
 /** Team Hierarchy — Manager → Relationship Manager → Employee, shared by both management pages. */
 @Component({

@@ -42,6 +42,12 @@ class RelationshipManagerPolicy
         return $actor->hasRole(UserRole::RelationshipManager);
     }
 
+    /** KYC review queue (Phase 5, Part B) — documents on the RM's own leads. */
+    public function viewKycDocuments(User $actor): bool
+    {
+        return $actor->hasRole(UserRole::RelationshipManager);
+    }
+
     public function view(User $actor, RelationshipManager $profile): bool
     {
         if ($actor->id === $profile->user_id) {

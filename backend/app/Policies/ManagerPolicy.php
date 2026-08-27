@@ -55,6 +55,12 @@ class ManagerPolicy
         return $actor->hasRole(UserRole::Manager);
     }
 
+    /** Moving one of their employees to a different Relationship Manager of theirs. */
+    public function reassignEmployee(User $actor): bool
+    {
+        return $actor->hasRole(UserRole::Manager) && (bool) $actor->is_active;
+    }
+
     public function view(User $actor, Manager $profile): bool
     {
         return $actor->id === $profile->user_id || $actor->hasRole(UserRole::SuperAdmin);

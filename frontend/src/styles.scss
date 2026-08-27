@@ -271,6 +271,17 @@ body {
   padding-top: var(--app-space-2);
 }
 
+// Lets a matTooltip render `\n` as real line breaks — used by the leads
+// table's Source column tooltip (name/email/mobile/source, one per line).
+.app-tooltip--multiline {
+  white-space: pre-line;
+  text-align: left;
+
+  .mdc-tooltip__surface {
+    white-space: pre-line;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

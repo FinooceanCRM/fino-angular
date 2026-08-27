@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Manager;
 
+use App\Enums\Department;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -43,6 +44,7 @@ class ManagerModuleTest extends TestCase
         $this->assertContains('POST api/v1/managers/relationship-managers', $routes);
         $this->assertContains('PUT api/v1/managers/relationship-managers/{relationship_manager}', $routes);
         $this->assertContains('GET api/v1/managers/employees', $routes);
+        $this->assertContains('PUT api/v1/managers/employees/{employee}/reassign', $routes);
     }
 
     public function test_dashboard_returns_team_summary_and_hierarchy(): void
@@ -108,6 +110,7 @@ class ManagerModuleTest extends TestCase
             'email' => 'new-rm@finoocean.test',
             'password' => 'password123',
             'designation' => 'Relationship Manager',
+            'department' => Department::PersonalLoan->value,
         ])
             ->assertCreated()
             ->assertJsonPath('data.role', UserRole::RelationshipManager->value)
@@ -169,6 +172,78 @@ class ManagerModuleTest extends TestCase
             ->assertJsonPath('data.total', 1)
             ->assertJsonPath('data.employees.0.id', $mine->id)
             ->assertJsonPath('data.employees.0.relationship_manager.id', $rm->id);
+    }
+
+    public function test_manager_can_reassign_an_employee_to_another_of_their_relationship_managers(): void
+    {
+        $manager = $this->manager();
+        $originalRm = $this->relationshipManagerUnder($manager);
+        $newRm = $this->relationshipManagerUnder($manager);
+
+        $employee = User::factory()->create([
+            'role' => UserRole::Employee,
+            'manager_id' => $manager->id,
+            'relationship_manager_id' => $originalRm->id,
+        ]);
+
+        Sanctum::actingAs($manager);
+
+        $this->putJson("/api/v1/managers/employees/{$employee->id}/reassign", [
+            'relationship_manager_id' => $newRm->id,
+            'remarks' => 'Rebalancing workload.',
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.relationship_manager_id', $newRm->id);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $employee->id,
+            'relationship_manager_id' => $newRm->id,
+        ]);
+    }
+
+    public function test_manager_cannot_reassign_an_employee_to_a_relationship_manager_outside_their_team(): void
+    {
+        $manager = $this->manager();
+        $rm = $this->relationshipManagerUnder($manager);
+        $employee = User::factory()->create([
+            'role' => UserRole::Employee,
+            'manager_id' => $manager->id,
+            'relationship_manager_id' => $rm->id,
+        ]);
+
+        $otherManager = $this->manager();
+        $foreignRm = $this->relationshipManagerUnder($otherManager);
+
+        Sanctum::actingAs($manager);
+
+        $this->putJson("/api/v1/managers/employees/{$employee->id}/reassign", [
+            'relationship_manager_id' => $foreignRm->id,
+        ])->assertStatus(422);
+
+        $this->assertDatabaseHas('users', [
+            'id' => $employee->id,
+            'relationship_manager_id' => $rm->id,
+        ]);
+    }
+
+    public function test_manager_cannot_reassign_another_managers_employee(): void
+    {
+        $manager = $this->manager();
+        $rm = $this->relationshipManagerUnder($manager);
+
+        $otherManager = $this->manager();
+        $otherRm = $this->relationshipManagerUnder($otherManager);
+        $otherEmployee = User::factory()->create([
+            'role' => UserRole::Employee,
+            'manager_id' => $otherManager->id,
+            'relationship_manager_id' => $otherRm->id,
+        ]);
+
+        Sanctum::actingAs($manager);
+
+        $this->putJson("/api/v1/managers/employees/{$otherEmployee->id}/reassign", [
+            'relationship_manager_id' => $rm->id,
+        ])->assertStatus(403);
     }
 
     public function test_other_roles_cannot_reach_manager_routes(): void

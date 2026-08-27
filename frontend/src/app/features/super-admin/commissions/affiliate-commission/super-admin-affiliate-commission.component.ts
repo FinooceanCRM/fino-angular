@@ -7,7 +7,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
@@ -19,7 +19,11 @@ import { exportToCsv } from '../../data/csv-export.util';
 import { Affiliate } from '../../data/models/commission.model';
 import { CommissionDataProvider } from '../../data/providers/commission-data.provider';
 
-/** Affiliate Commission — separate referral/marketing program from the Connector role, mock data only. */
+/**
+ * Affiliate Commission — real affiliate data (Phase 8), backed by
+ * GET super-admin/affiliates via CommissionDataProvider. No tiers in v1
+ * (locked decision), so there's no tier filter/column here.
+ */
 @Component({
   selector: 'app-super-admin-affiliate-commission',
   standalone: true,
@@ -31,7 +35,7 @@ import { CommissionDataProvider } from '../../data/providers/commission-data.pro
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatSelectModule,
+    MatProgressBarModule,
     PageHeaderComponent,
     StatCardComponent,
     StatusPillComponent,
@@ -47,10 +51,10 @@ export class SuperAdminAffiliateCommissionComponent {
   private readonly commissionData = inject(CommissionDataProvider);
 
   protected readonly rows = this.commissionData.affiliates;
+  protected readonly loading = this.commissionData.affiliatesLoading;
 
   protected readonly filters = this.fb.nonNullable.group({
     search: '',
-    tier: '',
   });
 
   private readonly filterValues = toSignal(this.filters.valueChanges, {
@@ -61,22 +65,23 @@ export class SuperAdminAffiliateCommissionComponent {
     const f = this.filterValues();
     const search = (f.search ?? '').trim().toLowerCase();
 
-    return this.rows().filter((row) => {
-      const matchesSearch =
-        !search ||
-        row.name.toLowerCase().includes(search) ||
-        row.email.toLowerCase().includes(search) ||
-        row.referral_code.toLowerCase().includes(search);
-      const matchesTier = !f.tier || row.tier === f.tier;
-      return matchesSearch && matchesTier;
-    });
+    if (!search) {
+      return this.rows();
+    }
+
+    return this.rows().filter(
+      (row) =>
+        row.user.name.toLowerCase().includes(search) ||
+        row.user.email.toLowerCase().includes(search) ||
+        row.referral_code.toLowerCase().includes(search),
+    );
   });
 
   protected readonly summary = computed(() => {
     const rows = this.rows();
-    const totalReferrals = rows.reduce((sum, row) => sum + row.referrals, 0);
-    const totalConversions = rows.reduce((sum, row) => sum + row.conversions, 0);
-    const totalEarned = rows.reduce((sum, row) => sum + row.commission_earned, 0);
+    const totalReferrals = rows.reduce((sum, row) => sum + (row.referral_count ?? 0), 0);
+    const totalConversions = rows.reduce((sum, row) => sum + (row.converted_count ?? 0), 0);
+    const totalEarned = rows.reduce((sum, row) => sum + (row.commission_accrued ?? 0), 0);
     const conversionRate = totalReferrals ? Math.round((totalConversions / totalReferrals) * 1000) / 10 : 0;
 
     return {
@@ -88,11 +93,11 @@ export class SuperAdminAffiliateCommissionComponent {
   });
 
   protected readonly columns: TableColumn<Affiliate>[] = [
-    { key: 'name', label: 'Affiliate' },
+    { key: 'name', label: 'Affiliate', formatter: (row) => row.user.name },
+    { key: 'email', label: 'Email', formatter: (row) => row.user.email },
     { key: 'referral_code', label: 'Code' },
-    { key: 'tier', label: 'Tier' },
-    { key: 'referrals', label: 'Referrals' },
-    { key: 'conversions', label: 'Conversions' },
+    { key: 'referrals', label: 'Referrals', formatter: (row) => String(row.referral_count ?? 0) },
+    { key: 'conversions', label: 'Conversions', formatter: (row) => String(row.converted_count ?? 0) },
     { key: 'earned', label: 'Commission' },
     { key: 'status', label: 'Status' },
   ];
@@ -101,17 +106,16 @@ export class SuperAdminAffiliateCommissionComponent {
     exportToCsv(
       'affiliate-commission',
       this.filteredRows().map((row) => ({
-        affiliate: row.name,
-        email: row.email,
+        affiliate: row.user.name,
+        email: row.user.email,
         referral_code: row.referral_code,
-        tier: row.tier,
-        referrals: row.referrals,
-        conversions: row.conversions,
-        commission_rate_pct: row.commission_rate,
-        commission_earned: row.commission_earned,
-        commission_paid: row.commission_paid,
+        referrals: row.referral_count ?? 0,
+        conversions: row.converted_count ?? 0,
+        commission_rate_pct: row.commission_rate ?? '',
+        commission_earned: row.commission_accrued ?? 0,
+        commission_paid: row.commission_paid ?? 0,
         status: row.status,
-        joined_at: row.joined_at,
+        joined_at: row.joined_at ?? '',
       })),
     );
   }

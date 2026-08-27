@@ -114,6 +114,7 @@ export interface ManagedRelationshipManager {
   designation: string | null;
   branch: string | null;
   region: string | null;
+  created_at: string | null;
   employee_count: number;
   active_employee_count: number;
 }
@@ -158,6 +159,7 @@ export interface ManagedEmployee {
   employee_code: string | null;
   designation: string | null;
   department: string | null;
+  created_at: string | null;
   relationship_manager: {
     id: number;
     name: string;
@@ -168,4 +170,9 @@ export interface ManagedEmployee {
 export interface ManagedEmployeeList {
   total: number;
   employees: ManagedEmployee[];
+}
+
+export interface ReassignEmployeePayload {
+  relationship_manager_id: number;
+  remarks?: string | null;
 }

@@ -1,0 +1,120 @@
+<mat-drawer-container class="access-request-list__container" [hasBackdrop]="true">
+  <app-details-drawer
+    [title]="selected()?.banker?.name ?? 'Review'"
+    [opened]="selected() !== undefined"
+    [showActions]="selected()?.status === 'pending'"
+    (openedChange)="!$event && closeReview()"
+  >
+    @if (selected(); as row) {
+      <p class="access-request-list__drawer-subtitle">{{ row.remarks || 'No remarks from the banker.' }}</p>
+
+      @if (leadReference(row); as ref) {
+        <a class="access-request-list__lead-link" [routerLink]="['/super-admin/leads', row.lead!.id]">{{ ref }}</a>
+      }
+
+      <div class="access-request-list__meta">
+        <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+        <span>Requested by {{ row.banker?.name ?? 'Unknown' }} · {{ row.created_at | date: 'medium' }}</span>
+      </div>
+
+      @if (row.decided_by) {
+        <p class="access-request-list__decision">
+          {{ row.status === 'approved' ? 'Approved' : 'Rejected' }} by {{ row.decided_by.name }} on
+          {{ row.decided_at | date: 'medium' }}
+          @if (row.decision_remarks) {
+            — "{{ row.decision_remarks }}"
+          }
+        </p>
+      }
+    }
+
+    @if (selected()?.status === 'pending') {
+      <ng-container drawer-actions>
+        <button mat-button type="button" (click)="reject(selected()!)">Reject</button>
+        <button mat-flat-button color="primary" type="button" (click)="approve(selected()!)">
+          Approve
+        </button>
+      </ng-container>
+    }
+  </app-details-drawer>
+
+  <mat-drawer-content>
+    <mat-card class="access-request-list__toolbar">
+      <mat-card-content class="access-request-list__toolbar-row">
+        <mat-form-field appearance="outline" class="access-request-list__status">
+          <mat-label>Status</mat-label>
+          <mat-select [ngModel]="statusFilter()" (ngModelChange)="setStatusFilter($event)">
+            <mat-option value="pending">Pending</mat-option>
+            <mat-option value="all">All</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <button mat-icon-button type="button" matTooltip="Refresh" aria-label="Refresh" (click)="reload()">
+          <mat-icon>refresh</mat-icon>
+        </button>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="access-request-list__table-card">
+      <mat-card-content>
+        <app-table
+          [columns]="columns"
+          [rows]="rows()"
+          [loading]="loading()"
+          emptyMessage="Nothing waiting on you here."
+          itemLabel="requests"
+        >
+          <ng-template appTableCell="name" let-row>
+            <span class="access-request-list__title">{{ row.lead?.applicant_name ?? 'Unknown applicant' }}</span>
+            <span class="access-request-list__subtitle">
+              @if (leadReference(row); as ref) {
+                {{ ref }}
+              }
+            </span>
+          </ng-template>
+
+          <ng-template appTableCell="loan_type" let-row>
+            {{ row.lead ? loanTypeLabel(row.lead.loan_type) : '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="loan_amount" let-row>
+            {{ row.lead ? (row.lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0') : '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="city" let-row>
+            {{ row.lead?.city ?? '—' }}
+          </ng-template>
+
+          <ng-template appTableCell="banker" let-row>
+            {{ row.banker?.name ?? 'Unknown' }}
+          </ng-template>
+
+          <ng-template appTableCell="status" let-row>
+            <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+          </ng-template>
+
+          <ng-template #rowActions let-row>
+            <button mat-icon-button type="button" matTooltip="Review" aria-label="Review" (click)="review(row)">
+              <mat-icon>rate_review</mat-icon>
+            </button>
+            @if (row.status === 'pending') {
+              <button mat-icon-button type="button" matTooltip="Reject" aria-label="Reject" (click)="reject(row)">
+                <mat-icon>close</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                type="button"
+                color="primary"
+                matTooltip="Approve"
+                aria-label="Approve"
+                (click)="approve(row)"
+              >
+                <mat-icon>check</mat-icon>
+              </button>
+            }
+          </ng-template>
+        </app-table>
+      </mat-card-content>
+    </mat-card>
+  </mat-drawer-content>
+</mat-drawer-container>

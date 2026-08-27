@@ -1,3 +1,6 @@
+// Phase 0: the Permissions and Roles pages now read/write the real matrix
+// via @core/services/permission.service.ts and no longer use this mock
+// provider. Left in place (unused) rather than deleted, per the Phase 0 scope.
 import { Injectable, inject, signal } from '@angular/core';
 
 import {

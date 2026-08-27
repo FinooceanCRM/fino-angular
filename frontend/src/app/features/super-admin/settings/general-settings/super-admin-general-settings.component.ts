@@ -1,25 +1,29 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { NgIf } from '@angular/common';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-import { SettingsDataProvider } from '../../data/providers/settings-data.provider';
+import { SettingsService } from '@core/services/settings.service';
 
 /** General settings — Company information, Branding, Email settings, Time zone. */
 @Component({
   selector: 'app-super-admin-general-settings',
   standalone: true,
   imports: [
+    NgIf,
     ReactiveFormsModule,
     MatButtonModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatProgressBarModule,
     MatSelectModule,
     MatSlideToggleModule,
   ],
@@ -27,46 +31,53 @@ import { SettingsDataProvider } from '../../data/providers/settings-data.provide
   styleUrl: './super-admin-general-settings.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SuperAdminGeneralSettingsComponent {
+export class SuperAdminGeneralSettingsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
-  private readonly settingsData = inject(SettingsDataProvider);
+  private readonly settingsService = inject(SettingsService);
 
-  private readonly seed = this.settingsData.settings().general;
-
+  protected readonly loading = signal(true);
   protected readonly form = this.fb.nonNullable.group({
     company: this.fb.nonNullable.group({
-      company_name: this.seed.company.company_name,
-      support_email: this.seed.company.support_email,
-      support_phone: this.seed.company.support_phone,
-      address: this.seed.company.address,
-      currency: this.seed.company.currency,
+      company_name: '',
+      support_email: '',
+      support_phone: '',
+      address: '',
+      currency: '',
     }),
     branding: this.fb.nonNullable.group({
-      primary_color: this.seed.branding.primary_color,
-      logo_url: this.seed.branding.logo_url,
-      favicon_url: this.seed.branding.favicon_url,
-      tagline: this.seed.branding.tagline,
+      primary_color: '',
+      logo_url: '',
+      favicon_url: '',
+      tagline: '',
     }),
     email: this.fb.nonNullable.group({
-      from_name: this.seed.email.from_name,
-      from_email: this.seed.email.from_email,
-      reply_to_email: this.seed.email.reply_to_email,
-      footer_text: this.seed.email.footer_text,
+      from_name: '',
+      from_email: '',
+      reply_to_email: '',
+      footer_text: '',
     }),
     regional: this.fb.nonNullable.group({
-      timezone: this.seed.regional.timezone,
-      date_format: this.seed.regional.date_format,
-      business_hours: this.seed.regional.business_hours,
+      timezone: '',
+      date_format: '',
+      business_hours: '',
     }),
     platform: this.fb.nonNullable.group({
-      default_page_size: this.seed.platform.default_page_size,
-      maintenance_mode: this.seed.platform.maintenance_mode,
+      default_page_size: 15,
+      maintenance_mode: false,
     }),
   });
 
+  ngOnInit(): void {
+    this.settingsService.get().subscribe((settings) => {
+      this.form.patchValue(settings.general);
+      this.loading.set(false);
+    });
+  }
+
   protected save(): void {
-    this.settingsData.saveGeneral(this.form.getRawValue());
-    this.snackBar.open('General settings saved.', 'Dismiss', { duration: 4000 });
+    this.settingsService.updateGeneral(this.form.getRawValue()).subscribe(() => {
+      this.snackBar.open('General settings saved.', 'Dismiss', { duration: 4000 });
+    });
   }
 }

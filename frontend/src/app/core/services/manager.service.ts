@@ -7,6 +7,7 @@ import {
   ManagedRelationshipManagerList,
   ManagerDashboard,
   ManagerProfile,
+  ReassignEmployeePayload,
   UpdateManagerProfilePayload,
   UpdateRelationshipManagerPayload,
 } from '@core/models/manager.model';
@@ -61,5 +62,16 @@ export class ManagerService {
 
   employees(): Observable<ManagedEmployeeList> {
     return this.api.get<ManagedEmployeeList>(`${this.base}/employees`);
+  }
+
+  /** Moves an employee to a different Relationship Manager under this Manager — the Team Assignment workflow. */
+  reassignEmployee(
+    employeeId: number,
+    payload: ReassignEmployeePayload,
+  ): Observable<AuthenticatedUser> {
+    return this.api.put<AuthenticatedUser>(
+      `${this.base}/employees/${employeeId}/reassign`,
+      payload,
+    );
   }
 }

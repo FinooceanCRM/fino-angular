@@ -8,7 +8,7 @@ import { MatSelectModule } from '@angular/material/select';
 
 import { ModalComponent } from '@shared/components/modal.component';
 
-import { AssignableStaff } from '../data/models/lead.model';
+import { AssignableStaff } from '../../data/models/lead-catalogue.model';
 
 export interface ManagerReassignDialogData {
   count: number;

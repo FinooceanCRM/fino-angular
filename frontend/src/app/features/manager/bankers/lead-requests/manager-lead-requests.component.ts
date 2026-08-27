@@ -21,7 +21,7 @@ import {
   AssignBankerModalData,
 } from '@features/super-admin/banking/assign-banker-modal/assign-banker-modal.component';
 
-import { Lead, loanTypeLabel } from '../../leads/data/models/lead.model';
+import { Lead, loanTypeLabel } from '../../data/models/lead-catalogue.model';
 import { ManagerBankerDataProvider } from '../data/manager-banker.provider';
 
 /** Lead Requests — the manager's leads that need (or have) a banker, reusing Super Admin's assign-banker workflow. */
@@ -97,12 +97,17 @@ export class ManagerLeadRequestsComponent {
           return;
         }
 
+        if (!result) {
+          // No real endpoint can clear an assigned banker yet — see
+          // ManagerBankerDataProvider.assignBanker().
+          this.snackBar.open('Unassigning a banker is not supported yet — assign a different banker instead.', 'Dismiss', {
+            duration: 5000,
+          });
+          return;
+        }
+
         this.bankers.assignBanker(row.id, result);
-        this.snackBar.open(
-          result ? `${row.reference} assigned to ${result.name}.` : `${row.reference} is now unassigned.`,
-          'Dismiss',
-          { duration: 4000 },
-        );
+        this.snackBar.open(`${row.reference} assigned to ${result.name}.`, 'Dismiss', { duration: 4000 });
       });
   }
 }

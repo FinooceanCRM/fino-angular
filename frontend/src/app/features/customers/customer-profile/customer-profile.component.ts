@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,12 +7,23 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { Lead, loanTypeLabel } from '@features/manager/leads/data/models/lead.model';
-import { ManagerLeadDataProvider } from '@features/manager/leads/data/providers/lead-data.provider';
+import {
+  Customer,
+  CustomerDocument,
+  CustomerDraft,
+  CustomerInteraction,
+  CustomerNote,
+  CustomerStatus,
+  DocumentType,
+  DocumentTypeOption,
+} from '@core/models/customer.model';
+import { CustomerDocumentService } from '@core/services/customer-document.service';
+import { CustomerService } from '@core/services/customer.service';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { EntityHeaderComponent } from '@shared/components/entity-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
@@ -20,13 +31,6 @@ import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.co
 
 import { CustomerDocumentPreviewDialogComponent } from '../document-preview-dialog/customer-document-preview-dialog.component';
 import { CustomerFormDialogComponent, CustomerFormDialogData } from '../customer-form-dialog/customer-form-dialog.component';
-import {
-  CustomerDocumentDataProvider,
-  DOCUMENT_TYPE_CATALOGUE,
-  DocumentType,
-  documentTypeLabel,
-} from '../data/customer-document.provider';
-import { CustomerDataProvider, CustomerDraft, CustomerStatus } from '../data/customer.provider';
 
 const STATUS_LABEL: Record<CustomerStatus, string> = { active: 'Active', prospect: 'Prospect', inactive: 'Inactive' };
 const STATUS_COLOUR: Record<CustomerStatus, string> = { active: 'success', prospect: 'primary', inactive: 'default' };
@@ -36,14 +40,15 @@ const DOC_STATUS_COLOUR: Record<'pending' | 'verified' | 'rejected', string> = {
 
 /**
  * Customer Profile — contact info, linked leads, Notes, Documents (upload +
- * preview) and Activity History, all in one page. Supersedes the earlier
- * customer detail modal, which only had room for a summary.
+ * preview) and Activity History, all in one page. Backed by the real
+ * `CustomerService`/`CustomerDocumentService` (Phase 3). Linked leads come
+ * straight off the Customer response's `linked_leads` array (id/reference/
+ * applicant_name only) — no separate Lead lookup needed.
  */
 @Component({
   selector: 'app-customer-profile',
   standalone: true,
   imports: [
-    CurrencyPipe,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -52,6 +57,7 @@ const DOC_STATUS_COLOUR: Record<'pending' | 'verified' | 'rejected', string> = {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatProgressBarModule,
     MatSelectModule,
     EmptyStateComponent,
     EntityHeaderComponent,
@@ -64,36 +70,27 @@ const DOC_STATUS_COLOUR: Record<'pending' | 'verified' | 'rejected', string> = {
 })
 export class CustomerProfileComponent {
   private readonly route = inject(ActivatedRoute);
-  private readonly customerData = inject(CustomerDataProvider);
-  private readonly documentData = inject(CustomerDocumentDataProvider);
-  private readonly leadData = inject(ManagerLeadDataProvider);
+  private readonly customerService = inject(CustomerService);
+  private readonly documentService = inject(CustomerDocumentService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
 
   private readonly customerId = Number(this.route.snapshot.paramMap.get('id'));
 
-  protected readonly loanTypeLabel = loanTypeLabel;
-  protected readonly documentTypeLabel = documentTypeLabel;
-  protected readonly documentTypes = DOCUMENT_TYPE_CATALOGUE;
+  protected readonly customer = signal<Customer | null>(null);
+  protected readonly loading = signal(true);
+  protected readonly notes = signal<CustomerNote[]>([]);
+  protected readonly interactions = signal<CustomerInteraction[]>([]);
+  protected readonly documents = signal<CustomerDocument[]>([]);
+  protected readonly documentTypes = signal<DocumentTypeOption[]>([]);
 
-  protected readonly customer = computed(() => this.customerData.getById(this.customerId));
   protected readonly statusLabel = computed(() => STATUS_LABEL[this.customer()?.status ?? 'prospect']);
   protected readonly statusColour = computed(() => STATUS_COLOUR[this.customer()?.status ?? 'prospect']);
 
-  protected readonly linkedLeads = computed<Lead[]>(() => {
-    const customer = this.customer();
-    if (!customer) {
-      return [];
-    }
-    return customer.linked_lead_ids
-      .map((id) => this.leadData.getById(id))
-      .filter((lead): lead is Lead => lead !== undefined);
-  });
-
-  protected readonly notes = computed(() => this.customerData.notesFor(this.customerId));
+  protected readonly linkedLeads = computed(() => this.customer()?.linked_leads ?? []);
 
   protected readonly activity = computed<TimelineEntry[]>(() =>
-    [...this.customerData.interactionsFor(this.customerId)].reverse().map((entry) => ({
+    [...this.interactions()].reverse().map((entry) => ({
       icon: entry.icon,
       title: entry.title,
       subtitle: entry.subtitle,
@@ -101,11 +98,48 @@ export class CustomerProfileComponent {
     })),
   );
 
-  protected readonly documents = computed(() => this.documentData.forCustomer(this.customerId));
-
   protected readonly noteText = signal('');
   protected readonly documentType = signal<DocumentType>('aadhaar');
   protected readonly dragging = signal(false);
+  protected readonly uploading = signal(false);
+
+  constructor() {
+    this.loadCustomer();
+    this.loadNotes();
+    this.loadInteractions();
+    this.loadDocuments();
+  }
+
+  private loadCustomer(): void {
+    this.customerService.getById(this.customerId).subscribe({
+      next: (customer) => {
+        this.customer.set(customer);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.customer.set(null);
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadNotes(): void {
+    this.customerService.notesFor(this.customerId).subscribe((notes) => this.notes.set(notes));
+  }
+
+  private loadInteractions(): void {
+    this.customerService.interactionsFor(this.customerId).subscribe((entries) => this.interactions.set(entries));
+  }
+
+  private loadDocuments(): void {
+    this.documentService.forCustomer(this.customerId).subscribe(({ items, types }) => {
+      this.documents.set(items);
+      this.documentTypes.set(types);
+      if (types.length > 0 && !types.some((t) => t.value === this.documentType())) {
+        this.documentType.set(types[0].value as DocumentType);
+      }
+    });
+  }
 
   protected docStatusLabel(status: 'pending' | 'verified' | 'rejected'): string {
     return DOC_STATUS_LABEL[status];
@@ -129,17 +163,26 @@ export class CustomerProfileComponent {
         if (!draft) {
           return;
         }
-        this.customerData.update(customer.id, draft);
-        this.snackBar.open('Customer updated.', 'Dismiss', { duration: 4000 });
+        this.customerService.update(customer.id, draft).subscribe({
+          next: (updated) => {
+            this.customer.set(updated);
+            this.snackBar.open('Customer updated.', 'Dismiss', { duration: 4000 });
+          },
+          error: () => this.snackBar.open('Could not update customer.', 'Dismiss', { duration: 4000 }),
+        });
       });
   }
 
   protected addNote(): void {
-    if (!this.noteText().trim()) {
+    const text = this.noteText().trim();
+    if (!text) {
       return;
     }
-    this.customerData.addNote(this.customerId, this.noteText());
-    this.noteText.set('');
+    this.customerService.addNote(this.customerId, text).subscribe(() => {
+      this.noteText.set('');
+      this.loadNotes();
+      this.loadInteractions();
+    });
   }
 
   protected onDragOver(event: DragEvent): void {
@@ -170,14 +213,19 @@ export class CustomerProfileComponent {
   }
 
   private uploadFile(file: File): void {
-    const type = this.documentType();
-    const document = this.documentData.upload(this.customerId, type, file.name, file.size);
-    this.customerData.logInteraction(this.customerId, {
-      icon: 'description',
-      title: 'Document uploaded',
-      subtitle: `${documentTypeLabel(type)} — ${document.file_name}`,
+    this.uploading.set(true);
+    this.documentService.upload(this.customerId, file, this.documentType()).subscribe({
+      next: () => {
+        this.uploading.set(false);
+        this.loadDocuments();
+        this.loadInteractions();
+        this.snackBar.open(`"${file.name}" uploaded.`, 'Dismiss', { duration: 4000 });
+      },
+      error: () => {
+        this.uploading.set(false);
+        this.snackBar.open('The document could not be uploaded.', 'Dismiss', { duration: 4000 });
+      },
     });
-    this.snackBar.open(`"${file.name}" uploaded.`, 'Dismiss', { duration: 4000 });
   }
 
   protected preview(documentId: number): void {

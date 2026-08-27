@@ -68,6 +68,13 @@
             <td mat-cell *matCellDef="let row">{{ row.applicant_name }}</td>
           </ng-container>
 
+          <ng-container matColumnDef="source">
+            <th mat-header-cell *matHeaderCellDef>Source</th>
+            <td mat-cell *matCellDef="let row">
+              <span [matTooltip]="sourceTooltip(row)" matTooltipClass="app-tooltip--multiline">{{ sourceLabel(row) }}</span>
+            </td>
+          </ng-container>
+
           <ng-container matColumnDef="loan">
             <th mat-header-cell *matHeaderCellDef>Loan</th>
             <td mat-cell *matCellDef="let row">

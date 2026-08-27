@@ -13,21 +13,24 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { PageEvent } from '@angular/material/paginator';
 import { RouterLink } from '@angular/router';
 
+import { Customer, CustomerDraft, CustomerSegment, CustomerStatus } from '@core/models/customer.model';
+import { CustomerService } from '@core/services/customer.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
 import { CustomerFormDialogComponent, CustomerFormDialogData } from './customer-form-dialog/customer-form-dialog.component';
-import { Customer, CustomerDataProvider, CustomerDraft, CustomerSegment, CustomerStatus } from './data/customer.provider';
 
 const STATUS_LABEL: Record<CustomerStatus, string> = { active: 'Active', prospect: 'Prospect', inactive: 'Inactive' };
 const STATUS_COLOUR: Record<CustomerStatus, string> = { active: 'success', prospect: 'primary', inactive: 'default' };
 
 /**
- * Customer Management — customers linked to your leads. Backed entirely by
- * `CustomerDataProvider`'s mock state, following the same list + toolbar +
- * `app-table` + dialogs shape as the Manager module's Lead list.
+ * Customer Management — customers linked to your leads. Backed by the real
+ * `CustomerService` (Phase 3). Filtering/pagination stay client-side over
+ * the actor's full visible set (same shape as before, just fed from the
+ * API instead of a mock provider) — the backend's own row-scoping already
+ * keeps that set to what this actor may see.
  */
 @Component({
   selector: 'app-customers',
@@ -53,9 +56,12 @@ const STATUS_COLOUR: Record<CustomerStatus, string> = { active: 'success', prosp
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomersComponent {
-  protected readonly customerData = inject(CustomerDataProvider);
+  private readonly customerService = inject(CustomerService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
+
+  protected readonly customers = signal<Customer[]>([]);
+  protected readonly loading = signal(false);
 
   protected readonly search = signal('');
   protected readonly statusFilter = signal<'all' | CustomerStatus>('all');
@@ -69,7 +75,7 @@ export class CustomersComponent {
     const status = this.statusFilter();
     const segment = this.segmentFilter();
 
-    return this.customerData.customers().filter((customer) => {
+    return this.customers().filter((customer) => {
       const matchesSearch =
         !search ||
         customer.name.toLowerCase().includes(search) ||
@@ -93,6 +99,24 @@ export class CustomersComponent {
     { key: 'status', label: 'Status' },
     { key: 'created_at', label: 'Customer since' },
   ];
+
+  constructor() {
+    this.reload();
+  }
+
+  private reload(): void {
+    this.loading.set(true);
+    this.customerService.list({ per_page: 200 }).subscribe({
+      next: (page) => {
+        this.customers.set(page.items);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loading.set(false);
+        this.snackBar.open('Could not load customers.', 'Dismiss', { duration: 4000 });
+      },
+    });
+  }
 
   protected initials(customer: Customer): string {
     const parts = customer.name.trim().split(/\s+/);
@@ -130,11 +154,21 @@ export class CustomersComponent {
         }
 
         if (data.customer) {
-          this.customerData.update(data.customer.id, draft);
-          this.snackBar.open('Customer updated.', 'Dismiss', { duration: 4000 });
+          this.customerService.update(data.customer.id, draft).subscribe({
+            next: () => {
+              this.snackBar.open('Customer updated.', 'Dismiss', { duration: 4000 });
+              this.reload();
+            },
+            error: () => this.snackBar.open('Could not update customer.', 'Dismiss', { duration: 4000 }),
+          });
         } else {
-          this.customerData.create(draft);
-          this.snackBar.open(`"${draft.name}" added.`, 'Dismiss', { duration: 4000 });
+          this.customerService.create(draft).subscribe({
+            next: () => {
+              this.snackBar.open(`"${draft.name}" added.`, 'Dismiss', { duration: 4000 });
+              this.reload();
+            },
+            error: () => this.snackBar.open('Could not add customer.', 'Dismiss', { duration: 4000 }),
+          });
         }
       });
   }

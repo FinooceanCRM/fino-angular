@@ -6,7 +6,7 @@ import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 
-import { loanTypeLabel } from '../../leads/data/models/lead.model';
+import { loanTypeLabel } from '../../data/models/lead-catalogue.model';
 import { ManagerBankerDataProvider } from '../data/manager-banker.provider';
 
 /** Assigned Bankers — banker-centric view of which of the manager's leads each banker is handling. */

@@ -1,7 +1,7 @@
 <div class="activity-list__stats">
   <app-stat-card icon="report" [value]="counts().overdue" label="Overdue" accent="warn" />
   <app-stat-card icon="today" [value]="counts().dueToday" label="Due today" accent="accent" />
-  <app-stat-card icon="event_upcoming" [value]="counts().upcoming" label="Upcoming" accent="primary" />
+  <app-stat-card icon="checklist" [value]="counts().open" label="Open" accent="primary" />
   <app-stat-card icon="task_alt" [value]="counts().completed" label="Completed" />
 </div>
 
@@ -32,8 +32,8 @@
       [emptyMessage]="'No ' + typeMeta().label + 's match the current filters.'"
       itemLabel="items"
     >
-      <ng-template appTableCell="dueAt" let-row>
-        {{ row.dueAt | date: 'mediumDate' }}
+      <ng-template appTableCell="due_at" let-row>
+        {{ row.due_at | date: 'mediumDate' }}
       </ng-template>
 
       <ng-template appTableCell="status" let-row>
@@ -41,10 +41,10 @@
       </ng-template>
 
       <ng-template #rowActions let-row>
-        @if (row.leadId) {
+        @if (row.lead_id) {
           <a
             mat-icon-button
-            [routerLink]="['/relationship-manager/leads', row.leadId]"
+            [routerLink]="['/relationship-manager/leads', row.lead_id]"
             matTooltip="View lead"
             aria-label="View lead"
           >

@@ -26,6 +26,10 @@ class LeadService extends BaseService
         private readonly LoanLeadRepositoryInterface $leads,
         private readonly NotificationService $notifications,
         private readonly LeadMatchingService $matching,
+        private readonly AffiliateCommissionService $commissions,
+        private readonly ConnectorCommissionService $connectorCommissions,
+        private readonly AuditLogService $auditLog,
+        private readonly LedgerService $ledger,
     ) {
     }
 
@@ -46,6 +50,19 @@ class LeadService extends BaseService
         }
 
         return $lead;
+    }
+
+    /**
+     * The ids of every lead visible to the actor, per the same hierarchy
+     * rule {@see self::paginate()}/{@see self::findVisible()} already
+     * enforce. Exposed so other modules (Customers, Phase 3) can reuse Lead
+     * visibility instead of re-deriving the hierarchy scoping themselves.
+     *
+     * @return array<int, int>
+     */
+    public function visibleLeadIds(User $actor): array
+    {
+        return $this->leads->visibleQuery($actor)->pluck('loan_leads.id')->all();
     }
 
     /**
@@ -75,6 +92,16 @@ class LeadService extends BaseService
                 'changed_by' => $actor->id,
                 'remarks' => 'Lead created.',
             ]);
+
+            $this->auditLog->record(
+                $actor,
+                'Created',
+                'Lead',
+                $lead->reference,
+                sprintf('%s created lead %s.', $actor->name, $lead->reference),
+                'lead_creation',
+                $lead->id,
+            );
 
             $this->notifications->notifyMany(
                 [$lead->assigned_relationship_manager_id, $lead->assigned_manager_id],
@@ -150,6 +177,16 @@ class LeadService extends BaseService
                 $this->recordStatus($lead, $previousStatus->value, LeadStatus::Assigned->value, $actor->id, 'Assigned to '.$assignee->name);
             }
 
+            $this->auditLog->record(
+                $actor,
+                'Assigned to '.$assignee->name,
+                'Lead',
+                $lead->reference,
+                sprintf('%s assigned lead %s to %s.', $actor->name, $lead->reference, $assignee->name),
+                'lead_assignment',
+                $lead->id,
+            );
+
             $this->notifications->notify(
                 $assignee->id,
                 'lead.assigned',
@@ -192,6 +229,16 @@ class LeadService extends BaseService
 
             $this->recordStatus($lead, $current->value, $target->value, $actor->id, $remarks);
 
+            $this->auditLog->record(
+                $actor,
+                'Status changed to '.$target->label(),
+                'Lead',
+                $lead->reference,
+                sprintf('%s moved lead %s from %s to %s.', $actor->name, $lead->reference, $current->label(), $target->label()),
+                'status_change',
+                $lead->id,
+            );
+
             $this->notifications->notifyMany(
                 [
                     $lead->connector_id,
@@ -205,6 +252,23 @@ class LeadService extends BaseService
                 sprintf('Lead %s moved to %s.', $lead->reference, $target->label()),
                 ['lead_id' => $lead->id, 'status' => $target->value],
             );
+
+            // Commission accrues on the disbursed transition only (never on
+            // update() or any other write path) — see AffiliateCommissionService.
+            // Disbursed can only ever move on to Closed (LeadStatus::allowedNextStatuses()),
+            // never back out to another status, so there is no reversal path to wire up here.
+            if ($target === LeadStatus::Disbursed) {
+                $this->ledger->record(
+                    'disbursement',
+                    sprintf('Disbursement — %s (%s)', $lead->reference, $lead->applicant_name),
+                    (float) $lead->loan_amount,
+                    null,
+                    $lead,
+                );
+
+                $this->commissions->accrueForLead($lead, $actor);
+                $this->connectorCommissions->accrueForLead($lead, $actor);
+            }
 
             return $lead;
         });

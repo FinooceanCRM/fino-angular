@@ -47,6 +47,10 @@ class LoanLeadPolicy
             // Telecallers record PD outcomes through a dedicated action
             // (Phase 6), not by editing lead fields directly.
             UserRole::Telecaller => false,
+            // Affiliates only ever originate a lead via the public referral
+            // form (never authenticated), so there is no "my own new lead"
+            // edit window the way there is for Connector.
+            UserRole::Affiliate => false,
         };
     }
 
@@ -110,7 +114,11 @@ class LoanLeadPolicy
 
     public function match(User $actor, LoanLead $lead): bool
     {
-        return ! in_array($actor->roleEnum(), [UserRole::Connector, UserRole::Banker, UserRole::Telecaller], true);
+        return ! in_array(
+            $actor->roleEnum(),
+            [UserRole::Connector, UserRole::Affiliate, UserRole::Banker, UserRole::Telecaller],
+            true,
+        );
     }
 
     /**

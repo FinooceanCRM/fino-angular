@@ -1,3 +1,7 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
 @if (entry(); as entry) {
   <app-page-header title="Audit Log Details" [subtitle]="'Entry #' + entry.id" />
 
@@ -44,19 +48,19 @@
 
         <div class="audit-detail__field">
           <dt>IP address</dt>
-          <dd>{{ entry.ip_address }}</dd>
+          <dd>{{ entry.ip_address ?? '—' }}</dd>
         </div>
       </dl>
 
       @if (relatedLink(); as link) {
-        <a mat-flat-button color="primary" class="audit-detail__related" [routerLink]="link.route" [queryParams]="link.queryParams">
+        <a mat-flat-button color="primary" class="audit-detail__related" [routerLink]="link.route">
           {{ link.label }}
           <mat-icon>arrow_forward</mat-icon>
         </a>
       }
     </mat-card-content>
   </mat-card>
-} @else {
+} @else if (notFound()) {
   <app-page-header title="Audit Log Details" />
   <app-empty-state icon="search_off" message="This audit log entry could not be found." />
 }

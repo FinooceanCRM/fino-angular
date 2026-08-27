@@ -121,6 +121,16 @@ export const employeeRoutes: Routes = [
       ),
   },
   {
+    path: 'leads/my-submitted',
+    title: 'My submitted leads — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['employee'] },
+    loadComponent: () =>
+      import('./leads/my-submitted/employee-my-submitted-leads.component').then(
+        (m) => m.EmployeeMySubmittedLeadsComponent,
+      ),
+  },
+  {
     path: 'leads/:id/timeline',
     title: 'Lead timeline — FINOOCEAN',
     canActivate: [authGuard, roleGuard],

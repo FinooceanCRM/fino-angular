@@ -6,6 +6,10 @@
   </button>
 </div>
 
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
 <div class="commission-page__summary">
   <app-stat-card icon="groups" [value]="summary().totalAffiliates" label="Total affiliates" accent="primary" />
   <app-stat-card icon="link" [value]="summary().totalReferrals" label="Total referrals" accent="accent" />
@@ -20,39 +24,27 @@
         <mat-label>Search</mat-label>
         <input matInput formControlName="search" placeholder="Name, email or referral code" />
       </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Tier</mat-label>
-        <mat-select formControlName="tier">
-          <mat-option value="">All tiers</mat-option>
-          <mat-option value="Gold">Gold</mat-option>
-          <mat-option value="Silver">Silver</mat-option>
-          <mat-option value="Bronze">Bronze</mat-option>
-        </mat-select>
-      </mat-form-field>
     </form>
   </mat-card-content>
 </mat-card>
 
 <mat-card class="commission-page__table-card">
   <mat-card-content>
-    <app-table [columns]="columns" [rows]="filteredRows()" emptyMessage="No affiliates match the current filters.">
-      <ng-template appTableCell="tier" let-row>
-        <app-status-pill
-          [label]="row.tier"
-          [colour]="row.tier === 'Gold' ? 'success' : row.tier === 'Silver' ? 'primary' : 'default'"
-        />
-      </ng-template>
-
+    <app-table
+      [columns]="columns"
+      [rows]="filteredRows()"
+      [loading]="loading()"
+      emptyMessage="No affiliates match the current filters."
+    >
       <ng-template appTableCell="earned" let-row>
-        ₹{{ row.commission_earned | number: '1.0-0' }} ({{ row.commission_rate }}%)
+        ₹{{ row.commission_accrued ?? 0 | number: '1.0-0' }}
+        @if (row.commission_rate !== null) {
+          ({{ row.commission_rate }}%)
+        }
       </ng-template>
 
       <ng-template appTableCell="status" let-row>
-        <app-status-pill
-          [label]="row.status === 'active' ? 'Active' : 'Inactive'"
-          [colour]="row.status === 'active' ? 'success' : 'default'"
-        />
+        <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
       </ng-template>
     </app-table>
   </mat-card-content>

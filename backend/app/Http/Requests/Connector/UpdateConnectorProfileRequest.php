@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Connector;
 
 use App\Http\Requests\BaseFormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateConnectorProfileRequest extends BaseFormRequest
 {
@@ -32,6 +33,10 @@ class UpdateConnectorProfileRequest extends BaseFormRequest
             'pincode' => ['sometimes', 'nullable', 'string', 'regex:/^[0-9]{4,10}$/'],
             'pan_number' => ['sometimes', 'nullable', 'string', 'regex:/^[A-Za-z0-9]{10}$/'],
             'gst_number' => ['sometimes', 'nullable', 'string', 'max:20'],
+            'payout_method' => ['sometimes', 'nullable', 'string', Rule::in(['bank_transfer', 'upi'])],
+            'payout_account_name' => ['sometimes', 'nullable', 'string', 'max:120'],
+            'payout_account_number' => ['sometimes', 'nullable', 'string', 'max:64'],
+            'payout_ifsc_or_upi' => ['sometimes', 'nullable', 'string', 'max:64'],
         ];
     }
 
@@ -61,6 +66,7 @@ class UpdateConnectorProfileRequest extends BaseFormRequest
             'phone', 'company_name', 'contact_person', 'alternate_phone',
             'address_line1', 'address_line2', 'city', 'state',
             'pincode', 'pan_number', 'gst_number',
+            'payout_account_name', 'payout_account_number', 'payout_ifsc_or_upi',
         ];
 
         $blanked = [];

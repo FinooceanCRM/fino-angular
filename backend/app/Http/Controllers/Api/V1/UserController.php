@@ -82,7 +82,7 @@ class UserController extends BaseApiController
     {
         $this->authorize('delete', $user);
 
-        $this->users->delete($user);
+        $this->users->delete($request->user(), $user);
 
         return $this->respondSuccess(null, 'User deleted.');
     }

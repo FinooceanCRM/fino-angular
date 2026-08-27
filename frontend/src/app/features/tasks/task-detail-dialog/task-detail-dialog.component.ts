@@ -2,11 +2,10 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 
+import { Task, TaskDisplayStatus, TaskTimelineEntry } from '@core/models/task.model';
 import { ModalComponent } from '@shared/components/modal.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
-
-import { Task, TaskDataProvider, TaskDisplayStatus } from '../data/task.provider';
 
 export interface TaskDetailDialogData {
   task: Task;
@@ -77,17 +76,47 @@ const PRIORITY_COLOUR: Record<Task['priority'], string> = { low: 'default', medi
 export class TaskDetailDialogComponent {
   protected readonly data = inject<TaskDetailDialogData>(MAT_DIALOG_DATA);
   protected readonly dialogRef = inject(MatDialogRef<TaskDetailDialogComponent>);
-  private readonly tasks = inject(TaskDataProvider);
 
-  protected readonly statusLabel = STATUS_LABEL[this.tasks.displayStatus(this.data.task)];
-  protected readonly statusColour = STATUS_COLOUR[this.tasks.displayStatus(this.data.task)];
+  protected readonly statusLabel = STATUS_LABEL[this.data.task.display_status];
+  protected readonly statusColour = STATUS_COLOUR[this.data.task.display_status];
   protected readonly priorityLabel = PRIORITY_LABEL[this.data.task.priority];
   protected readonly priorityColour = PRIORITY_COLOUR[this.data.task.priority];
 
-  protected readonly entries: TimelineEntry[] = this.tasks.timelineFor(this.data.task).map((entry) => ({
+  protected readonly entries: TimelineEntry[] = timelineFor(this.data.task).map((entry) => ({
     icon: entry.icon,
     title: entry.title,
     subtitle: entry.subtitle,
     time: entry.time,
   }));
+}
+
+/**
+ * Synthesises a small activity timeline (created → due/completed/cancelled)
+ * for the task detail dialog. Purely presentational — no backend endpoint
+ * for this, same as the mock `TaskDataProvider.timelineFor()` it replaces.
+ */
+function timelineFor(task: Task): TaskTimelineEntry[] {
+  const entries: TaskTimelineEntry[] = [
+    { icon: 'add_circle', title: 'Created', subtitle: task.related_to, time: formatTime(task.created_at) },
+  ];
+
+  if (task.status === 'completed' && task.completed_at) {
+    entries.push({ icon: 'task_alt', title: 'Marked complete', subtitle: null, time: formatTime(task.completed_at) });
+  } else if (task.status === 'cancelled') {
+    entries.push({ icon: 'cancel', title: 'Cancelled', subtitle: null, time: formatTime(task.created_at) });
+  } else {
+    entries.push({ icon: 'event', title: `Due ${formatDate(task.due_at)}`, subtitle: null, time: formatTime(task.due_at) });
+  }
+
+  return entries;
+}
+
+function formatDate(iso: string | null): string {
+  return iso ? new Date(iso).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '—';
+}
+
+function formatTime(iso: string | null): string {
+  return iso
+    ? new Date(iso).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })
+    : '—';
 }

@@ -2,7 +2,7 @@
 
 <mat-card class="audit-log__toolbar">
   <mat-card-content>
-    <form class="audit-log__filters" [formGroup]="filters">
+    <form class="audit-log__filters" [formGroup]="filters" (ngSubmit)="load(0)">
       <mat-form-field appearance="outline">
         <mat-label>Search</mat-label>
         <input matInput formControlName="search" placeholder="Actor, entity or description" />
@@ -22,7 +22,7 @@
         <mat-label>Entity type</mat-label>
         <mat-select formControlName="entityType">
           <mat-option value="">All entities</mat-option>
-          @for (type of entityTypes; track type) {
+          @for (type of entityTypes(); track type) {
             <mat-option [value]="type">{{ type }}</mat-option>
           }
         </mat-select>
@@ -37,17 +37,26 @@
         <mat-label>To</mat-label>
         <input matInput type="date" formControlName="to" />
       </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">Apply</button>
     </form>
   </mat-card-content>
 </mat-card>
+
+@if (error(); as message) {
+  <mat-card class="audit-log__notice">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
 
 <mat-card class="audit-log__table-card">
   <mat-card-content>
     <app-table
       [columns]="columns"
-      [rows]="pagedRows()"
+      [rows]="rows()"
+      [loading]="loading()"
       emptyMessage="No audit log entries match the current filters."
-      [length]="filteredRows().length"
+      [length]="total()"
       [pageSize]="pageSize()"
       [pageIndex]="pageIndex()"
       itemLabel="entries"
