@@ -1,0 +1,18 @@
+@if (bars().length === 0) {
+  <p class="column-chart__empty">No data for the selected range.</p>
+} @else {
+  <div class="column-chart">
+    @for (bar of bars(); track bar.label) {
+      <div class="column-chart__col">
+        <div class="column-chart__track" [title]="bar.label + ': ' + bar.value">
+          <div
+            class="column-chart__fill"
+            [style.height.%]="bar.percent"
+            [style.background]="bar.colour ?? null"
+          ></div>
+        </div>
+        <span class="column-chart__label">{{ bar.label }}</span>
+      </div>
+    }
+  </div>
+}

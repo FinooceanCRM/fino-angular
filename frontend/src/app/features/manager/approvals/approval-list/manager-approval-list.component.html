@@ -128,24 +128,32 @@
           </ng-template>
 
           <ng-template #rowActions let-row>
-            <button mat-icon-button type="button" matTooltip="Review" aria-label="Review" (click)="review(row)">
-              <mat-icon>rate_review</mat-icon>
-            </button>
-            @if (row.status === 'pending') {
-              <button mat-icon-button type="button" matTooltip="Reject" aria-label="Reject" (click)="reject(row)">
-                <mat-icon>close</mat-icon>
+            <div class="approval-list__actions">
+              <button mat-icon-button type="button" matTooltip="Review" aria-label="Review" (click)="review(row)">
+                <mat-icon>rate_review</mat-icon>
               </button>
-              <button
-                mat-icon-button
-                type="button"
-                color="primary"
-                matTooltip="Approve"
-                aria-label="Approve"
-                (click)="approve(row)"
-              >
-                <mat-icon>check</mat-icon>
-              </button>
-            }
+              @if (row.status === 'pending') {
+                <button
+                  mat-stroked-button
+                  type="button"
+                  class="approval-list__reject-pill"
+                  aria-label="Reject"
+                  (click)="reject(row)"
+                >
+                  Reject
+                </button>
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  class="approval-list__approve-pill"
+                  aria-label="Approve"
+                  (click)="approve(row)"
+                >
+                  Approve
+                </button>
+              }
+            </div>
           </ng-template>
         </app-table>
       </mat-card-content>

@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { RouterLink } from '@angular/router';
 
-import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { DashboardHeroComponent } from '@shared/components/dashboard-hero.component';
 import { StatCardAccent, StatCardComponent } from '@shared/components/stat-card.component';
 import { StatusPillColour, StatusPillComponent } from '@shared/components/status-pill.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
@@ -93,7 +93,7 @@ function isSameCalendarDay(iso: string, reference: Date): boolean {
     RouterLink,
     MatButtonModule,
     MatCardModule,
-    PageHeaderComponent,
+    DashboardHeroComponent,
     StatCardComponent,
     StatusPillComponent,
     SuperAdminNotificationDropdownComponent,

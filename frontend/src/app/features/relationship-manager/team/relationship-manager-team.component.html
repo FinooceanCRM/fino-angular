@@ -1,14 +1,9 @@
-<app-page-header title="Team Management" subtitle="Employees and connectors assigned to you" />
+<app-page-header title="My Team" subtitle="Reporting hierarchy and performance" icon="groups" />
 
 <mat-tab-group>
-  <mat-tab label="Employees">
+  <mat-tab label="Hierarchy">
     <div class="rm-team__tab-body">
-      <app-relationship-manager-employees />
-    </div>
-  </mat-tab>
-  <mat-tab label="Connectors">
-    <div class="rm-team__tab-body">
-      <app-relationship-manager-connectors />
+      <app-relationship-manager-team-hierarchy />
     </div>
   </mat-tab>
   <mat-tab label="Performance">
@@ -19,6 +14,16 @@
   <mat-tab label="Activities">
     <div class="rm-team__tab-body">
       <app-relationship-manager-team-activities />
+    </div>
+  </mat-tab>
+  <mat-tab label="Employees">
+    <div class="rm-team__tab-body">
+      <app-relationship-manager-employees />
+    </div>
+  </mat-tab>
+  <mat-tab label="Connectors">
+    <div class="rm-team__tab-body">
+      <app-relationship-manager-connectors />
     </div>
   </mat-tab>
 </mat-tab-group>

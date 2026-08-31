@@ -1,14 +1,27 @@
 <div class="report-page__header">
-  <app-page-header title="User Reports" subtitle="Role mix, active vs. inactive split, and the new-signups trend." />
+  <app-page-header
+    title="User Reports"
+    subtitle="Role mix, active vs. inactive split, and the new-signups trend."
+    icon="groups"
+  />
   <button mat-stroked-button type="button" (click)="export()">
     <mat-icon>download</mat-icon>
-    Export CSV
+    Export
   </button>
 </div>
 
 <mat-card class="report-page__range">
   <mat-card-content>
     <form class="report-page__range-form" [formGroup]="range">
+      <mat-form-field appearance="outline">
+        <mat-label>Role</mat-label>
+        <mat-select [value]="roleFilter()" (selectionChange)="roleFilter.set($event.value)">
+          <mat-option value="">All roles</mat-option>
+          @for (option of roleOptions(); track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
       <mat-form-field appearance="outline">
         <mat-label>From</mat-label>
         <input matInput type="date" formControlName="from" />
@@ -52,7 +65,7 @@
       <mat-card-title>New users per week</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <app-trend-chart [points]="trend()" accent="tertiary" />
+      <app-trend-chart [points]="trend()" accent="secondary" />
     </mat-card-content>
   </mat-card>
 </div>
@@ -62,7 +75,13 @@
     <mat-card-title>New users in range</mat-card-title>
   </mat-card-header>
   <mat-card-content>
-    <app-table [columns]="columns" [rows]="newUsers()" emptyMessage="No new users in the selected range.">
+    <app-table [columns]="columns" [rows]="newUsers()" emptyMessage="No new users match the selected filters.">
+      <ng-template appTableCell="name" let-row>
+        <span class="user-report__name-cell">
+          <span class="user-report__avatar">{{ row.name.slice(0, 2).toUpperCase() }}</span>
+          {{ row.name }}
+        </span>
+      </ng-template>
       <ng-template appTableCell="status" let-row>
         <app-status-pill
           [label]="row.is_active ? 'Active' : 'Inactive'"

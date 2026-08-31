@@ -25,7 +25,7 @@
   justify-content: center;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
+  border-radius: var(--app-radius-sm);
   flex-shrink: 0;
   background: var(--app-status-default-bg);
   color: var(--app-status-default-fg);
@@ -58,17 +58,29 @@
   color: var(--app-status-success-fg);
 }
 
+// Solid, brand-coloured icon tiles with an inverse icon — matches the KPI
+// tiles in every dashboard mockup (a filled square, not a pale tint).
 .stat-card--primary .stat-card__icon {
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-primary);
+  background: var(--tide-color-primary);
+  color: var(--tide-color-text-inverse);
+}
+
+.stat-card--secondary .stat-card__icon {
+  background: var(--tide-color-secondary);
+  color: var(--tide-color-text-inverse);
 }
 
 .stat-card--accent .stat-card__icon {
-  background: var(--mat-sys-tertiary-container);
-  color: var(--mat-sys-tertiary);
+  background: var(--tide-color-warning);
+  color: var(--tide-color-text-inverse);
 }
 
 .stat-card--warn .stat-card__icon {
-  background: var(--app-status-warn-bg);
-  color: var(--app-status-warn-fg);
+  background: var(--tide-color-error);
+  color: var(--tide-color-text-inverse);
+}
+
+.stat-card--success .stat-card__icon {
+  background: var(--tide-color-success);
+  color: var(--tide-color-text-inverse);
 }

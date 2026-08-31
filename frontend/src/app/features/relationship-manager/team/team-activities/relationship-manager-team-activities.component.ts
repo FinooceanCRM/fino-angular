@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
@@ -25,7 +26,7 @@ const ACTIVITY_TYPE_ICON: Record<string, string> = {
 @Component({
   selector: 'app-relationship-manager-team-activities',
   standalone: true,
-  imports: [EmptyStateComponent, TimelineComponent],
+  imports: [MatCardModule, EmptyStateComponent, TimelineComponent],
   templateUrl: './relationship-manager-team-activities.component.html',
   styleUrl: './relationship-manager-team-activities.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

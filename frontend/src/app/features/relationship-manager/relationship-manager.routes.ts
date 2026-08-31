@@ -55,7 +55,7 @@ export const relationshipManagerRoutes: Routes = [
     // two routes are left in place (unlinked from navigation) rather than
     // removed, so nothing that already points at them breaks.
     path: 'team',
-    title: 'Team management — FINOOCEAN',
+    title: 'My Team — FINOOCEAN',
     canActivate: [authGuard, roleGuard],
     data: { roles: ['relationship_manager'] },
     loadComponent: () =>

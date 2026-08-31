@@ -5,25 +5,42 @@
   margin-bottom: var(--app-space-4);
 }
 
-.team-performance__table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.88rem;
+.team-performance__table-card {
+  border-radius: var(--app-radius-md);
+}
 
-  th,
-  td {
-    padding: var(--app-space-2) var(--app-space-3);
-    text-align: left;
-    border-bottom: 1px solid var(--mat-sys-outline-variant);
-    white-space: nowrap;
-  }
+.team-performance__employee {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
 
-  th {
-    color: var(--app-status-default-fg);
-    font-weight: 600;
-  }
+.team-performance__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tide-color-secondary);
+  color: var(--tide-color-text-inverse);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
 
-  tr:last-child td {
-    border-bottom: none;
-  }
+.team-performance__employee-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.team-performance__name {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.team-performance__role {
+  font-size: 0.78rem;
+  color: var(--app-status-default-fg);
 }

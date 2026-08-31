@@ -19,7 +19,13 @@
 .banker-profile__grid {
   display: grid;
   gap: var(--app-space-3) var(--app-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 640px) {
+  .banker-profile__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .banker-profile__actions {

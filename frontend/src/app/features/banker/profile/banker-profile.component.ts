@@ -10,6 +10,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { BankerProfile } from '@core/models/banker.model';
 import { BankerService } from '@core/services/banker.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { ProfileHeaderComponent } from '@shared/components/profile-header.component';
 
 @Component({
   selector: 'app-banker-profile',
@@ -23,6 +24,7 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     MatInputModule,
     MatProgressBarModule,
     PageHeaderComponent,
+    ProfileHeaderComponent,
   ],
   templateUrl: './banker-profile.component.html',
   styleUrl: './banker-profile.component.scss',
@@ -36,6 +38,8 @@ export class BankerProfileComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly email = signal('');
+  protected readonly displayName = signal('');
+  protected readonly displaySubtitle = signal('');
 
   private profile: BankerProfile | null = null;
 
@@ -98,6 +102,10 @@ export class BankerProfileComponent implements OnInit {
   private apply(profile: BankerProfile): void {
     this.profile = profile;
     this.email.set(profile.user?.email ?? '');
+    this.displayName.set(profile.user?.name ?? '');
+    const roleLabel = profile.user?.role_label ?? 'Banker';
+    const meta = profile.bank_name || profile.branch || '';
+    this.displaySubtitle.set(meta ? `${roleLabel} · ${meta}` : roleLabel);
     this.form.patchValue({
       name: profile.user?.name ?? '',
       phone: profile.user?.phone ?? '',

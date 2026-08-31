@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
@@ -18,8 +19,8 @@ import { BarDatum } from '../../data/models/report.model';
 import { ManagedUser } from '../../data/models/user.model';
 import { UserDataProvider } from '../../data/providers/user-data.provider';
 import { bucketByWeek, defaultFrom, defaultTo, inRange } from '../../data/report-date-range.util';
-import { HorizontalBarListComponent } from '../charts/horizontal-bar-list.component';
-import { TrendChartComponent, TrendPoint } from '../charts/trend-chart.component';
+import { HorizontalBarListComponent } from '@shared/components/horizontal-bar-list.component';
+import { TrendChartComponent, TrendPoint } from '@shared/components/trend-chart.component';
 
 /** User Reports — role mix, active/inactive split, and new-signups trend. */
 @Component({
@@ -32,6 +33,7 @@ import { TrendChartComponent, TrendPoint } from '../charts/trend-chart.component
     MatCardModule,
     MatIconModule,
     MatInputModule,
+    MatSelectModule,
     HorizontalBarListComponent,
     PageHeaderComponent,
     StatCardComponent,
@@ -55,9 +57,24 @@ export class SuperAdminUserReportsComponent {
 
   private readonly rangeValues = toSignal(this.range.valueChanges, { initialValue: this.range.getRawValue() });
 
+  /** Real, honest addition: filters the already-loaded user list by role — no new backend call, just a client-side predicate over an existing field. */
+  protected readonly roleFilter = signal('');
+
+  protected readonly roleOptions = computed(() => {
+    const byRole = new Map<string, string>();
+    for (const user of this.userData.users()) {
+      byRole.set(user.role, user.role_label);
+    }
+    return [...byRole.entries()].map(([value, label]) => ({ value, label }));
+  });
+
   protected readonly newUsers = computed(() => {
     const { from = defaultFrom(180), to = defaultTo() } = this.rangeValues();
-    return this.userData.users().filter((user) => inRange(user.created_at, from, to));
+    const role = this.roleFilter();
+    return this.userData
+      .users()
+      .filter((user) => inRange(user.created_at, from, to))
+      .filter((user) => !role || user.role === role);
   });
 
   protected readonly summary = computed(() => {

@@ -1,6 +1,11 @@
 <app-page-header
-  [title]="leadId() ? 'Edit lead' : 'Create lead'"
-  subtitle="Applicant and loan requirement details"
+  [title]="leadId() ? 'Edit lead' : 'Create new lead'"
+  [subtitle]="
+    leadId()
+      ? 'Update applicant and loan requirement details'
+      : 'Capture applicant and loan details to start the workflow'
+  "
+  [icon]="leadId() ? 'edit' : 'add'"
 />
 
 @if (loading()) {
@@ -21,7 +26,8 @@
           <div class="lead-form__grid" formGroupName="applicant">
             <mat-form-field appearance="outline">
               <mat-label>Full name</mat-label>
-              <input matInput formControlName="applicant_name" />
+              <mat-icon matPrefix>person</mat-icon>
+              <input matInput formControlName="applicant_name" placeholder="Enter full name" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -42,12 +48,14 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Email</mat-label>
-              <input matInput type="email" formControlName="applicant_email" />
+              <mat-icon matPrefix>email</mat-icon>
+              <input matInput type="email" formControlName="applicant_email" placeholder="applicant@email.com" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Mobile number</mat-label>
-              <input matInput formControlName="applicant_phone" />
+              <mat-icon matPrefix>phone</mat-icon>
+              <input matInput formControlName="applicant_phone" placeholder="+91 98xxxxxxxx" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -92,7 +100,8 @@
           <div class="lead-form__grid" formGroupName="loan">
             <mat-form-field appearance="outline">
               <mat-label>Loan type</mat-label>
-              <mat-select formControlName="loan_type">
+              <mat-icon matPrefix>account_balance</mat-icon>
+              <mat-select formControlName="loan_type" placeholder="Select loan type">
                 @for (type of loanTypes(); track type.value) {
                   <mat-option [value]="type.value">{{ type.label }}</mat-option>
                 }
@@ -101,7 +110,8 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Employment type</mat-label>
-              <mat-select formControlName="employment_type">
+              <mat-icon matPrefix>work</mat-icon>
+              <mat-select formControlName="employment_type" placeholder="Select employment type">
                 @for (type of employmentTypes(); track type.value) {
                   <mat-option [value]="type.value">{{ type.label }}</mat-option>
                 }
@@ -110,6 +120,7 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Loan amount</mat-label>
+              <mat-icon matPrefix>payments</mat-icon>
               <input matInput type="number" formControlName="loan_amount" />
             </mat-form-field>
 
@@ -120,6 +131,7 @@
 
             <mat-form-field appearance="outline">
               <mat-label>Monthly income</mat-label>
+              <mat-icon matPrefix>currency_rupee</mat-icon>
               <input matInput type="number" formControlName="monthly_income" />
             </mat-form-field>
 
@@ -139,12 +151,12 @@
 
             <mat-form-field appearance="outline">
               <mat-label>CIBIL score</mat-label>
-              <input matInput type="number" formControlName="credit_score" />
+              <input matInput type="number" formControlName="credit_score" placeholder="e.g. 750" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>Tenure (months)</mat-label>
-              <input matInput type="number" formControlName="tenure_months" />
+              <input matInput type="number" formControlName="tenure_months" placeholder="e.g. 60" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -254,12 +266,14 @@
           <div class="lead-form__grid" formGroupName="address">
             <mat-form-field appearance="outline">
               <mat-label>City</mat-label>
-              <input matInput formControlName="city" />
+              <mat-icon matPrefix>location_city</mat-icon>
+              <input matInput formControlName="city" placeholder="Enter city" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
               <mat-label>State</mat-label>
-              <input matInput formControlName="state" />
+              <mat-icon matPrefix>map</mat-icon>
+              <input matInput formControlName="state" placeholder="Enter state" />
             </mat-form-field>
 
             <mat-form-field appearance="outline">
@@ -295,7 +309,12 @@
           <div class="lead-form__grid">
             <mat-form-field appearance="outline" class="lead-form__span-2">
               <mat-label>Notes</mat-label>
-              <textarea matInput rows="3" formControlName="notes"></textarea>
+              <textarea
+                matInput
+                rows="3"
+                formControlName="notes"
+                placeholder="Any additional notes for the underwriting team…"
+              ></textarea>
             </mat-form-field>
           </div>
 
@@ -476,6 +495,7 @@
                         mat-icon-button
                         type="button"
                         matTooltip="Remove"
+                        aria-label="Remove file"
                         [disabled]="documentStatus()[slot.key].status === 'uploading'"
                         (click)="removeDocument(slot.key)"
                       >
@@ -648,20 +668,38 @@
             </div>
           </div>
 
+          @if (submitAttempted() && form.invalid) {
+            <div class="lead-form__validation-summary">
+              <mat-icon>error_outline</mat-icon>
+              <div>
+                <strong>Please complete required fields before {{ leadId() ? 'saving' : 'creating' }} this lead:</strong>
+                <ul>
+                  @for (label of invalidStepLabels(); track label) {
+                    <li>{{ label }}</li>
+                  }
+                </ul>
+              </div>
+            </div>
+          }
+
           <div class="lead-form__step-actions">
-            <button mat-stroked-button type="button" matStepperPrevious>
+            <button mat-stroked-button type="button" matStepperPrevious class="lead-form__back-button">
               <mat-icon>arrow_back</mat-icon>
               Back
             </button>
-            <button
-              mat-flat-button
-              color="primary"
-              type="submit"
-              [disabled]="form.invalid || saving()"
-            >
-              {{ leadId() ? 'Save changes' : 'Create lead' }}
-            </button>
-            <a mat-button routerLink="/leads">Cancel</a>
+            <div class="lead-form__final-actions">
+              <a mat-stroked-button routerLink="/leads" class="lead-form__pill-button">Cancel</a>
+              <button
+                mat-flat-button
+                color="primary"
+                type="submit"
+                class="tide-cta-pill lead-form__pill-button"
+                [disabled]="saving()"
+              >
+                <mat-icon>check</mat-icon>
+                {{ leadId() ? 'Save changes' : 'Create lead' }}
+              </button>
+            </div>
           </div>
         </mat-step>
       </mat-stepper>

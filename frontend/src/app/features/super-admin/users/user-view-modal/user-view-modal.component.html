@@ -1,29 +1,43 @@
-<app-modal title="User details">
+<app-modal [title]="data.user.role_label + ' details'" [showActions]="true">
   <div class="user-view-modal">
-    <span class="user-view-modal__avatar">{{ initials() }}</span>
-    <h3 class="user-view-modal__name">{{ data.user.name }}</h3>
-    <p class="user-view-modal__role">{{ data.user.role_label }}</p>
-    <app-status-pill
-      [label]="data.user.is_active ? 'Active' : 'Inactive'"
-      [colour]="data.user.is_active ? 'success' : 'default'"
-    />
+    <div class="user-view-modal__header">
+      <span class="user-view-modal__avatar">{{ initials() }}</span>
+      <div class="user-view-modal__identity">
+        <h3 class="user-view-modal__name">{{ data.user.name }}</h3>
+        <p class="user-view-modal__role">
+          {{ data.user.role_label }}{{ data.user.department_label ? ' · ' + data.user.department_label : '' }}
+        </p>
+      </div>
+    </div>
 
-    <dl class="user-view-modal__fields">
-      <div class="user-view-modal__field">
-        <mat-icon>mail</mat-icon>
+    <dl class="user-view-modal__grid">
+      <div class="user-view-modal__cell">
         <dt>Email</dt>
         <dd><a [href]="'mailto:' + data.user.email">{{ data.user.email }}</a></dd>
       </div>
-      <div class="user-view-modal__field">
-        <mat-icon>call</mat-icon>
+      <div class="user-view-modal__cell">
         <dt>Phone</dt>
         <dd>{{ data.user.phone ?? '—' }}</dd>
       </div>
-      <div class="user-view-modal__field">
-        <mat-icon>event</mat-icon>
-        <dt>Created</dt>
+      <div class="user-view-modal__cell">
+        <dt>Status</dt>
+        <dd>
+          <app-status-pill
+            [label]="data.user.is_active ? 'Active' : 'Inactive'"
+            [colour]="data.user.is_active ? 'success' : 'default'"
+          />
+        </dd>
+      </div>
+      <div class="user-view-modal__cell">
+        <dt>Joined</dt>
         <dd>{{ data.user.created_at ? (data.user.created_at | date: 'mediumDate') : '—' }}</dd>
       </div>
     </dl>
   </div>
+
+  <button modal-actions mat-stroked-button type="button" (click)="dialogRef.close()">Close</button>
+  <button modal-actions mat-flat-button color="primary" class="tide-cta-pill" type="button" (click)="dialogRef.close(true)">
+    <mat-icon>edit</mat-icon>
+    Edit
+  </button>
 </app-modal>

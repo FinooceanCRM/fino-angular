@@ -5,8 +5,20 @@
   margin-top: var(--app-space-4);
 }
 
-.rm-dashboard__welcome,
-.rm-dashboard__notifications {
+// The shared app-dashboard-hero component spans the full grid width; it
+// doesn't know it's a grid child, so that placement is set here.
+app-dashboard-hero {
+  grid-column: 1 / -1;
+}
+
+.rm-dashboard__stats {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.rm-dashboard__quick-actions {
   grid-column: 1 / -1;
 }
 
@@ -16,11 +28,18 @@
   gap: var(--app-space-2);
 }
 
-.rm-dashboard__stats {
+.rm-dashboard__row {
   grid-column: 1 / -1;
   display: grid;
   gap: var(--app-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.rm-dashboard__secondary {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
 }
 
 .rm-dashboard__links {
@@ -47,3 +66,4 @@
 .rm-dashboard__error {
   margin-top: var(--app-space-4);
 }
+

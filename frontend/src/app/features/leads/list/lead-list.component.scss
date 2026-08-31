@@ -21,16 +21,55 @@
   align-items: center;
 }
 
+.lead-list__field {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+
+.lead-list__apply {
+  flex-shrink: 0;
+}
+
 .lead-list__table-card {
   border-radius: var(--app-radius-md);
 }
 
-.lead-list__table {
-  width: 100%;
+.lead-list__applicant {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
 }
 
-.lead-list__empty {
-  color: var(--app-status-default-fg);
+.lead-list__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--tide-color-text-inverse);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+// Cycled by row id (see lead-list.component.html) so different applicants get
+// varied, but stable, avatar colours — mirrors the same
+// `leads-table__avatar--0..4` pattern used on the super-admin dashboard.
+.lead-list__avatar--0 {
+  background: var(--tide-color-success);
+}
+.lead-list__avatar--1 {
+  background: var(--tide-color-primary);
+}
+.lead-list__avatar--2 {
+  background: var(--tide-color-secondary);
+}
+.lead-list__avatar--3 {
+  background: var(--tide-color-warning);
+}
+.lead-list__avatar--4 {
+  background: var(--tide-color-error);
 }
 
 .lead-list__notice {
@@ -40,5 +79,9 @@
 @media (max-width: 640px) {
   .lead-list__header {
     flex-direction: column;
+  }
+
+  .lead-list__field {
+    flex-basis: 100%;
   }
 }

@@ -1,18 +1,21 @@
-<app-modal [title]="isEdit ? 'Edit Bank Criteria' : 'Submit Bank Criteria'" [showActions]="true">
+<app-modal [title]="isEdit ? 'Edit lending criteria' : 'Add lending criteria'" [showActions]="true">
   <p class="criteria-dialog__subtitle">Notify Manager + Employee + Connector</p>
 
   <form [formGroup]="form">
     <div class="criteria-dialog__section">
-      <h3 class="criteria-dialog__section-title">Basic Criteria</h3>
-
       <div class="criteria-dialog__grid">
         <mat-form-field appearance="outline">
-          <mat-label>Bank Name</mat-label>
-          <input matInput formControlName="bank_name" placeholder="Example: HDFC" />
+          <mat-label>Bank name</mat-label>
+          <input matInput formControlName="bank_name" placeholder="Example: HDFC Bank" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Select Loan Category</mat-label>
+          <mat-label>Product name</mat-label>
+          <input matInput formControlName="product_name" placeholder="e.g. HDFC Home Advantage" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Loan type</mat-label>
           <mat-select formControlName="loan_type">
             @for (type of loanTypes; track type.value) {
               <mat-option [value]="type.value">{{ type.label }}</mat-option>
@@ -21,40 +24,48 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Min CIBIL</mat-label>
-          <input matInput type="number" formControlName="min_credit_score" placeholder="Example: 720" />
+          <mat-label>Employment type</mat-label>
+          <mat-select formControlName="employment_type">
+            <mat-option value="">Any</mat-option>
+            @for (type of employmentTypes; track type.value) {
+              <mat-option [value]="type.value">{{ type.label }}</mat-option>
+            }
+          </mat-select>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Min Income / Turnover (INR)</mat-label>
-          <input matInput type="number" formControlName="min_monthly_income" />
+          <mat-label>Minimum loan amount</mat-label>
+          <span matTextPrefix>₹&nbsp;</span>
+          <input matInput type="number" formControlName="min_loan_amount" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Interest Rate (%)</mat-label>
-          <input matInput type="number" formControlName="interest_rate" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Max Tenure (Months)</mat-label>
-          <input matInput type="number" formControlName="max_tenure_months" />
-        </mat-form-field>
-
-        <mat-form-field appearance="outline">
-          <mat-label>Max Loan Amount (INR)</mat-label>
+          <mat-label>Maximum loan amount</mat-label>
+          <span matTextPrefix>₹&nbsp;</span>
           <input matInput type="number" formControlName="max_loan_amount" />
         </mat-form-field>
 
         <mat-form-field appearance="outline">
-          <mat-label>Processing Fees (INR / %)</mat-label>
-          <input matInput formControlName="processing_fee" />
+          <mat-label>Minimum monthly income</mat-label>
+          <span matTextPrefix>₹&nbsp;</span>
+          <input matInput type="number" formControlName="min_monthly_income" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Minimum credit score</mat-label>
+          <input matInput type="number" formControlName="min_credit_score" placeholder="e.g. 700" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Interest rate (%)</mat-label>
+          <input matInput type="number" formControlName="interest_rate" placeholder="e.g. 8.4" />
         </mat-form-field>
       </div>
     </div>
 
     <div class="criteria-dialog__section criteria-dialog__section--advanced">
       <div class="criteria-dialog__section-header">
-        <h3 class="criteria-dialog__section-title">Advanced Criteria (Optional)</h3>
+        <h3 class="criteria-dialog__section-title">Advanced criteria (optional)</h3>
         <button mat-button type="button" (click)="showAdvanced.set(!showAdvanced())">
           {{ showAdvanced() ? 'Hide' : 'Show' }}
         </button>
@@ -63,12 +74,22 @@
       @if (showAdvanced()) {
         <div class="criteria-dialog__grid">
           <mat-form-field appearance="outline">
-            <mat-label>Min Age Limit</mat-label>
+            <mat-label>Max tenure (months)</mat-label>
+            <input matInput type="number" formControlName="max_tenure_months" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Processing fees (INR / %)</mat-label>
+            <input matInput formControlName="processing_fee" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Min age limit</mat-label>
             <input matInput type="number" formControlName="min_age" placeholder="Example: 21" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Max Age Limit</mat-label>
+            <mat-label>Max age limit</mat-label>
             <input matInput type="number" formControlName="max_age" placeholder="Example: 60" />
           </mat-form-field>
 
@@ -78,32 +99,22 @@
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Employment / Business Type</mat-label>
-            <mat-select formControlName="employment_type">
-              <mat-option value="">Any</mat-option>
-              @for (type of employmentTypes; track type.value) {
-                <mat-option [value]="type.value">{{ type.label }}</mat-option>
-              }
-            </mat-select>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline">
-            <mat-label>Business Vintage (Years)</mat-label>
+            <mat-label>Business vintage (years)</mat-label>
             <input matInput type="number" formControlName="business_vintage_years" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Eligible Cities/States</mat-label>
+            <mat-label>Eligible cities/states</mat-label>
             <input matInput formControlName="eligible_locations" placeholder="Example: Pune,Mumbai" />
           </mat-form-field>
 
           <mat-form-field appearance="outline">
-            <mat-label>Negative Profile Rules (Optional)</mat-label>
+            <mat-label>Negative profile rules (optional)</mat-label>
             <input matInput formControlName="negative_profile_rules" />
           </mat-form-field>
 
           <mat-form-field appearance="outline" class="criteria-dialog__span-2">
-            <mat-label>Special conditions / notes (Excel policy based)</mat-label>
+            <mat-label>Special conditions / notes</mat-label>
             <textarea matInput rows="3" formControlName="special_conditions"></textarea>
           </mat-form-field>
         </div>
@@ -113,8 +124,17 @@
     <mat-checkbox class="criteria-dialog__active" formControlName="is_active">Active</mat-checkbox>
   </form>
 
-  <button modal-actions mat-button type="button" (click)="dialogRef.close()">Cancel</button>
-  <button modal-actions mat-flat-button color="primary" type="button" [disabled]="form.invalid" (click)="submit()">
-    {{ isEdit ? 'Save changes' : 'Submit Bank Criteria' }}
+  <button modal-actions mat-stroked-button type="button" (click)="dialogRef.close()">Cancel</button>
+  <button
+    modal-actions
+    mat-flat-button
+    color="primary"
+    type="button"
+    class="tide-cta-pill"
+    [disabled]="form.invalid"
+    (click)="submit()"
+  >
+    <mat-icon>check</mat-icon>
+    {{ isEdit ? 'Save criteria' : 'Add criteria' }}
   </button>
 </app-modal>

@@ -11,6 +11,12 @@
   font-size: 0.9rem;
 }
 
+.assign-banker__amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
 .assign-banker__select {
   width: 100%;
 }

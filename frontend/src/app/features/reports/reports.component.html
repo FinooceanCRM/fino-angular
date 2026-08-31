@@ -1,4 +1,4 @@
-<app-page-header title="Reports" subtitle="Lead statistics for everything you can see" />
+<app-page-header title="Reports" subtitle="Lead statistics for everything you can see" icon="bar_chart" />
 
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" />
@@ -25,21 +25,7 @@
       <mat-card-title>Leads by status</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <div class="reports__bars">
-        @for (row of statusBreakdown(); track row.status) {
-          <div class="reports__bar-row">
-            <span class="reports__bar-label">{{ row.label }}</span>
-            <div class="reports__bar-track">
-              <div
-                class="reports__bar-fill"
-                [style.width.%]="row.percent"
-                [style.background]="row.colourVar"
-              ></div>
-            </div>
-            <span class="reports__bar-count">{{ row.count }}</span>
-          </div>
-        }
-      </div>
+      <app-horizontal-bar-list [data]="statusBreakdown()" />
     </mat-card-content>
   </mat-card>
 

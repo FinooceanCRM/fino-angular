@@ -15,7 +15,7 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
-import { Lead, UserSummary } from '../../data/models/lead.model';
+import { Lead, UserSummary, loanTypeLabel } from '../../data/models/lead.model';
 import { LeadDataProvider } from '../../data/providers/lead-data.provider';
 import { UserDataProvider } from '../../data/providers/user-data.provider';
 import { AssignBankerModalComponent, AssignBankerModalData } from '../assign-banker-modal/assign-banker-modal.component';
@@ -86,7 +86,11 @@ export class SuperAdminAssignedLeadsComponent {
   protected readonly columns: TableColumn<Lead>[] = [
     { key: 'reference', label: 'Reference' },
     { key: 'applicant_name', label: 'Applicant' },
-    { key: 'loan', label: 'Loan', formatter: (row) => `${row.loan_type} · ${row.loan_amount}` },
+    {
+      key: 'loan',
+      label: 'Loan',
+      formatter: (row) => `${loanTypeLabel(row.loan_type)} · ₹${row.loan_amount.toLocaleString('en-IN')}`,
+    },
     { key: 'status', label: 'Status' },
     { key: 'banker', label: 'Banker' },
   ];

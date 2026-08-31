@@ -82,7 +82,7 @@
 }
 
 .notif-list__item--unread .notif-list__icon {
-  background: #ffffff;
+  background: var(--tide-color-surface);
 }
 
 .notif-list__body {

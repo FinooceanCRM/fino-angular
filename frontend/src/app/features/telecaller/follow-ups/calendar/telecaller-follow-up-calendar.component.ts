@@ -145,7 +145,7 @@ interface CalendarDay {
         background: var(--mat-sys-tertiary, var(--mat-sys-primary));
       }
       .cal__dot--done {
-        background: var(--app-status-success-fg, #2e7d32);
+        background: var(--app-status-success-fg, #157a52);
       }
     `,
   ],

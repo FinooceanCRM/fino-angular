@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
@@ -36,6 +37,7 @@ const MAX_VISIBLE = 8;
     MatChipsModule,
     MatIconModule,
     MatMenuModule,
+    MatProgressBarModule,
     MatTooltipModule,
     RouterLink,
   ],
@@ -53,6 +55,7 @@ export class NotificationIconComponent {
 
   protected readonly unreadCount = this.notifications.unreadCount;
   protected readonly activeCategory = signal<NotificationCategory | ''>('');
+  protected readonly loading = signal(false);
 
   private readonly items = signal<AppNotification[]>([]);
 
@@ -83,9 +86,13 @@ export class NotificationIconComponent {
   }
 
   private refresh(): void {
+    this.loading.set(true);
     this.notifications.list().subscribe({
-      next: (items) => this.items.set(items),
-      error: () => undefined,
+      next: (items) => {
+        this.items.set(items);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
     });
   }
 }

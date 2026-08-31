@@ -11,9 +11,9 @@ import { RouterLink } from '@angular/router';
 
 import { ConnectorDashboard } from '@core/models/connector.model';
 import { ConnectorService } from '@core/services/connector.service';
+import { DashboardHeroComponent } from '@shared/components/dashboard-hero.component';
 import { LeadLinkCardComponent } from '@shared/components/lead-link-card.component';
 import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
-import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 
@@ -30,9 +30,9 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
     MatListModule,
     MatProgressBarModule,
     MatTooltipModule,
+    DashboardHeroComponent,
     LeadLinkCardComponent,
     NotificationsPanelComponent,
-    PageHeaderComponent,
     StatCardComponent,
     StatusPillComponent,
   ],

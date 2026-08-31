@@ -10,8 +10,8 @@ import { RouterLink } from '@angular/router';
 
 import { TelecallerDashboard } from '@core/models/telecaller.model';
 import { TelecallerService } from '@core/services/telecaller.service';
+import { DashboardHeroComponent } from '@shared/components/dashboard-hero.component';
 import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
-import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 
@@ -29,8 +29,8 @@ import { TelecallerReminderPopupComponent } from '../follow-ups/reminder-popup/t
     MatIconModule,
     MatListModule,
     MatProgressBarModule,
+    DashboardHeroComponent,
     NotificationsPanelComponent,
-    PageHeaderComponent,
     StatCardComponent,
     StatusPillComponent,
   ],

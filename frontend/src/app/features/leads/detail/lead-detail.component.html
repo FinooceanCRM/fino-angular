@@ -48,6 +48,7 @@
       <button
         mat-flat-button
         color="primary"
+        class="tide-cta-pill"
         type="button"
         [disabled]="data.lead.status === 'closed'"
         (click)="approveLead()"
@@ -57,6 +58,24 @@
       </button>
     }
   </app-entity-header>
+
+  @if (voyageStages().length > 0) {
+    <!--
+      `currentKey` is the lead's live `status`. `reachedKeys` is left to the
+      component's own "every stage up to the current one" default while the
+      lead is on the happy path, and only overridden (via voyageReachedKeys())
+      for a rejected/closed lead, whose status isn't one of these stages —
+      see the doc comments on voyageStages()/voyageReachedKeys() in the
+      component class.
+    -->
+    <div class="lead-detail__voyage app-scroll-x">
+      <app-voyage-progress
+        [stages]="voyageStages()"
+        [currentKey]="data.lead.status"
+        [reachedKeys]="voyageReachedKeys()"
+      />
+    </div>
+  }
 
   <mat-card class="lead-detail__summary">
     <mat-card-content class="lead-detail__summary-grid">
@@ -251,6 +270,85 @@
           </mat-card>
         }
 
+        @if (hasPdDetails()) {
+          <mat-card class="lead-detail__form-card">
+            <h3 class="lead-detail__section-title">
+              Full PD details
+              @if (data.lead.pd_completed_at) {
+                <span class="lead-detail__muted"> · completed {{ data.lead.pd_completed_at | date: 'mediumDate' }}
+                  @if (data.lead.pd_completed_by) {
+                    by {{ data.lead.pd_completed_by.name }}
+                  }
+                </span>
+              }
+            </h3>
+
+            @for (section of pdSummarySections(); track section.title) {
+              <div class="lead-detail__additional-section">
+                <h4 class="lead-detail__additional-title">{{ section.title }}</h4>
+                <div class="lead-detail__grid">
+                  @for (row of section.rows; track row.label) {
+                    <div><span class="lead-detail__label">{{ row.label }}</span><strong>{{ row.value }}</strong></div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (pdAddresses().length > 0) {
+              <div class="lead-detail__additional-section">
+                <h4 class="lead-detail__additional-title">Addresses</h4>
+                <div class="lead-detail__grid">
+                  @for (address of pdAddresses(); track address.title) {
+                    <div class="lead-detail__span-2"><span class="lead-detail__label">{{ address.title }}</span><strong>{{ address.line }}</strong></div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (pdExistingLoans().length > 0) {
+              <div class="lead-detail__additional-section">
+                <h4 class="lead-detail__additional-title">Existing loans / obligations</h4>
+                @for (loan of pdExistingLoans(); track $index) {
+                  <div class="lead-detail__grid">
+                    <div><span class="lead-detail__label">Loan type</span><strong>{{ loan.Loan_Type ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">EMI amount</span><strong>{{ loan.EMI_Amount ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">Loan amount</span><strong>{{ loan.Loan_Amount ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">Status</span><strong>{{ loan.Status ?? '—' }}</strong></div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (pdFamilyMembers().length > 0) {
+              <div class="lead-detail__additional-section">
+                <h4 class="lead-detail__additional-title">Family member income &amp; banking</h4>
+                @for (member of pdFamilyMembers(); track $index) {
+                  <div class="lead-detail__grid">
+                    <div><span class="lead-detail__label">Relation</span><strong>{{ member.Relation_of_Member ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">Name</span><strong>{{ member.Name_As_Per_Bank_PAN_Card ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">Co-borrower</span><strong>{{ member.Co_Borrower ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">Income amount</span><strong>{{ member.Income_Amount ?? '—' }}</strong></div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (pdPartnerDirectors().length > 0) {
+              <div class="lead-detail__additional-section">
+                <h4 class="lead-detail__additional-title">Partner / director information</h4>
+                @for (partner of pdPartnerDirectors(); track $index) {
+                  <div class="lead-detail__grid">
+                    <div><span class="lead-detail__label">Name</span><strong>{{ partner.Partner__Director_Name ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">Number</span><strong>{{ partner.Partner__Director_Number ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">KYC available</span><strong>{{ partner.Partner___Director_KYC_Available ?? '—' }}</strong></div>
+                    <div><span class="lead-detail__label">3-yr ITR available</span><strong>{{ partner.Partner___Director_3_YR_ITR ?? '—' }}</strong></div>
+                  </div>
+                }
+              </div>
+            }
+          </mat-card>
+        }
+
         @if (!isConnector()) {
           <mat-card class="lead-detail__form-card">
             <h3 class="lead-detail__section-title">Documents</h3>
@@ -301,7 +399,7 @@
                   <mat-label>Remarks</mat-label>
                   <input matInput formControlName="remarks" />
                 </mat-form-field>
-                <button mat-flat-button color="primary" type="submit">Update status</button>
+                <button mat-flat-button color="primary" class="tide-cta-pill" type="submit">Update status</button>
               </form>
             </mat-card>
           } @else {
@@ -494,13 +592,19 @@
                     }
                   </span>
                   <span class="document-list__actions">
-                    <button mat-icon-button matTooltip="Download" (click)="download(document)">
+                    <button
+                      mat-icon-button
+                      matTooltip="Download"
+                      aria-label="Download document"
+                      (click)="download(document)"
+                    >
                       <mat-icon>download</mat-icon>
                     </button>
                     <button
                       mat-icon-button
                       color="warn"
                       matTooltip="Delete"
+                      aria-label="Delete document"
                       (click)="removeDocument(document)"
                     >
                       <mat-icon>delete</mat-icon>
@@ -573,7 +677,12 @@
                   </span>
                   @if (!item.completed_at) {
                     <span class="document-list__actions">
-                      <button mat-icon-button matTooltip="Mark complete" (click)="completeFollowUp(item)">
+                      <button
+                        mat-icon-button
+                        matTooltip="Mark complete"
+                        aria-label="Mark follow-up complete"
+                        (click)="completeFollowUp(item)"
+                      >
                         <mat-icon>task_alt</mat-icon>
                       </button>
                     </span>

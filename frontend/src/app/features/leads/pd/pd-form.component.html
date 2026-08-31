@@ -1,6 +1,12 @@
 <app-page-header
-  title="Full PD"
-  [subtitle]="lead() ? 'Pre-disbursement verification for ' + lead()!.applicant_name + ' (' + lead()!.reference + ')' : 'Pre-disbursement verification'"
+  icon="call"
+  title="Complete Full PD"
+  [subtitle]="
+    lead()
+      ? lead()!.reference + ' · ' + lead()!.applicant_name + ' · ' + lead()!.loan_type + ' · ' +
+        (lead()!.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0')
+      : 'Pre-disbursement verification'
+  "
 />
 
 @if (loading()) {
@@ -29,14 +35,30 @@
 }
 
 @if (!loading() && canSubmitPd()) {
-  <mat-card class="pd-form__card">
-    <mat-card-content>
-      <form [formGroup]="form" (ngSubmit)="submit()">
-        <mat-stepper orientation="horizontal" [linear]="false" class="pd-form__stepper">
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="pd-form__layout">
+      <nav class="pd-form__rail" aria-label="Full PD steps">
+        @for (step of stepper.steps; track step; let i = $index) {
+          <button
+            type="button"
+            class="pd-form__rail-item"
+            [class.pd-form__rail-item--current]="i === stepper.selectedIndex"
+            [class.pd-form__rail-item--done]="i < stepper.selectedIndex"
+            [attr.aria-current]="i === stepper.selectedIndex ? 'step' : null"
+            (click)="stepper.selectedIndex = i"
+          >
+            <span class="pd-form__rail-number">{{ i + 1 }}</span>
+            <span class="pd-form__rail-label">{{ step.label }}</span>
+          </button>
+        }
+      </nav>
+
+      <div class="pd-form__content-card">
+        <mat-stepper orientation="horizontal" [linear]="false" #stepper="matStepper" class="pd-form__stepper">
           <mat-step label="Applicant">
             <app-pd-applicant-basics [form]="form" />
             <div class="pd-form__step-actions">
-              <button mat-flat-button color="primary" type="button" matStepperNext>
+              <button mat-flat-button color="primary" type="button" matStepperNext class="tide-cta-pill">
                 Next
                 <mat-icon>arrow_forward</mat-icon>
               </button>
@@ -48,8 +70,8 @@
             <app-pd-professional [form]="form" />
             <app-pd-business-partner [form]="form" />
             <div class="pd-form__step-actions">
-              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-              <button mat-flat-button color="primary" type="button" matStepperNext>
+              <button mat-stroked-button type="button" matStepperPrevious class="pd-form__btn-back">Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext class="tide-cta-pill">
                 Next
                 <mat-icon>arrow_forward</mat-icon>
               </button>
@@ -59,8 +81,8 @@
           <mat-step label="Income & Banking">
             <app-pd-salaried-income-banking [form]="form" />
             <div class="pd-form__step-actions">
-              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-              <button mat-flat-button color="primary" type="button" matStepperNext>
+              <button mat-stroked-button type="button" matStepperPrevious class="pd-form__btn-back">Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext class="tide-cta-pill">
                 Next
                 <mat-icon>arrow_forward</mat-icon>
               </button>
@@ -71,8 +93,8 @@
             <app-pd-applicant-itr [form]="form" />
             <app-pd-firm-itr [form]="form" />
             <div class="pd-form__step-actions">
-              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-              <button mat-flat-button color="primary" type="button" matStepperNext>
+              <button mat-stroked-button type="button" matStepperPrevious class="pd-form__btn-back">Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext class="tide-cta-pill">
                 Next
                 <mat-icon>arrow_forward</mat-icon>
               </button>
@@ -82,8 +104,8 @@
           <mat-step label="Existing loans">
             <app-pd-existing-loans [form]="form" />
             <div class="pd-form__step-actions">
-              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-              <button mat-flat-button color="primary" type="button" matStepperNext>
+              <button mat-stroked-button type="button" matStepperPrevious class="pd-form__btn-back">Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext class="tide-cta-pill">
                 Next
                 <mat-icon>arrow_forward</mat-icon>
               </button>
@@ -94,8 +116,8 @@
             <app-pd-family-members [form]="form" />
             <app-pd-partner-directors [form]="form" />
             <div class="pd-form__step-actions">
-              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-              <button mat-flat-button color="primary" type="button" matStepperNext>
+              <button mat-stroked-button type="button" matStepperPrevious class="pd-form__btn-back">Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext class="tide-cta-pill">
                 Next
                 <mat-icon>arrow_forward</mat-icon>
               </button>
@@ -105,8 +127,8 @@
           <mat-step label="Property">
             <app-pd-property [form]="form" />
             <div class="pd-form__step-actions">
-              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-              <button mat-flat-button color="primary" type="button" matStepperNext>
+              <button mat-stroked-button type="button" matStepperPrevious class="pd-form__btn-back">Back</button>
+              <button mat-flat-button color="primary" type="button" matStepperNext class="tide-cta-pill">
                 Next
                 <mat-icon>arrow_forward</mat-icon>
               </button>
@@ -119,8 +141,8 @@
               applicant could confirm.
             </p>
             <div class="pd-form__step-actions">
-              <button mat-stroked-button type="button" matStepperPrevious>Back</button>
-              <button mat-flat-button color="primary" type="submit" [disabled]="saving()">
+              <button mat-stroked-button type="button" matStepperPrevious class="pd-form__btn-back">Back</button>
+              <button mat-flat-button color="primary" type="submit" [disabled]="saving()" class="tide-cta-pill">
                 @if (saving()) {
                   Saving…
                 } @else {
@@ -130,7 +152,7 @@
             </div>
           </mat-step>
         </mat-stepper>
-      </form>
-    </mat-card-content>
-  </mat-card>
+      </div>
+    </div>
+  </form>
 }

@@ -1,9 +1,9 @@
-<app-task-bucket-nav />
-<app-page-header title="Follow-ups" subtitle="Calls, meetings, tasks and reminders in one place." />
+<app-task-bucket-nav [counts]="bucketCounts()" />
+<app-page-header title="Follow-ups" subtitle="Calls, meetings, tasks and reminders in one place." icon="calendar_month" />
 
 <mat-tab-group class="follow-ups__tabs" animationDuration="0ms">
   <mat-tab label="Calls">
-    <app-tasks type="call" [showHeader]="false" [showStats]="false" />
+    <app-tasks type="call" [showHeader]="false" [showStats]="false" (tasksLoaded)="onTasksLoaded($event)" />
   </mat-tab>
   <mat-tab label="Meetings">
     <app-tasks type="meeting" [showHeader]="false" [showStats]="false" />

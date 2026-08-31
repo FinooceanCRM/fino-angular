@@ -15,6 +15,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { AffiliateProfile } from '@core/models/affiliate.model';
 import { AffiliateService } from '@core/services/affiliate.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { ProfileHeaderComponent } from '@shared/components/profile-header.component';
 
 @Component({
   selector: 'app-affiliate-profile',
@@ -29,11 +30,13 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     MatProgressBarModule,
     MatSelectModule,
     PageHeaderComponent,
+    ProfileHeaderComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header
-      title="Affiliate profile"
+      icon="person"
+      title="My Profile"
       subtitle="View and update your affiliate details"
     />
 
@@ -44,6 +47,8 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     <mat-card class="card">
       <mat-card-content>
         <form [formGroup]="form" (ngSubmit)="save()">
+          <app-profile-header [name]="displayName()" [subtitle]="displaySubtitle()" />
+
           <h3 class="section-title">Personal Information</h3>
           <div class="grid">
             <mat-form-field appearance="outline">
@@ -129,6 +134,7 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
               mat-flat-button
               color="primary"
               type="submit"
+              class="tide-cta-pill"
               [disabled]="form.invalid || saving()"
             >
               <mat-icon>save</mat-icon>
@@ -159,7 +165,12 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
       .grid {
         display: grid;
         gap: 0.75rem 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      @media (max-width: 640px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
       }
       .actions {
         display: flex;
@@ -184,6 +195,8 @@ export class AffiliateProfileComponent implements OnInit {
   protected readonly email = signal('');
   protected readonly referralCode = signal('');
   protected readonly commissionRateDisplay = signal('—');
+  protected readonly displayName = signal('');
+  protected readonly displaySubtitle = signal('');
 
   private profile: AffiliateProfile | null = null;
 
@@ -244,6 +257,11 @@ export class AffiliateProfileComponent implements OnInit {
     this.referralCode.set(profile.referral_code);
     this.commissionRateDisplay.set(
       profile.commission_rate !== null ? `${profile.commission_rate}%` : 'Global default',
+    );
+    this.displayName.set(profile.user?.name ?? '');
+    const roleLabel = profile.user?.role_label ?? 'Affiliate';
+    this.displaySubtitle.set(
+      profile.referral_code ? `${roleLabel} · Referral ${profile.referral_code}` : roleLabel,
     );
     this.form.patchValue({
       name: profile.user?.name ?? '',

@@ -5,21 +5,25 @@
   <form [formGroup]="form" class="user-form-modal__grid" (ngSubmit)="submit()">
     <mat-form-field appearance="outline">
       <mat-label>Name</mat-label>
+      <mat-icon matPrefix>person</mat-icon>
       <input matInput formControlName="name" placeholder="Enter full name" />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Email</mat-label>
+      <mat-icon matPrefix>mail</mat-icon>
       <input matInput type="email" formControlName="email" placeholder="Enter email address" />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>Phone</mat-label>
+      <mat-icon matPrefix>call</mat-icon>
       <input matInput formControlName="phone" placeholder="Enter phone number" />
     </mat-form-field>
 
     <mat-form-field appearance="outline">
       <mat-label>{{ data.mode === 'edit' ? 'New password (optional)' : 'Password' }}</mat-label>
+      <mat-icon matPrefix>lock</mat-icon>
       <input
         matInput
         [type]="hidePassword() ? 'password' : 'text'"
@@ -42,7 +46,7 @@
     </mat-form-field>
 
     @if (data.departmentOptions; as options) {
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="user-form-modal__field--full">
         <mat-label>Department</mat-label>
         <mat-select formControlName="department">
           @for (option of options; track option.value) {
@@ -57,15 +61,17 @@
     </mat-checkbox>
   </form>
 
-  <button modal-actions mat-button type="button" (click)="dialogRef.close()">Cancel</button>
+  <button modal-actions mat-stroked-button type="button" (click)="dialogRef.close()">Cancel</button>
   <button
     modal-actions
     mat-flat-button
     color="primary"
     type="button"
+    class="tide-cta-pill"
     [disabled]="form.invalid"
     (click)="submit()"
   >
+    <mat-icon>check</mat-icon>
     {{ data.mode === 'edit' ? 'Save changes' : 'Create user' }}
   </button>
 </app-modal>

@@ -66,6 +66,7 @@
         <mat-slide-toggle
           [checked]="row.is_active"
           [matTooltip]="row.is_active ? 'Deactivate' : 'Activate'"
+          [attr.aria-label]="row.is_active ? 'Deactivate' : 'Activate'"
           (change)="toggle(row)"
         />
         <button

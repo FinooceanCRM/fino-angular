@@ -3,19 +3,21 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
-import { RouterLink } from '@angular/router';
 
 import { AUDIT_EVENT_CATEGORY_LABEL, AuditLogEntry } from '@core/models/audit-log.model';
 import { AuditLogService } from '@core/services/audit-log.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
+
+import { SuperAdminAuditLogDetailDialogComponent } from './audit-log-detail/super-admin-audit-log-detail-dialog.component';
 
 /** Audit log table — real backend data, filters and pagination sent to the server (Phase 0). */
 @Component({
@@ -24,7 +26,6 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
   imports: [
     DatePipe,
     ReactiveFormsModule,
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,
@@ -43,6 +44,7 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
 export class SuperAdminAuditLogsComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly auditLogs = inject(AuditLogService);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly categoryLabel = AUDIT_EVENT_CATEGORY_LABEL;
   protected readonly categories = Object.entries(AUDIT_EVENT_CATEGORY_LABEL);
@@ -117,5 +119,18 @@ export class SuperAdminAuditLogsComponent implements OnInit {
 
   protected categoryLabelFor(entry: AuditLogEntry): string {
     return this.categoryLabel[entry.category] ?? entry.category;
+  }
+
+  protected initials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+  }
+
+  /** Opens the quick-view dialog with the row's already-loaded data — no extra fetch. The full routed detail page at /super-admin/audit-logs/:id is still real and reachable directly. */
+  protected viewDetail(entry: AuditLogEntry): void {
+    this.dialog.open(SuperAdminAuditLogDetailDialogComponent, { data: { entry } });
   }
 }

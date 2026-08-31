@@ -13,6 +13,7 @@ import { AuthenticatedUser } from '@core/models/user.model';
 import { AuthService } from '@core/services/auth.service';
 import { EmployeeService } from '@core/services/employee.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { ProfileHeaderComponent } from '@shared/components/profile-header.component';
 
 function passwordsMatchValidator(group: AbstractControl): ValidationErrors | null {
   const password = group.get('password')?.value;
@@ -33,12 +34,14 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
     MatProgressBarModule,
     MatSlideToggleModule,
     PageHeaderComponent,
+    ProfileHeaderComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header
-      title="Employee profile"
-      subtitle="View and update your own details"
+      icon="person"
+      title="My Profile"
+      subtitle="Your account details and preferences"
     />
 
     @if (loading()) {
@@ -48,6 +51,8 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
     <mat-card class="card">
       <mat-card-content>
         <form [formGroup]="form" (ngSubmit)="save()">
+          <app-profile-header [name]="displayName()" [subtitle]="displaySubtitle()" />
+
           <h3 class="section-title">Personal Information</h3>
           <div class="grid">
             <mat-form-field appearance="outline">
@@ -151,6 +156,7 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
               mat-flat-button
               color="primary"
               type="submit"
+              class="tide-cta-pill"
               [disabled]="form.invalid || saving()"
             >
               <mat-icon>save</mat-icon>
@@ -164,7 +170,7 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
     <mat-card class="card">
       <mat-card-content>
         <form [formGroup]="passwordForm" (ngSubmit)="changePassword()">
-          <h3 class="section-title">Security</h3>
+          <h3 class="section-title">Change password</h3>
           <div class="grid">
             <mat-form-field appearance="outline">
               <mat-label>Current password</mat-label>
@@ -200,6 +206,7 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
               mat-flat-button
               color="primary"
               type="submit"
+              class="tide-cta-pill"
               [disabled]="passwordForm.invalid || savingPassword()"
             >
               <mat-icon>lock_reset</mat-icon>
@@ -230,6 +237,7 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
               mat-flat-button
               color="primary"
               type="submit"
+              class="tide-cta-pill"
               [disabled]="savingPreferences()"
             >
               <mat-icon>save</mat-icon>
@@ -260,7 +268,12 @@ function passwordsMatchValidator(group: AbstractControl): ValidationErrors | nul
       .grid {
         display: grid;
         gap: 0.75rem 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      @media (max-width: 640px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
       }
       .toggles {
         display: flex;
@@ -290,6 +303,8 @@ export class EmployeeProfileComponent implements OnInit {
   protected readonly message = signal<string | null>(null);
   protected readonly email = signal('');
   protected readonly employeeCode = signal('');
+  protected readonly displayName = signal('');
+  protected readonly displaySubtitle = signal('');
 
   protected readonly savingPassword = signal(false);
   protected readonly passwordMessage = signal<string | null>(null);
@@ -426,6 +441,10 @@ export class EmployeeProfileComponent implements OnInit {
     this.profile = profile;
     this.email.set(profile.user?.email ?? '');
     this.employeeCode.set(profile.employee_code ?? '—');
+    this.displayName.set(profile.user?.name ?? '');
+    const roleLabel = profile.user?.role_label ?? 'Employee';
+    const meta = profile.designation || profile.department || '';
+    this.displaySubtitle.set(meta ? `${roleLabel} · ${meta}` : roleLabel);
     this.form.patchValue({
       name: profile.user?.name ?? '',
       phone: profile.user?.phone ?? '',

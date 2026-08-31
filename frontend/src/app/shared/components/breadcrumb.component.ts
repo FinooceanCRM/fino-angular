@@ -21,15 +21,9 @@ export interface BreadcrumbItem {
   template: `
     @if (crumbs().length > 1) {
       <nav class="breadcrumb" aria-label="Breadcrumb">
-        @for (crumb of crumbs(); track crumb.label; let first = $first; let last = $last) {
+        @for (crumb of crumbs(); track crumb.label; let last = $last) {
           @if (!last && crumb.link) {
-            <a [routerLink]="crumb.link">
-              @if (first) {
-                <mat-icon class="home-icon">home</mat-icon>
-              } @else {
-                {{ crumb.label }}
-              }
-            </a>
+            <a [routerLink]="crumb.link">{{ crumb.label }}</a>
             <mat-icon class="separator">chevron_right</mat-icon>
           } @else {
             <span class="current">{{ crumb.label }}</span>
@@ -56,11 +50,6 @@ export interface BreadcrumbItem {
       }
       a:hover {
         color: var(--mat-sys-primary);
-      }
-      .home-icon {
-        font-size: 1.15rem;
-        width: 1.15rem;
-        height: 1.15rem;
       }
       .separator {
         font-size: 1rem;
@@ -99,15 +88,43 @@ export class BreadcrumbComponent {
     const path = this.currentUrl().split('?')[0];
     const segments = path.split('/').filter(Boolean);
 
+    // Every role-scoped module is mounted at a top-level route segment
+    // (see app.routes.ts) that exists purely for routing/access-control and
+    // has no corresponding crumb in the mockups — e.g. `/super-admin/reports/
+    // user-reports` should read "Home > Reports > User Reports", not
+    // "Home > Super Admin > Reports > User Reports". Drop a leading segment
+    // that names one of those role shells so it doesn't appear as a crumb,
+    // while keeping the link accumulation (and therefore every other
+    // segment's href) intact.
     let accumulated = '';
-    const auto: BreadcrumbItem[] = segments.map((segment) => {
+    const auto: BreadcrumbItem[] = [];
+    segments.forEach((segment, index) => {
       accumulated += `/${segment}`;
-      return { label: humanize(segment), link: accumulated };
+      if (index === 0 && ROLE_SEGMENTS.has(segment)) {
+        return;
+      }
+      auto.push({ label: humanize(segment), link: accumulated });
     });
 
     return [{ label: 'Home', link: '/dashboard' }, ...auto];
   });
 }
+
+/**
+ * Top-level path segments that correspond to a role's app shell rather than
+ * a navigable/human-relevant page (see the top-level children of `routes` in
+ * app.routes.ts). Kept in sync with that file.
+ */
+const ROLE_SEGMENTS = new Set([
+  'connector',
+  'affiliate',
+  'employee',
+  'relationship-manager',
+  'manager',
+  'super-admin',
+  'banker',
+  'telecaller',
+]);
 
 function humanize(segment: string): string {
   if (/^\d+$/.test(segment)) {

@@ -60,6 +60,15 @@
   div {
     display: flex;
     flex-direction: column;
+    // Grid items default to min-width: auto, which lets an unbreakable
+    // string (e.g. a long email address) overflow past its own column and
+    // visually overlap the next one instead of the track growing to fit it.
+    min-width: 0;
+  }
+
+  strong {
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 }
 

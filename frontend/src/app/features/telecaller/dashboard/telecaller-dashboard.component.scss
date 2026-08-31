@@ -5,35 +5,14 @@
   margin-top: var(--app-space-4);
 }
 
-.telecaller-dashboard__welcome,
-.telecaller-dashboard__notifications,
-.telecaller-dashboard__reminder {
+// The shared app-dashboard-hero component spans the full grid width; it
+// doesn't know it's a grid child, so that placement is set here.
+app-dashboard-hero {
   grid-column: 1 / -1;
 }
 
-.telecaller-dashboard__reminder-counts {
-  display: flex;
-  gap: var(--app-space-5);
-}
-
-.telecaller-dashboard__reminder-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-decoration: none;
-  color: inherit;
-}
-
-.telecaller-dashboard__reminder-item strong {
-  font-size: 1.5rem;
-}
-
-.telecaller-dashboard__reminder-item--overdue strong {
-  color: var(--mat-sys-error);
-}
-
-.telecaller-dashboard__reminder-item--today strong {
-  color: var(--mat-sys-primary);
+.telecaller-dashboard__quick-actions {
+  grid-column: 1 / -1;
 }
 
 .telecaller-dashboard__actions {
@@ -47,6 +26,156 @@
   display: grid;
   gap: var(--app-space-4);
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.telecaller-dashboard__reminder {
+  grid-column: 1 / -1;
+}
+
+.telecaller-dashboard__reminder-counts {
+  display: flex;
+  gap: var(--app-space-5);
+}
+
+.telecaller-dashboard__reminder-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--app-space-2) var(--app-space-4);
+  border-radius: var(--app-radius-md);
+  text-decoration: none;
+  color: inherit;
+  transition: background-color var(--app-duration-base) var(--app-ease);
+
+  &:hover {
+    background: var(--app-status-default-bg);
+  }
+
+  strong {
+    font-size: 1.5rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    font-size: 0.8rem;
+    color: var(--app-status-default-fg);
+  }
+}
+
+.telecaller-dashboard__reminder-item--overdue strong {
+  color: var(--app-status-warn-fg);
+}
+
+.telecaller-dashboard__reminder-item--today strong {
+  color: var(--tide-color-primary);
+}
+
+.telecaller-dashboard__reminder-item--upcoming strong {
+  color: var(--tide-color-secondary);
+}
+
+.telecaller-dashboard__notifications {
+  grid-column: 1 / -1;
+}
+
+.telecaller-dashboard__lists {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+}
+
+.telecaller-dashboard__account {
+  grid-column: 1 / -1;
+}
+
+// Compact data table used for the recent-leads / pending-follow-ups cards —
+// styled to match the Tidewater list/table look (muted uppercase header,
+// hairline row dividers) without depending on the shared app-table
+// component, since this page's component class cannot be edited to import it.
+.telecaller-dashboard__table-wrap {
+  overflow-x: auto;
+}
+
+.telecaller-dashboard__table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    padding: var(--app-space-2) var(--app-space-3);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--app-status-default-fg);
+    text-align: left;
+    border-bottom: 1px solid var(--tide-color-border-subtle);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: var(--app-space-3);
+    font-size: 0.88rem;
+    color: var(--mat-sys-on-surface);
+    border-bottom: 1px solid var(--tide-color-border-subtle);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background: var(--app-status-default-bg);
+  }
+}
+
+.telecaller-dashboard__person {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.telecaller-dashboard__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--tide-color-text-inverse);
+  background: var(--tide-color-secondary);
+}
+
+// Rotate the decorative avatar tint across a small palette so a long list
+// doesn't read as a wall of identical circles.
+.telecaller-dashboard__table tbody tr:nth-child(3n + 2) .telecaller-dashboard__avatar {
+  background: var(--tide-color-primary);
+}
+
+.telecaller-dashboard__table tbody tr:nth-child(3n) .telecaller-dashboard__avatar {
+  background: var(--tide-teal-700);
+}
+
+.telecaller-dashboard__person-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.telecaller-dashboard__person-name {
+  font-weight: 600;
+}
+
+.telecaller-dashboard__person-meta {
+  font-size: 0.78rem;
+  color: var(--app-status-default-fg);
 }
 
 .telecaller-dashboard__status {
@@ -71,3 +200,4 @@
 .telecaller-dashboard__error {
   margin-top: var(--app-space-4);
 }
+

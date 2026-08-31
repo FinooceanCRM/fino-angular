@@ -10,6 +10,20 @@
   // applied explicitly here instead.
   background: var(--mat-sys-primary);
   color: var(--mat-sys-on-primary);
+
+  // A thin shoreline rides under every topbar (ui-mockups/README.md) —
+  // reuses the reusable wave mixin/class from the Tidewater foundation
+  // (see styles.scss `.tide-shoreline`) with a softer, glassy tint so it
+  // reads as a highlight on the navy bar rather than a solid teal stripe.
+  --tide-wave-color: rgba(255, 255, 255, 0.28);
+
+  // The global :focus-visible ring defaults to navy, which is invisible
+  // against this bar's own navy background. Repaint it to white for every
+  // focusable element here — this custom property inherits into the
+  // topbar's child components (notification icon, user menu, search
+  // trigger) too, even though a descendant *selector* couldn't reach past
+  // their own view encapsulation.
+  --app-focus-outline-color: var(--tide-color-text-inverse);
 }
 
 .topbar__menu {
@@ -26,9 +40,20 @@
 }
 
 .topbar__brand-icon {
-  font-size: 1.5rem;
-  height: 1.5rem;
-  width: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--app-radius-sm);
+  background: rgba(255, 255, 255, 0.14);
+  flex-shrink: 0;
+
+  mat-icon {
+    font-size: 1.15rem;
+    height: 1.15rem;
+    width: 1.15rem;
+  }
 }
 
 .topbar__brand-name {
@@ -42,14 +67,17 @@
   align-items: center;
   gap: var(--app-space-2);
   background: rgba(255, 255, 255, 0.16);
-  border-radius: var(--app-radius-md);
+  border: none;
+  border-radius: var(--app-radius-pill);
   padding: 0 var(--app-space-3);
   height: 40px;
   width: 100%;
   max-width: 420px;
   margin-inline: var(--app-space-4);
+  cursor: pointer;
 
-  &:focus-within {
+  &:hover,
+  &:focus-visible {
     background: rgba(255, 255, 255, 0.24);
   }
 }
@@ -59,23 +87,16 @@
   font-size: 1.15rem;
   height: 1.15rem;
   width: 1.15rem;
+  flex-shrink: 0;
 }
 
-.topbar__search-input {
-  border: none;
-  outline: none;
-  background: transparent;
-  color: var(--mat-sys-on-primary);
+.topbar__search-placeholder {
+  color: rgba(255, 255, 255, 0.75);
   font-size: 0.9rem;
-  width: 100%;
-
-  &::placeholder {
-    color: rgba(255, 255, 255, 0.75);
-  }
-
-  &::-webkit-search-cancel-button {
-    filter: invert(1) brightness(2);
-  }
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .topbar__spacer {

@@ -1,5 +1,3 @@
-<app-page-header title="Manager dashboard" subtitle="Your Relationship Managers and their teams" />
-
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" />
 }
@@ -12,112 +10,293 @@
 
 @if (data(); as dashboard) {
   <div class="manager-dashboard">
-    <mat-card class="manager-dashboard__welcome">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>waving_hand</mat-icon>
-        <mat-card-title>{{ dashboard.welcome.headline }}</mat-card-title>
-        <mat-card-subtitle>{{ dashboard.welcome.message }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-actions class="manager-dashboard__actions">
-        @for (action of dashboard.quick_actions; track action.label + action.route) {
-          <a mat-stroked-button [routerLink]="action.route">
-            <mat-icon>{{ action.icon }}</mat-icon>
-            {{ action.label }}
-          </a>
-        }
-      </mat-card-actions>
-    </mat-card>
+    <app-dashboard-hero
+      eyebrowIcon="dashboard"
+      eyebrowLabel="MANAGER DASHBOARD"
+      [headline]="dashboard.welcome.headline"
+      [subtitle]="dashboard.welcome.message"
+      [stats]="[
+        { value: dashboard.team_summary.total_members, label: 'Team members' },
+        { value: dashboard.team_summary.relationship_manager_count, label: 'RMs managed' },
+      ]"
+    />
+
+    @if (dashboard.quick_actions.length > 0) {
+      <mat-card class="manager-dashboard__quick-actions">
+        <mat-card-header>
+          <mat-card-title>Quick actions</mat-card-title>
+        </mat-card-header>
+        <mat-card-actions class="manager-dashboard__actions">
+          @for (action of dashboard.quick_actions; track action.label + action.route) {
+            <a mat-stroked-button [routerLink]="action.route">
+              <mat-icon>{{ action.icon }}</mat-icon>
+              {{ action.label }}
+            </a>
+          }
+        </mat-card-actions>
+      </mat-card>
+    }
 
     <div class="manager-dashboard__stats">
       <app-stat-card
         icon="supervisor_account"
         [value]="dashboard.team_summary.relationship_manager_count"
         label="Relationship Managers"
+        [trend]="dashboard.team_summary.active_relationship_manager_count + ' active'"
         accent="primary"
       />
       <app-stat-card
         icon="groups"
         [value]="dashboard.team_summary.employee_count"
         label="Employees"
-        accent="accent"
+        [trend]="dashboard.team_summary.active_employee_count + ' active'"
+        accent="secondary"
+      />
+      <app-stat-card
+        icon="verified_user"
+        [value]="dashboard.team_summary.active_relationship_manager_count"
+        label="Active Relationship Managers"
+        accent="success"
       />
       <app-stat-card
         icon="diversity_3"
         [value]="dashboard.team_summary.total_members"
         label="Total team members"
+        accent="accent"
       />
     </div>
 
-    <app-lead-link-card />
+    @let compositionMax =
+      dashboard.team_summary.relationship_manager_count > dashboard.team_summary.employee_count
+        ? dashboard.team_summary.relationship_manager_count
+        : dashboard.team_summary.employee_count;
 
-    <app-notifications-panel class="manager-dashboard__notifications" />
+    <div class="manager-dashboard__charts">
+      <mat-card class="manager-dashboard__chart-card">
+        <mat-card-header>
+          <mat-card-title>Team Composition</mat-card-title>
+          <mat-card-subtitle>Relationship Managers and employees, active vs. total</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="status-bars">
+            <div class="status-bars__row">
+              <span class="status-bars__label">Relationship Managers</span>
+              <div class="status-bars__track">
+                <div
+                  class="status-bars__fill status-bars__fill--primary"
+                  [style.width.%]="
+                    compositionMax > 0 ? (dashboard.team_summary.relationship_manager_count / compositionMax) * 100 : 0
+                  "
+                ></div>
+              </div>
+              <span class="status-bars__count">{{ dashboard.team_summary.relationship_manager_count }}</span>
+            </div>
+            <div class="status-bars__row">
+              <span class="status-bars__label">Active Relationship Managers</span>
+              <div class="status-bars__track">
+                <div
+                  class="status-bars__fill status-bars__fill--success"
+                  [style.width.%]="
+                    compositionMax > 0
+                      ? (dashboard.team_summary.active_relationship_manager_count / compositionMax) * 100
+                      : 0
+                  "
+                ></div>
+              </div>
+              <span class="status-bars__count">{{ dashboard.team_summary.active_relationship_manager_count }}</span>
+            </div>
+            <div class="status-bars__row">
+              <span class="status-bars__label">Employees</span>
+              <div class="status-bars__track">
+                <div
+                  class="status-bars__fill status-bars__fill--secondary"
+                  [style.width.%]="
+                    compositionMax > 0 ? (dashboard.team_summary.employee_count / compositionMax) * 100 : 0
+                  "
+                ></div>
+              </div>
+              <span class="status-bars__count">{{ dashboard.team_summary.employee_count }}</span>
+            </div>
+            <div class="status-bars__row">
+              <span class="status-bars__label">Active Employees</span>
+              <div class="status-bars__track">
+                <div
+                  class="status-bars__fill status-bars__fill--info"
+                  [style.width.%]="
+                    compositionMax > 0 ? (dashboard.team_summary.active_employee_count / compositionMax) * 100 : 0
+                  "
+                ></div>
+              </div>
+              <span class="status-bars__count">{{ dashboard.team_summary.active_employee_count }}</span>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card>
+      <mat-card class="manager-dashboard__chart-card">
+        <mat-card-header>
+          <mat-card-title>Team Size by Relationship Manager</mat-card-title>
+          <mat-card-subtitle>Employees assigned, share of your total team</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          @if (dashboard.hierarchy.length === 0) {
+            <p class="manager-dashboard__description">No Relationship Managers report to you yet.</p>
+          } @else {
+            <div class="rm-chart">
+              @for (node of dashboard.hierarchy; track node.id) {
+                <div class="rm-chart__col">
+                  <div
+                    class="rm-chart__track"
+                    [title]="node.name + ': ' + node.employees.length + ' employee(s)'"
+                  >
+                    <div
+                      class="rm-chart__fill"
+                      [style.height.%]="
+                        dashboard.team_summary.employee_count > 0
+                          ? (node.employees.length / dashboard.team_summary.employee_count) * 100
+                          : 0
+                      "
+                    ></div>
+                  </div>
+                  <span class="rm-chart__value">{{ node.employees.length }}</span>
+                  <span class="rm-chart__label">{{ node.name }}</span>
+                </div>
+              }
+            </div>
+          }
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <mat-card class="manager-dashboard__table-card">
       <mat-card-header>
-        <mat-card-title>Manager information</mat-card-title>
+        <mat-card-title>Relationship Manager Team</mat-card-title>
+        <a mat-button routerLink="/manager/relationship-managers">View all</a>
       </mat-card-header>
       <mat-card-content>
-        <mat-list>
-          <mat-list-item>
-            <span matListItemTitle>{{ dashboard.manager.name }}</span>
-            <span matListItemLine>Name</span>
-          </mat-list-item>
-          <mat-list-item>
-            <span matListItemTitle>{{ dashboard.manager.email }}</span>
-            <span matListItemLine>Email</span>
-          </mat-list-item>
-          <mat-list-item>
-            <span matListItemTitle>{{ dashboard.manager.manager_code ?? '—' }}</span>
-            <span matListItemLine>Manager code</span>
-          </mat-list-item>
-          <mat-list-item>
-            <span matListItemTitle>{{ dashboard.manager.branch ?? '—' }}</span>
-            <span matListItemLine>Branch</span>
-          </mat-list-item>
-          <mat-list-item>
-            <span matListItemTitle>{{ dashboard.manager.region ?? '—' }}</span>
-            <span matListItemLine>Region</span>
-          </mat-list-item>
-          <mat-list-item>
-            <span matListItemTitle>
-              {{
-                dashboard.manager.date_of_joining
-                  ? (dashboard.manager.date_of_joining | date: 'mediumDate')
-                  : '—'
-              }}
-            </span>
-            <span matListItemLine>Date of joining</span>
-          </mat-list-item>
-        </mat-list>
+        @if (dashboard.hierarchy.length === 0) {
+          <p class="manager-dashboard__description">No Relationship Managers report to you yet.</p>
+        } @else {
+          <div class="app-scroll-x">
+            <table class="rm-table">
+              <thead>
+                <tr>
+                  <th>Relationship Manager</th>
+                  <th>Team size</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (node of dashboard.hierarchy; track node.id) {
+                  <tr>
+                    <td>
+                      <div class="rm-cell">
+                        <span class="rm-cell__avatar">{{ node.name.charAt(0).toUpperCase() }}</span>
+                        <span class="rm-cell__text">
+                          <span class="rm-cell__name">{{ node.name }}</span>
+                          <span class="rm-cell__meta">{{ node.email }}</span>
+                        </span>
+                      </div>
+                    </td>
+                    <td>{{ node.employees.length }} employee{{ node.employees.length === 1 ? '' : 's' }}</td>
+                    <td>
+                      <app-status-pill
+                        [label]="node.is_active ? 'Active' : 'Inactive'"
+                        [colour]="node.is_active ? 'success' : 'default'"
+                      />
+                    </td>
+                    <td class="rm-table__action">
+                      <a
+                        mat-icon-button
+                        [routerLink]="['/manager/relationship-managers', node.id]"
+                        aria-label="View Relationship Manager"
+                      >
+                        <mat-icon>chevron_right</mat-icon>
+                      </a>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
       </mat-card-content>
     </mat-card>
 
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Account status</mat-card-title>
-      </mat-card-header>
-      <mat-card-content class="manager-dashboard__status">
-        <app-status-pill
-          [label]="dashboard.account_status.status"
-          [colour]="dashboard.account_status.is_active ? 'success' : 'default'"
-        />
-        <app-status-pill [label]="dashboard.role.label" colour="primary" />
-        <app-status-pill
-          [label]="dashboard.account_status.profile_complete ? 'Profile complete' : 'Profile incomplete'"
-          [colour]="dashboard.account_status.profile_complete ? 'success' : 'accent'"
-        />
-        <p class="manager-dashboard__description">{{ dashboard.role.description }}</p>
-        @if (dashboard.reports_to; as parent) {
+    <div class="manager-dashboard__side-row">
+      <app-lead-link-card />
+      <app-notifications-panel />
+    </div>
+
+    <div class="manager-dashboard__side-row">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Manager information</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <mat-list>
+            <mat-list-item>
+              <span matListItemTitle>{{ dashboard.manager.name }}</span>
+              <span matListItemLine>Name</span>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ dashboard.manager.email }}</span>
+              <span matListItemLine>Email</span>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ dashboard.manager.manager_code ?? '—' }}</span>
+              <span matListItemLine>Manager code</span>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ dashboard.manager.branch ?? '—' }}</span>
+              <span matListItemLine>Branch</span>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>{{ dashboard.manager.region ?? '—' }}</span>
+              <span matListItemLine>Region</span>
+            </mat-list-item>
+            <mat-list-item>
+              <span matListItemTitle>
+                {{
+                  dashboard.manager.date_of_joining
+                    ? (dashboard.manager.date_of_joining | date: 'mediumDate')
+                    : '—'
+                }}
+              </span>
+              <span matListItemLine>Date of joining</span>
+            </mat-list-item>
+          </mat-list>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Account status</mat-card-title>
+        </mat-card-header>
+        <mat-card-content class="manager-dashboard__status">
+          <app-status-pill
+            [label]="dashboard.account_status.status"
+            [colour]="dashboard.account_status.is_active ? 'success' : 'default'"
+          />
+          <app-status-pill [label]="dashboard.role.label" colour="primary" />
+          <app-status-pill
+            [label]="dashboard.account_status.profile_complete ? 'Profile complete' : 'Profile incomplete'"
+            [colour]="dashboard.account_status.profile_complete ? 'success' : 'accent'"
+          />
+          <p class="manager-dashboard__description">{{ dashboard.role.description }}</p>
+          @if (dashboard.reports_to; as parent) {
+            <p class="manager-dashboard__description">
+              Reports to {{ parent.name }} ({{ parent.role_label }}).
+            </p>
+          }
           <p class="manager-dashboard__description">
-            Reports to {{ parent.name }} ({{ parent.role_label }}).
+            {{ dashboard.team_summary.active_relationship_manager_count }} active RM(s),
+            {{ dashboard.team_summary.active_employee_count }} active employee(s).
           </p>
-        }
-        <p class="manager-dashboard__description">
-          {{ dashboard.team_summary.active_relationship_manager_count }} active RM(s),
-          {{ dashboard.team_summary.active_employee_count }} active employee(s).
-        </p>
-      </mat-card-content>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
+    </div>
 
     <mat-card class="manager-dashboard__hierarchy">
       <mat-card-header>

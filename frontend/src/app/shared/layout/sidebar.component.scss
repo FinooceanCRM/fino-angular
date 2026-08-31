@@ -29,11 +29,15 @@
 }
 
 a.active-link {
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  background: linear-gradient(135deg, var(--tide-color-secondary), var(--tide-color-primary));
+  color: var(--tide-color-text-inverse);
+  font-weight: 600;
+  // The default navy focus ring is invisible against this navy/teal
+  // gradient — repaint it to white, same fix as the topbar.
+  --app-focus-outline-color: var(--tide-color-text-inverse);
 
   ::ng-deep .mat-icon {
-    color: var(--mat-sys-on-primary-container);
+    color: var(--tide-color-text-inverse);
   }
 }
 

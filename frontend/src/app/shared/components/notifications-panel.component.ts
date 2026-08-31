@@ -109,7 +109,7 @@ import { LoadingComponent } from './loading.component';
         }
       }
       .notifications-panel__item--unread .notifications-panel__icon {
-        background: #ffffff;
+        background: var(--tide-color-surface);
       }
       .notifications-panel__body {
         display: flex;

@@ -1,136 +1,143 @@
 <mat-progress-bar *ngIf="loading()" mode="indeterminate" />
 
 <form class="gen-settings" [formGroup]="form" (ngSubmit)="save()">
-  <section class="gen-settings__section" formGroupName="company">
-    <h3 class="gen-settings__title">Company information</h3>
-    <div class="gen-settings__grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Company name</mat-label>
-        <input matInput formControlName="company_name" />
-      </mat-form-field>
+  <div class="gen-settings__card">
+    <h3 class="gen-settings__card-title">General settings</h3>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Currency</mat-label>
-        <mat-select formControlName="currency">
-          <mat-option value="INR">INR — Indian Rupee</mat-option>
-          <mat-option value="USD">USD — US Dollar</mat-option>
-          <mat-option value="AED">AED — UAE Dirham</mat-option>
-        </mat-select>
-      </mat-form-field>
+    <section class="gen-settings__section" formGroupName="company">
+      <h4 class="gen-settings__title">Company information</h4>
+      <div class="gen-settings__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Platform name</mat-label>
+          <input matInput formControlName="company_name" />
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Support email</mat-label>
-        <input matInput type="email" formControlName="support_email" />
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Support email</mat-label>
+          <input matInput type="email" formControlName="support_email" />
+        </mat-form-field>
 
-      <mat-form-field appearance="outline">
-        <mat-label>Support phone</mat-label>
-        <input matInput formControlName="support_phone" />
-      </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Default currency</mat-label>
+          <mat-select formControlName="currency">
+            <mat-option value="INR">INR — Indian Rupee</mat-option>
+            <mat-option value="USD">USD — US Dollar</mat-option>
+            <mat-option value="AED">AED — UAE Dirham</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="gen-settings__span-2">
-        <mat-label>Registered address</mat-label>
-        <textarea matInput formControlName="address" rows="2"></textarea>
-      </mat-form-field>
-    </div>
-  </section>
+        <mat-form-field appearance="outline">
+          <mat-label>Support phone</mat-label>
+          <input matInput formControlName="support_phone" />
+        </mat-form-field>
 
-  <section class="gen-settings__section" formGroupName="branding">
-    <h3 class="gen-settings__title">Branding</h3>
-    <div class="gen-settings__grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Primary colour</mat-label>
-        <input matInput type="color" formControlName="primary_color" class="gen-settings__colour" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Tagline</mat-label>
-        <input matInput formControlName="tagline" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Logo URL</mat-label>
-        <input matInput formControlName="logo_url" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Favicon URL</mat-label>
-        <input matInput formControlName="favicon_url" />
-      </mat-form-field>
-    </div>
-  </section>
-
-  <section class="gen-settings__section" formGroupName="email">
-    <h3 class="gen-settings__title">Email settings</h3>
-    <div class="gen-settings__grid">
-      <mat-form-field appearance="outline">
-        <mat-label>From name</mat-label>
-        <input matInput formControlName="from_name" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>From email</mat-label>
-        <input matInput type="email" formControlName="from_email" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Reply-to email</mat-label>
-        <input matInput type="email" formControlName="reply_to_email" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="gen-settings__span-2">
-        <mat-label>Email footer text</mat-label>
-        <textarea matInput formControlName="footer_text" rows="2"></textarea>
-      </mat-form-field>
-    </div>
-  </section>
-
-  <section class="gen-settings__section" formGroupName="regional">
-    <h3 class="gen-settings__title">Time zone</h3>
-    <div class="gen-settings__grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Timezone</mat-label>
-        <mat-select formControlName="timezone">
-          <mat-option value="Asia/Kolkata">Asia/Kolkata (IST)</mat-option>
-          <mat-option value="Asia/Dubai">Asia/Dubai (GST)</mat-option>
-          <mat-option value="UTC">UTC</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Date format</mat-label>
-        <mat-select formControlName="date_format">
-          <mat-option value="DD MMM YYYY">DD MMM YYYY</mat-option>
-          <mat-option value="MM/DD/YYYY">MM/DD/YYYY</mat-option>
-          <mat-option value="YYYY-MM-DD">YYYY-MM-DD</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Business hours</mat-label>
-        <input matInput formControlName="business_hours" />
-      </mat-form-field>
-    </div>
-  </section>
-
-  <section class="gen-settings__section" formGroupName="platform">
-    <h3 class="gen-settings__title">Platform</h3>
-    <div class="gen-settings__grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Default page size</mat-label>
-        <input matInput type="number" formControlName="default_page_size" />
-      </mat-form-field>
-
-      <div class="gen-settings__toggle">
-        <mat-slide-toggle formControlName="maintenance_mode">Maintenance mode</mat-slide-toggle>
+        <mat-form-field appearance="outline" class="gen-settings__span-2">
+          <mat-label>Registered address</mat-label>
+          <textarea matInput formControlName="address" rows="2"></textarea>
+        </mat-form-field>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <section class="gen-settings__section" formGroupName="regional">
+      <h4 class="gen-settings__title">Time zone &amp; format</h4>
+      <div class="gen-settings__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Timezone</mat-label>
+          <mat-select formControlName="timezone">
+            <mat-option value="Asia/Kolkata">Asia/Kolkata (GMT+5:30)</mat-option>
+            <mat-option value="Asia/Dubai">Asia/Dubai (GST)</mat-option>
+            <mat-option value="UTC">UTC</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Date format</mat-label>
+          <mat-select formControlName="date_format">
+            <mat-option value="DD MMM YYYY">DD/MM/YYYY</mat-option>
+            <mat-option value="MM/DD/YYYY">MM/DD/YYYY</mat-option>
+            <mat-option value="YYYY-MM-DD">YYYY-MM-DD</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Business hours</mat-label>
+          <input matInput formControlName="business_hours" />
+        </mat-form-field>
+      </div>
+    </section>
+
+    <section class="gen-settings__section" formGroupName="branding">
+      <h4 class="gen-settings__title">Branding</h4>
+      <div class="gen-settings__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Primary colour</mat-label>
+          <input matInput type="color" formControlName="primary_color" class="gen-settings__colour" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Tagline</mat-label>
+          <input matInput formControlName="tagline" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Logo URL</mat-label>
+          <input matInput formControlName="logo_url" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Favicon URL</mat-label>
+          <input matInput formControlName="favicon_url" />
+        </mat-form-field>
+      </div>
+    </section>
+
+    <section class="gen-settings__section" formGroupName="email">
+      <h4 class="gen-settings__title">Email settings</h4>
+      <div class="gen-settings__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>From name</mat-label>
+          <input matInput formControlName="from_name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>From email</mat-label>
+          <input matInput type="email" formControlName="from_email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Reply-to email</mat-label>
+          <input matInput type="email" formControlName="reply_to_email" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="gen-settings__span-2">
+          <mat-label>Email footer text</mat-label>
+          <textarea matInput formControlName="footer_text" rows="2"></textarea>
+        </mat-form-field>
+      </div>
+    </section>
+
+    <section class="gen-settings__section gen-settings__section--last" formGroupName="platform">
+      <h4 class="gen-settings__title">Platform</h4>
+      <div class="gen-settings__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Default page size</mat-label>
+          <input matInput type="number" formControlName="default_page_size" />
+        </mat-form-field>
+      </div>
+    </section>
+  </div>
+
+  <div class="gen-settings__preferences" formGroupName="platform">
+    <label class="gen-settings__checkbox-row">
+      <mat-slide-toggle formControlName="maintenance_mode" />
+      Enable maintenance mode banner
+    </label>
+  </div>
 
   <div class="gen-settings__actions">
-    <button mat-flat-button color="primary" type="submit">
-      <mat-icon>save</mat-icon>
-      Save general settings
+    <button mat-flat-button color="primary" type="submit" class="tide-cta-pill">
+      <mat-icon>check</mat-icon>
+      Save changes
     </button>
   </div>
 </form>

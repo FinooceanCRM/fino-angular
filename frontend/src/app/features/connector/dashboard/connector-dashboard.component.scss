@@ -5,16 +5,34 @@
   margin-top: var(--app-space-4);
 }
 
-.connector-dashboard__welcome,
-.connector-dashboard__referral,
-.connector-dashboard__notifications {
+app-dashboard-hero,
+.connector-dashboard__quick-actions,
+.connector-dashboard__links-row,
+.connector-dashboard__notifications,
+.connector-dashboard__secondary-row {
   grid-column: 1 / -1;
 }
 
+// KPI row
+.connector-dashboard__stats {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+// Quick actions
 .connector-dashboard__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--app-space-2);
+}
+
+// Referral link + lead link, presented as a sibling pair
+.connector-dashboard__links-row {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .connector-dashboard__referral-content {
@@ -48,11 +66,11 @@
   overflow-wrap: anywhere;
 }
 
-.connector-dashboard__stats {
-  grid-column: 1 / -1;
+// User information + account status, presented side by side
+.connector-dashboard__secondary-row {
   display: grid;
   gap: var(--app-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
 }
 
 .connector-dashboard__status {
@@ -72,3 +90,4 @@
 .connector-dashboard__error {
   margin-top: var(--app-space-4);
 }
+

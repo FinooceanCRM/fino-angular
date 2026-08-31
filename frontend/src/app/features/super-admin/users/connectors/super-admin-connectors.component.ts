@@ -15,12 +15,12 @@ import { Subscription } from 'rxjs';
 import { ConnectorProfile } from '@core/models/connector.model';
 import { PaginationMeta } from '@core/models/lead.model';
 import { SuperAdminConnectorService } from '@core/services/super-admin-connector.service';
-import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
 import { ConnectorEditDialogComponent, ConnectorEditDialogResult } from './connector-edit-dialog.component';
+import { UserRoleTabsComponent } from '../user-role-tabs/user-role-tabs.component';
 
 /**
  * Connector Management — view/suspend connectors, set a per-connector
@@ -41,10 +41,10 @@ import { ConnectorEditDialogComponent, ConnectorEditDialogResult } from './conne
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    PageHeaderComponent,
     StatusPillComponent,
     TableCellDirective,
     TableComponent,
+    UserRoleTabsComponent,
   ],
   templateUrl: './super-admin-connectors.component.html',
   styleUrl: './super-admin-connectors.component.scss',

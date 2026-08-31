@@ -25,3 +25,51 @@
   gap: var(--app-space-3);
   align-items: center;
 }
+
+// Connector name cell: avatar-initials + name, with email/referral code
+// folded onto a secondary line instead of their own columns — same
+// row-cell shape as UserRoleTableComponent's `__name-cell`/`__avatar`,
+// repeated locally rather than pulled into a new shared component since
+// it's just a couple of elements, per row, not shared behaviour.
+.commission-table__name-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.commission-table__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--tide-color-secondary);
+  color: var(--tide-color-text-inverse);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.commission-table__name-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.commission-table__meta {
+  font-size: 0.78rem;
+  color: var(--app-status-default-fg);
+}
+
+// Commission rate / earned figures — tabular-nums keeps digits aligned
+// column-to-column (see stat-card.component.scss for the same convention),
+// paired with the table's own [align]="'right'" cell alignment.
+.commission-table__metric {
+  font-variant-numeric: tabular-nums;
+}
+
+.commission-table__metric--strong {
+  font-weight: 700;
+  color: var(--mat-sys-on-surface);
+}

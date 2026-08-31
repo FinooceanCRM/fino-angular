@@ -1,7 +1,7 @@
 export const environment = {
   production: false,
   appName: 'FINOOCEAN',
-  apiBaseUrl: 'http://localhost:8000/api/v1',
+  apiBaseUrl: '/api/v1',
   // Token-based auth only — no cookies are sent.
   withCredentials: false,
   // hCaptcha's official "always passes" sandbox key (see

@@ -1,35 +1,56 @@
+// The wrapper around <app-voyage-progress> — the component renders its own
+// card chrome (background/radius/shadow/margin), so this only exists to
+// give narrow viewports somewhere to scroll horizontally without squashing
+// the wave chart's labels (see the max-width media query below).
+.lead-detail__voyage {
+  margin-bottom: var(--app-space-4);
+}
+
+@media (max-width: 600px) {
+  .lead-detail__voyage {
+    overflow-x: auto;
+    padding-bottom: var(--app-space-1);
+  }
+
+  .lead-detail__voyage app-voyage-progress {
+    display: block;
+    min-width: 560px;
+  }
+}
+
 .lead-detail__summary {
   margin-bottom: var(--app-space-4);
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
 }
 
 .lead-detail__summary-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--app-space-5);
+  gap: var(--app-space-5) var(--app-space-6);
 }
 
 .lead-detail__summary-field {
   display: flex;
   align-items: center;
-  gap: var(--app-space-2);
+  gap: var(--app-space-3);
 }
 
 .lead-detail__summary-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--app-radius-sm);
   flex-shrink: 0;
-  background: var(--mat-sys-surface-container-high);
-  color: var(--mat-sys-primary);
+  background: var(--tide-color-secondary-container, #dcf0ee);
+  color: var(--tide-color-secondary);
 
   mat-icon {
-    font-size: 1.1rem;
-    width: 1.1rem;
-    height: 1.1rem;
+    font-size: 1.15rem;
+    width: 1.15rem;
+    height: 1.15rem;
   }
 }
 
@@ -50,8 +71,9 @@
 }
 
 .lead-detail__form-card {
-  padding: var(--app-space-4);
-  border-radius: var(--app-radius-md);
+  padding: var(--app-space-5);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
 }
 
 .lead-detail__inline-form {
@@ -79,9 +101,11 @@
 }
 
 .lead-detail__section-title {
-  margin: 0 0 var(--app-space-2);
-  font-size: 1rem;
-  font-weight: 600;
+  margin: 0 0 var(--app-space-4);
+  font-family: var(--tide-font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--tide-color-text-primary);
 }
 
 .lead-detail__grid {
@@ -92,6 +116,15 @@
   div {
     display: flex;
     flex-direction: column;
+    // Grid items default to min-width: auto, which lets an unbreakable
+    // string (e.g. a long email address) overflow past its own column and
+    // visually overlap the next one instead of the track growing to fit it.
+    min-width: 0;
+  }
+
+  strong {
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 }
 
@@ -143,14 +176,15 @@
   display: flex;
   align-items: center;
   gap: var(--app-space-3);
-  padding: var(--app-space-3);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--app-radius-md);
-  background: var(--mat-sys-surface-container);
+  padding: var(--app-space-3) var(--app-space-1);
+  border-bottom: 1px solid var(--tide-color-border-subtle);
+
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
-.match-list__icon,
-.document-list__icon {
+.match-list__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -160,6 +194,24 @@
   flex-shrink: 0;
   background: var(--mat-sys-tertiary-container);
   color: var(--mat-sys-tertiary);
+}
+
+// Plain outline icon, no coloured background — matches the mockup's
+// document rows (a quiet file icon, not a badge).
+.document-list__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  color: var(--tide-color-text-muted);
+
+  mat-icon {
+    font-size: 1.3rem;
+    width: 1.3rem;
+    height: 1.3rem;
+  }
 }
 
 .match-list__body,
@@ -191,4 +243,18 @@
 .document-list__actions {
   display: flex;
   flex-shrink: 0;
+}
+
+@media (max-width: 720px) {
+  .lead-detail__summary-grid {
+    gap: var(--app-space-4);
+  }
+
+  .lead-detail__summary-field {
+    flex: 1 1 100%;
+  }
+
+  .lead-detail__form-card {
+    padding: var(--app-space-4);
+  }
 }

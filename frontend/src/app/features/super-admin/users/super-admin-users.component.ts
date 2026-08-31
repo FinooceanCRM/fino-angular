@@ -1,28 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
 
+import { OverviewGridComponent, OverviewGridSection } from '@shared/components/overview-grid.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
-
-interface UserSection {
-  icon: string;
-  title: string;
-  description: string;
-  link: string;
-}
 
 /** Users module landing — one card per role bucket, same pattern as the Commissions landing. */
 @Component({
   selector: 'app-super-admin-users',
   standalone: true,
-  imports: [RouterLink, MatCardModule, MatIconModule, PageHeaderComponent],
+  imports: [PageHeaderComponent, OverviewGridComponent],
   templateUrl: './super-admin-users.component.html',
-  styleUrl: './super-admin-users.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SuperAdminUsersComponent {
-  protected readonly sections: UserSection[] = [
+  protected readonly sections: OverviewGridSection[] = [
     {
       icon: 'supervisor_account',
       title: 'Managers',

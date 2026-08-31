@@ -7,30 +7,26 @@
     <app-stat-card icon="percent" [value]="totals().avgConversion + '%'" label="Avg. conversion rate" />
   </div>
 
-  <div class="app-scroll-x">
-    <table class="team-performance__table">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Employee</th>
-          <th>Leads handled</th>
-          <th>Approved</th>
-          <th>Disbursed</th>
-          <th>Conversion</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (row of ranked(); track row.id; let i = $index) {
-          <tr>
-            <td>{{ i + 1 }}</td>
-            <td>{{ row.name }}</td>
-            <td>{{ row.leadsHandled }}</td>
-            <td>{{ row.approved }}</td>
-            <td>{{ row.disbursed }}</td>
-            <td>{{ row.conversionRatePct }}%</td>
-          </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+  <mat-card class="team-performance__table-card">
+    <mat-card-header>
+      <mat-card-title>Team performance</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-table [columns]="columns" [rows]="ranked()" itemLabel="employees">
+        <ng-template appTableCell="employee" let-row>
+          <div class="team-performance__employee">
+            <span class="team-performance__avatar">{{ initials(row.name) }}</span>
+            <span class="team-performance__employee-text">
+              <span class="team-performance__name">{{ row.name }}</span>
+              <span class="team-performance__role">Employee</span>
+            </span>
+          </div>
+        </ng-template>
+
+        <ng-template appTableCell="status" let-row>
+          <app-status-pill [label]="status(row).label" [colour]="status(row).colour" />
+        </ng-template>
+      </app-table>
+    </mat-card-content>
+  </mat-card>
 }

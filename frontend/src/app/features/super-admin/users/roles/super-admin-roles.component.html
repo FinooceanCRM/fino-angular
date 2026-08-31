@@ -1,31 +1,40 @@
-<app-page-header title="Roles" subtitle="The eight-role permission system — module access at a glance." />
+<app-user-role-tabs>
+  <button
+    page-header-actions
+    mat-flat-button
+    color="primary"
+    type="button"
+    disabled
+    matTooltip="Roles are seeded by the platform — creating a new role isn't available yet."
+  >
+    <mat-icon>add</mat-icon>
+    Add role
+  </button>
+</app-user-role-tabs>
 
-@if (loading()) {
-  <mat-progress-bar mode="indeterminate" />
-}
-
-<div class="roles-grid">
-  @for (role of roles(); track role.value) {
-    <mat-card class="role-card">
-      <mat-card-content class="role-card__content">
-        <div class="role-card__header">
-          <span class="role-card__icon"><mat-icon>{{ role.icon }}</mat-icon></span>
-          <div class="role-card__heading">
-            <h3 class="role-card__title">{{ role.label }}</h3>
-            <app-status-pill [label]="role.userCount + ' user' + (role.userCount === 1 ? '' : 's')" colour="primary" />
-          </div>
-        </div>
-
-        <p class="role-card__description">{{ role.description }}</p>
-
-        <div class="role-card__footer">
-          <span class="role-card__modules">{{ role.moduleCount }} of {{ role.totalModules }} modules visible</span>
-          <a mat-stroked-button [routerLink]="['/super-admin/users/permissions']" [queryParams]="{ role: role.value }">
-            <mat-icon>lock</mat-icon>
-            Manage permissions
-          </a>
-        </div>
-      </mat-card-content>
-    </mat-card>
-  }
-</div>
+<mat-card class="super-admin-roles__table-card">
+  <mat-card-content>
+    <app-table [columns]="columns" [rows]="roles()" [loading]="loading()" emptyMessage="No roles found.">
+      <ng-template #rowActions let-row>
+        <a
+          mat-icon-button
+          class="row-action row-action--view"
+          [routerLink]="['/super-admin/users/permissions']"
+          [queryParams]="{ role: row.value }"
+          aria-label="View role permissions"
+        >
+          <mat-icon>visibility</mat-icon>
+        </a>
+        <a
+          mat-icon-button
+          class="row-action row-action--edit"
+          [routerLink]="['/super-admin/users/permissions']"
+          [queryParams]="{ role: row.value }"
+          aria-label="Edit role permissions"
+        >
+          <mat-icon>edit</mat-icon>
+        </a>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

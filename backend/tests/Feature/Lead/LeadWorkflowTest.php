@@ -232,6 +232,59 @@ class LeadWorkflowTest extends TestCase
         ]);
     }
 
+    /**
+     * Regression test: StoreLeadRequest/UpdateLeadRequest previously had no
+     * validation rule for these `details` keys, so Laravel's validated()
+     * silently dropped them before LeadService ever saw them — the lead was
+     * created successfully but its Applicant/Address detail fields came back
+     * null, even though the frontend sent them.
+     */
+    public function test_applicant_and_address_detail_fields_round_trip(): void
+    {
+        ['connector' => $connector] = $this->hierarchy();
+
+        $response = $this->actingAs($connector, 'sanctum')->postJson('/api/v1/leads', [
+            'applicant_name' => 'Test Applicant',
+            'applicant_phone' => '9876543210',
+            'loan_type' => 'personal',
+            'loan_amount' => 200000,
+            'city' => 'Pune',
+            'state' => 'Maharashtra',
+            'details' => [
+                'gender' => 'male',
+                'dob' => '1995-06-15',
+                'alternative_phone' => '9123456780',
+                'age' => 30,
+                'marital_status' => 'married',
+                'caste_category' => 'general',
+                'company_name' => 'Acme Corp',
+                'net_salary' => 45000,
+                'salary_account_type' => 'savings',
+                'purpose_of_loan' => 'wedding',
+                'landmark' => 'Near city hall',
+                'current_address' => '123 Main Street',
+                'residential_type' => 'owned',
+                'since_resident' => '5 years',
+            ],
+        ]);
+
+        $response->assertCreated();
+        $this->assertSame('male', $response->json('data.details.gender'));
+        $this->assertSame('1995-06-15', $response->json('data.details.dob'));
+        $this->assertSame('9123456780', $response->json('data.details.alternative_phone'));
+        $this->assertSame(30, $response->json('data.details.age'));
+        $this->assertSame('married', $response->json('data.details.marital_status'));
+        $this->assertSame('general', $response->json('data.details.caste_category'));
+        $this->assertSame('Acme Corp', $response->json('data.details.company_name'));
+        $this->assertSame(45000, $response->json('data.details.net_salary'));
+        $this->assertSame('savings', $response->json('data.details.salary_account_type'));
+        $this->assertSame('wedding', $response->json('data.details.purpose_of_loan'));
+        $this->assertSame('Near city hall', $response->json('data.details.landmark'));
+        $this->assertSame('123 Main Street', $response->json('data.details.current_address'));
+        $this->assertSame('owned', $response->json('data.details.residential_type'));
+        $this->assertSame('5 years', $response->json('data.details.since_resident'));
+    }
+
     public function test_only_super_admin_can_create_bank_criteria(): void
     {
         ['manager' => $manager] = $this->hierarchy();

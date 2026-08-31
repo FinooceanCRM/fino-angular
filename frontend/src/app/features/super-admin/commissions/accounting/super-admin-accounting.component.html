@@ -1,5 +1,5 @@
 <div class="commission-page__header">
-  <app-page-header title="Accounting" subtitle="Commission-liability ledger — what's accrued, paid and still outstanding." />
+  <app-page-header icon="account_balance_wallet" title="Accounting" subtitle="Commission-liability ledger — what's accrued, paid and still outstanding." />
   <button mat-stroked-button type="button" (click)="export()">
     <mat-icon>download</mat-icon>
     Export CSV
@@ -9,8 +9,8 @@
 <div class="commission-page__summary">
   <app-stat-card icon="account_balance_wallet" [value]="'₹' + (summary().totalDisbursed | number: '1.0-0')" label="Total disbursed" accent="primary" />
   <app-stat-card icon="add_card" [value]="'₹' + (summary().totalAccrued | number: '1.0-0')" label="Commission accrued" accent="accent" />
-  <app-stat-card icon="task_alt" [value]="'₹' + (summary().totalPaid | number: '1.0-0')" label="Commission paid" />
-  <app-stat-card icon="balance" [value]="'₹' + (summary().outstanding | number: '1.0-0')" label="Outstanding liability" />
+  <app-stat-card icon="task_alt" [value]="'₹' + (summary().totalPaid | number: '1.0-0')" label="Commission paid" accent="success" />
+  <app-stat-card icon="balance" [value]="'₹' + (summary().outstanding | number: '1.0-0')" label="Outstanding liability" accent="warn" />
 </div>
 
 <mat-card class="commission-page__toolbar">
@@ -46,15 +46,15 @@
       </ng-template>
 
       <ng-template appTableCell="debit" let-row>
-        {{ row.debit ? '₹' + (row.debit | number: '1.0-0') : '—' }}
+        <span class="commission-page__amount">{{ row.debit ? '₹' + (row.debit | number: '1.0-0') : '—' }}</span>
       </ng-template>
 
       <ng-template appTableCell="credit" let-row>
-        {{ row.credit ? '₹' + (row.credit | number: '1.0-0') : '—' }}
+        <span class="commission-page__amount">{{ row.credit ? '₹' + (row.credit | number: '1.0-0') : '—' }}</span>
       </ng-template>
 
       <ng-template appTableCell="balance" let-row>
-        ₹{{ row.balance | number: '1.0-0' }}
+        <span class="commission-page__amount commission-page__amount--balance">₹{{ row.balance | number: '1.0-0' }}</span>
       </ng-template>
     </app-table>
   </mat-card-content>

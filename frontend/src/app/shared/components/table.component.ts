@@ -22,6 +22,13 @@ export interface TableColumn<T> {
   key: string;
   label: string;
   formatter?: (row: T) => string;
+  /**
+   * Optional text alignment for both the header and data cell. Omitted
+   * (default) keeps the existing left alignment every current table relies
+   * on; `'right'` is for numeric/currency columns (counts, rates, amounts)
+   * so figures line up on their ones place instead of ragging left.
+   */
+  align?: 'left' | 'right';
 }
 
 /**
@@ -55,8 +62,10 @@ export interface TableColumn<T> {
         <table mat-table [dataSource]="rows()" class="app-table">
           @for (col of columns(); track col.key) {
             <ng-container [matColumnDef]="col.key">
-              <th mat-header-cell *matHeaderCellDef>{{ col.label }}</th>
-              <td mat-cell *matCellDef="let row">
+              <th mat-header-cell *matHeaderCellDef [class.app-table__cell--right]="col.align === 'right'">
+                {{ col.label }}
+              </th>
+              <td mat-cell *matCellDef="let row" [class.app-table__cell--right]="col.align === 'right'">
                 @if (cellTemplateFor(col.key); as tpl) {
                   <ng-container *ngTemplateOutlet="tpl; context: { $implicit: row }" />
                 } @else {
@@ -96,6 +105,14 @@ export interface TableColumn<T> {
     `
       .app-table {
         width: 100%;
+      }
+
+      /* Right-aligned numeric/currency columns (opt-in via TableColumn.align)
+         — keeps counts, rates and ₹ amounts lined up on their ones place
+         instead of ragging left like prose columns. */
+      .app-table__cell--right {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
       }
     `,
   ],

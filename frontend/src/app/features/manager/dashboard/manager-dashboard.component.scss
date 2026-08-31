@@ -1,27 +1,252 @@
 .manager-dashboard {
-  display: grid;
-  gap: var(--app-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-5);
   margin-top: var(--app-space-4);
 }
 
-.manager-dashboard__welcome,
-.manager-dashboard__notifications,
-.manager-dashboard__hierarchy {
-  grid-column: 1 / -1;
-}
 
+/* ---------- quick actions ---------- */
 .manager-dashboard__actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--app-space-2);
 }
 
+/* ---------- KPI row ---------- */
 .manager-dashboard__stats {
-  grid-column: 1 / -1;
   display: grid;
   gap: var(--app-space-4);
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+/* ---------- charts row ---------- */
+.manager-dashboard__charts {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: start;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.manager-dashboard__chart-card {
+  height: 100%;
+}
+
+/* Team composition — horizontal bars */
+.status-bars {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.status-bars__row {
+  display: grid;
+  grid-template-columns: 168px 1fr 36px;
+  align-items: center;
+  gap: var(--app-space-3);
+  padding: var(--app-space-1) var(--app-space-2);
+  border-radius: var(--app-radius-sm);
+  transition: background-color var(--app-duration-fast) var(--app-ease);
+
+  &:hover {
+    background: var(--mat-sys-surface-container-high);
+  }
+}
+
+.status-bars__label {
+  font-size: 0.82rem;
+  color: var(--app-status-default-fg);
+}
+
+.status-bars__track {
+  height: 8px;
+  border-radius: var(--app-radius-pill);
+  background: var(--mat-sys-surface-container-high);
+  overflow: hidden;
+}
+
+.status-bars__fill {
+  height: 100%;
+  border-radius: var(--app-radius-pill);
+  transition: width var(--app-duration-slow) var(--app-ease);
+
+  &--primary {
+    background: var(--tide-color-primary);
+  }
+  &--secondary {
+    background: var(--tide-color-secondary);
+  }
+  &--success {
+    background: var(--tide-color-success);
+  }
+  &--info {
+    background: var(--tide-color-info);
+  }
+}
+
+.status-bars__count {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+  .status-bars__row {
+    grid-template-columns: 108px 1fr 32px;
+    gap: var(--app-space-2);
+  }
+}
+
+/* Team size by RM — vertical bars */
+.rm-chart {
+  display: flex;
+  align-items: stretch;
+  gap: var(--app-space-3);
+  height: 170px;
+  overflow-x: auto;
+}
+
+.rm-chart__col {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--app-space-2);
+  min-width: 44px;
+}
+
+.rm-chart__track {
+  flex: 1;
+  width: 100%;
+  max-width: 34px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: var(--mat-sys-surface-container-high);
+  border-radius: var(--app-radius-sm);
+  overflow: hidden;
+}
+
+.rm-chart__fill {
+  width: 100%;
+  min-height: 2px;
+  background-image: linear-gradient(180deg, var(--tide-color-secondary), var(--tide-color-primary));
+  border-radius: var(--app-radius-sm) var(--app-radius-sm) 0 0;
+  transition: height var(--app-duration-slow) var(--app-ease);
+}
+
+.rm-chart__value {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.rm-chart__label {
+  font-size: 0.72rem;
+  color: var(--app-status-default-fg);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ---------- Relationship Manager Team table ---------- */
+.manager-dashboard__table-card mat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+}
+
+.rm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.rm-table th {
+  text-align: left;
+  padding: var(--app-space-2) var(--app-space-3);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--app-status-default-fg);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  white-space: nowrap;
+}
+
+.rm-table td {
+  padding: var(--app-space-2) var(--app-space-3);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+  white-space: nowrap;
+}
+
+.rm-table tr:last-child td {
+  border-bottom: none;
+}
+
+.rm-table tbody tr {
+  transition: background-color var(--app-duration-fast) var(--app-ease);
+
+  &:hover {
+    background: var(--mat-sys-surface-container-high);
+  }
+}
+
+.rm-table__action {
+  text-align: right;
+  width: 1%;
+}
+
+.rm-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  white-space: normal;
+}
+
+.rm-cell__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tide-color-secondary);
+  color: var(--tide-color-text-inverse);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.rm-cell__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rm-cell__name {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+}
+
+.rm-cell__meta {
+  font-size: 0.78rem;
+  color: var(--app-status-default-fg);
+}
+
+/* ---------- side-by-side card rows ---------- */
+.manager-dashboard__side-row {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
 }
 
 .manager-dashboard__status {
@@ -38,6 +263,7 @@
   font-size: 0.9rem;
 }
 
+/* ---------- team hierarchy tree ---------- */
 .manager-dashboard__tree {
   list-style: none;
   margin: 0;

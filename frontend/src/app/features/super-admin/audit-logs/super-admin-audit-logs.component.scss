@@ -1,6 +1,7 @@
 .audit-log__toolbar,
 .audit-log__table-card {
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
   margin-top: var(--app-space-4);
   margin-bottom: var(--app-space-4);
 }
@@ -10,9 +11,33 @@
   flex-wrap: wrap;
   gap: var(--app-space-3);
   align-items: center;
+
+  button[type='submit'] {
+    border-radius: var(--app-radius-pill);
+  }
 }
 
-.audit-log__actor,
+.audit-log__actor {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.audit-log__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tide-color-secondary);
+  color: var(--tide-color-text-inverse);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.audit-log__actor-text,
 .audit-log__entity {
   display: flex;
   flex-direction: column;

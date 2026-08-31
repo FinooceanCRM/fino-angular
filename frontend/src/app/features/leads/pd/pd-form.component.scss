@@ -1,0 +1,146 @@
+// Tidewater Full PD shell — converts Material's default horizontal
+// step-header bar into the mockup's persistent left-rail pattern. The
+// `mat-stepper` itself keeps its real orientation/linear/validation
+// behaviour untouched; only its header row is hidden and re-rendered as the
+// `.pd-form__rail` list below, both bound to the same `#stepper` instance.
+
+.pd-form__layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  align-items: start;
+  gap: var(--app-space-5);
+}
+
+// --- Left rail --------------------------------------------------------
+
+.pd-form__rail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-1);
+  padding: var(--app-space-3);
+  background: var(--tide-color-surface);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-md);
+  position: sticky;
+  top: var(--app-space-5);
+}
+
+.pd-form__rail-item {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  padding: var(--app-space-3);
+  border: none;
+  border-radius: var(--app-radius-md);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+  color: var(--tide-color-text-secondary);
+  transition: background-color 120ms ease;
+
+  &:hover {
+    background: var(--tide-color-border-subtle);
+  }
+
+  &--current {
+    background: color-mix(in srgb, var(--tide-color-secondary) 16%, white);
+
+    &:hover {
+      background: color-mix(in srgb, var(--tide-color-secondary) 16%, white);
+    }
+  }
+}
+
+.pd-form__rail-number {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--tide-color-text-muted);
+  background: var(--tide-color-surface);
+  border: 1.5px solid var(--tide-color-border);
+
+  .pd-form__rail-item--current & {
+    background: var(--tide-color-primary);
+    border-color: var(--tide-color-primary);
+    color: var(--tide-color-text-inverse);
+  }
+
+  .pd-form__rail-item--done & {
+    background: var(--tide-color-secondary);
+    border-color: var(--tide-color-secondary);
+    color: var(--tide-color-text-inverse);
+  }
+}
+
+.pd-form__rail-label {
+  font-size: 0.92rem;
+  font-weight: 500;
+
+  .pd-form__rail-item--current & {
+    font-weight: 700;
+    color: var(--tide-color-primary);
+  }
+}
+
+// --- Content card -------------------------------------------------------
+
+.pd-form__content-card {
+  background: var(--tide-color-surface);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-md);
+  padding: var(--app-space-5);
+  min-width: 0;
+}
+
+.pd-form__btn-back {
+  border-radius: var(--app-radius-pill) !important;
+}
+
+// Material renders the real step headers/content in its own
+// ViewEncapsulation.None markup, so these rules need ::ng-deep to reach in.
+// Behaviour (selection, validation, keyboard nav) is untouched — only the
+// default header row is hidden in favour of `.pd-form__rail`, and the
+// content container's own padding is removed since `.pd-form__content-card`
+// now supplies it.
+.pd-form__stepper {
+  ::ng-deep {
+    .mat-horizontal-stepper-header-container {
+      display: none;
+    }
+
+    .mat-horizontal-content-container {
+      padding: 0;
+    }
+  }
+}
+
+// --- Responsive: stack rail above content as a horizontal chip strip ----
+
+@media (max-width: 900px) {
+  .pd-form__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pd-form__rail {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    gap: var(--app-space-2);
+  }
+
+  .pd-form__rail-item {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .pd-form__content-card {
+    padding: var(--app-space-4);
+  }
+}

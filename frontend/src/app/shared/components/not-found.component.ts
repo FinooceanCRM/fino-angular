@@ -1,23 +1,33 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
+
+import { StatusPageComponent } from './status-page.component';
 
 @Component({
   selector: 'app-not-found',
   standalone: true,
-  imports: [MatCardModule, MatButtonModule, RouterLink],
+  imports: [MatButtonModule, MatIconModule, RouterLink, StatusPageComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <mat-card>
-      <mat-card-title>Page not found</mat-card-title>
-      <mat-card-content>
-        <p>The page you requested does not exist.</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <a mat-flat-button routerLink="/dashboard">Back to dashboard</a>
-      </mat-card-actions>
-    </mat-card>
+    <app-status-page
+      icon="warning"
+      code="404"
+      heading="Page not found"
+      message="The page you're looking for doesn't exist or may have been moved."
+    >
+      <a
+        status-page-action
+        mat-flat-button
+        color="primary"
+        class="tide-cta-pill"
+        routerLink="/dashboard"
+      >
+        <mat-icon>home</mat-icon>
+        Back to dashboard
+      </a>
+    </app-status-page>
   `,
 })
 export class NotFoundComponent {}

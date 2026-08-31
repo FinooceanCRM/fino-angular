@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 
 import { DashboardReport } from '@core/models/report.model';
 import { ReportService } from '@core/services/report.service';
+import { BarDatum, HorizontalBarListComponent } from '@shared/components/horizontal-bar-list.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
 
@@ -28,6 +29,7 @@ const STATUS_COLOUR: Record<string, string> = {
   imports: [
     CurrencyPipe,
     KeyValuePipe,
+    HorizontalBarListComponent,
     MatCardModule,
     MatListModule,
     MatProgressBarModule,
@@ -45,17 +47,16 @@ export class ReportsComponent implements OnInit {
   readonly report = signal<DashboardReport | null>(null);
   readonly loading = signal(false);
 
-  readonly statusBreakdown = computed(() => {
+  readonly statusBreakdown = computed<BarDatum[]>(() => {
     const data = this.report();
     if (!data) {
       return [];
     }
 
-    const max = Math.max(1, ...data.by_status.map((row) => row.count));
     return data.by_status.map((row) => ({
-      ...row,
-      percent: Math.round((row.count / max) * 100),
-      colourVar: `var(--app-status-${STATUS_COLOUR[row.status] ?? 'default'}-fg)`,
+      label: row.label,
+      value: row.count,
+      colour: `var(--app-status-${STATUS_COLOUR[row.status] ?? 'default'}-fg)`,
     }));
   });
 

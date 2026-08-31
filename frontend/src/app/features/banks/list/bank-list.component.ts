@@ -1,17 +1,18 @@
 import { CurrencyPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
-import { BankCriteria, BankCriteriaPayload } from '@core/models/bank.model';
+import { BankCriteria } from '@core/models/bank.model';
 import { CatalogueOption } from '@core/models/lead.model';
 import { AuthService } from '@core/services/auth.service';
 import { BankService } from '@core/services/bank.service';
@@ -19,6 +20,29 @@ import { LeadService } from '@core/services/lead.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 
+import {
+  BankerCriteriaDialogComponent,
+  BankerCriteriaDialogData,
+} from '../../banker/criteria/criteria-dialog/banker-criteria-dialog.component';
+
+export interface BankGroup {
+  bankName: string;
+  products: BankCriteria[];
+  productCount: number;
+  avgTicketSize: number;
+  active: boolean;
+}
+
+/**
+ * Banks — the shared `/banks` route, visible to every role that can see
+ * lending products (Super Admin sees every bank; a Banker's own rows are
+ * scoped server-side same as everywhere else). Presents the real
+ * `BankCriteria[]` grouped by bank name (a client-side aggregation over
+ * real rows — the API has no separate "Bank" entity, so "Bank" here is a
+ * derived grouping, not a fabricated one) and reuses
+ * `BankerCriteriaDialogComponent` for create/edit instead of duplicating
+ * that form inline.
+ */
 @Component({
   selector: 'app-bank-list',
   standalone: true,
@@ -26,14 +50,12 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
     CurrencyPipe,
     MatButtonModule,
     MatCardModule,
-    MatCheckboxModule,
-    MatChipsModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatProgressBarModule,
     MatSelectModule,
-    FormsModule,
+    MatTooltipModule,
     PageHeaderComponent,
     ReactiveFormsModule,
     StatusPillComponent,
@@ -47,40 +69,64 @@ export class BankListComponent implements OnInit {
   private readonly leads = inject(LeadService);
   protected readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
+  private readonly snackBar = inject(MatSnackBar);
 
   readonly rows = signal<BankCriteria[]>([]);
   readonly loanTypes = signal<CatalogueOption[]>([]);
   readonly employmentTypes = signal<CatalogueOption[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
-  readonly activeFilter = signal('');
-  readonly showAdvanced = signal(false);
+  readonly expandedBank = signal<string | null>(null);
 
-  readonly filteredRows = computed(() => {
-    const filter = this.activeFilter();
-    return filter ? this.rows().filter((row) => row.loan_type === filter) : this.rows();
+  protected readonly filters = this.fb.nonNullable.group({
+    search: '',
+    status: '',
   });
 
-  readonly form = this.fb.nonNullable.group({
-    bank_name: ['', Validators.required],
-    product_name: ['', Validators.required],
-    loan_type: ['home', Validators.required],
-    min_credit_score: [700],
-    min_monthly_income: [25000, [Validators.required, Validators.min(0)]],
-    interest_rate: [10.5],
-    max_tenure_months: [null as number | null],
-    max_loan_amount: [5000000],
-    min_loan_amount: [100000, [Validators.required, Validators.min(0)]],
-    processing_fee: [''],
-    min_age: [null as number | null, [Validators.min(18), Validators.max(99)]],
-    max_age: [null as number | null, [Validators.min(18), Validators.max(99)]],
-    foir_dbr: [null as number | null, [Validators.min(0), Validators.max(100)]],
-    employment_type: [''],
-    business_vintage_years: [null as number | null, Validators.min(0)],
-    eligible_locations: [''],
-    negative_profile_rules: [''],
-    special_conditions: [''],
-    is_active: [true],
+  private readonly appliedSearch = signal('');
+  private readonly appliedStatus = signal('');
+
+  readonly groups = computed<BankGroup[]>(() => {
+    const search = this.appliedSearch().trim().toLowerCase();
+    const status = this.appliedStatus();
+
+    const byBank = new Map<string, BankCriteria[]>();
+    for (const row of this.rows()) {
+      const key = row.bank_name;
+      const list = byBank.get(key) ?? [];
+      list.push(row);
+      byBank.set(key, list);
+    }
+
+    return [...byBank.entries()]
+      .map(([bankName, products]): BankGroup => {
+        // Per-product ticket = midpoint of its own min/max range; the bank's
+        // "avg. ticket size" is the mean of those midpoints across its
+        // products — real numbers derived from real rows, not invented.
+        const midpoints = products.map((p) => (p.min_loan_amount + (p.max_loan_amount ?? p.min_loan_amount)) / 2);
+        const avgTicketSize = midpoints.reduce((sum, m) => sum + m, 0) / midpoints.length;
+        return {
+          bankName,
+          products,
+          productCount: products.length,
+          avgTicketSize,
+          active: products.some((p) => p.is_active),
+        };
+      })
+      .filter((group) => {
+        if (search && !group.bankName.toLowerCase().includes(search)) {
+          return false;
+        }
+        if (status === 'active' && !group.active) {
+          return false;
+        }
+        if (status === 'inactive' && group.active) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => a.bankName.localeCompare(b.bankName));
   });
 
   canManage(): boolean {
@@ -121,51 +167,22 @@ export class BankListComponent implements OnInit {
     });
   }
 
-  create(): void {
-    if (this.form.invalid) {
-      return;
-    }
+  applyFilters(): void {
+    const raw = this.filters.getRawValue();
+    this.appliedSearch.set(raw.search);
+    this.appliedStatus.set(raw.status);
+  }
 
-    const raw = this.form.getRawValue();
-    const payload: BankCriteriaPayload = {
-      bank_name: raw.bank_name,
-      product_name: raw.product_name,
-      loan_type: raw.loan_type,
-      min_loan_amount: raw.min_loan_amount,
-      max_loan_amount: raw.max_loan_amount || null,
-      min_monthly_income: raw.min_monthly_income,
-      min_credit_score: raw.min_credit_score || null,
-      min_age: raw.min_age || null,
-      max_age: raw.max_age || null,
-      employment_type: raw.employment_type || null,
-      interest_rate: raw.interest_rate || null,
-      max_tenure_months: raw.max_tenure_months || null,
-      processing_fee: raw.processing_fee.trim() || null,
-      foir_dbr: raw.foir_dbr || null,
-      business_vintage_years: raw.business_vintage_years || null,
-      eligible_locations: raw.eligible_locations.trim() || null,
-      negative_profile_rules: raw.negative_profile_rules.trim() || null,
-      special_conditions: raw.special_conditions.trim() || null,
-      is_active: raw.is_active,
-    };
+  toggleExpanded(bankName: string): void {
+    this.expandedBank.set(this.expandedBank() === bankName ? null : bankName);
+  }
 
-    this.banks.create(payload).subscribe({
-      next: () => {
-        this.form.reset({
-          loan_type: 'home',
-          min_loan_amount: 100000,
-          max_loan_amount: 5000000,
-          min_monthly_income: 25000,
-          min_credit_score: 700,
-          interest_rate: 10.5,
-          is_active: true,
-          bank_name: '',
-          product_name: '',
-        });
-        this.load();
-      },
-      error: () => this.error.set('The bank product could not be saved.'),
-    });
+  openCreate(): void {
+    this.openDialog(null);
+  }
+
+  editProduct(row: BankCriteria): void {
+    this.openDialog(row);
   }
 
   toggle(row: BankCriteria): void {
@@ -173,5 +190,31 @@ export class BankListComponent implements OnInit {
       next: () => this.load(),
       error: () => this.error.set('The bank product could not be updated.'),
     });
+  }
+
+  private openDialog(criteria: BankCriteria | null): void {
+    this.dialog
+      .open(BankerCriteriaDialogComponent, {
+        data: {
+          criteria,
+          loanTypes: this.loanTypes(),
+          employmentTypes: this.employmentTypes(),
+        } satisfies BankerCriteriaDialogData,
+      })
+      .afterClosed()
+      .subscribe((payload) => {
+        if (!payload) {
+          return;
+        }
+
+        const request = criteria ? this.banks.update(criteria.id, payload) : this.banks.create(payload);
+        request.subscribe({
+          next: () => {
+            this.snackBar.open(criteria ? 'Criteria updated.' : 'Criteria added.', 'Dismiss', { duration: 4000 });
+            this.load();
+          },
+          error: () => this.snackBar.open('The bank product could not be saved.', 'Dismiss', { duration: 4000 }),
+        });
+      });
   }
 }

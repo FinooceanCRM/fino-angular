@@ -93,3 +93,28 @@
   display: block;
   width: 100%;
 }
+
+.approval-list__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--app-space-2);
+}
+
+// Labelled pill row actions replacing the old icon-only Approve/Reject
+// buttons — coral filled Approve (via `color="primary"`, tinted by the
+// global `--mat-button-filled-container-color` token) and a white/outlined
+// Reject, following the same convention as `.row-action--delete` in
+// styles.scss (warn foreground on a light warn-tinted border).
+.approval-list__approve-pill,
+.approval-list__reject-pill {
+  border-radius: var(--app-radius-pill) !important;
+  height: 34px;
+  padding: 0 var(--app-space-4);
+  font-weight: 600;
+}
+
+.approval-list__reject-pill {
+  color: var(--app-status-warn-fg);
+  border-color: var(--app-status-warn-bg);
+}

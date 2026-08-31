@@ -1,5 +1,3 @@
-<app-page-header title="Telecaller dashboard" subtitle="Your independent telecaller workspace" />
-
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" />
 }
@@ -12,11 +10,20 @@
 
 @if (data(); as dashboard) {
   <div class="telecaller-dashboard">
-    <mat-card class="telecaller-dashboard__welcome">
+    <app-dashboard-hero
+      eyebrowIcon="support_agent"
+      eyebrowLabel="TELECALLER DASHBOARD"
+      [headline]="dashboard.welcome.headline"
+      [subtitle]="dashboard.welcome.message"
+      [stats]="[
+        { value: dashboard.pd_queue.pending, label: 'PD queue' },
+        { value: dashboard.follow_up_reminders.today, label: 'Follow-ups today' },
+      ]"
+    />
+
+    <mat-card class="telecaller-dashboard__quick-actions">
       <mat-card-header>
-        <mat-icon mat-card-avatar>waving_hand</mat-icon>
-        <mat-card-title>{{ dashboard.welcome.headline }}</mat-card-title>
-        <mat-card-subtitle>{{ dashboard.welcome.message }}</mat-card-subtitle>
+        <mat-card-title>Quick actions</mat-card-title>
       </mat-card-header>
       <mat-card-actions class="telecaller-dashboard__actions">
         <a mat-stroked-button routerLink="/telecaller/leads">
@@ -40,28 +47,36 @@
 
     <div class="telecaller-dashboard__stats">
       <app-stat-card
-        icon="groups"
+        icon="assignment_turned_in"
         [value]="dashboard.submitted_leads.total"
-        label="Leads submitted"
+        label="My submitted leads"
         accent="primary"
       />
       <app-stat-card
         icon="call"
         [value]="dashboard.pd_queue.pending"
-        label="PD calls pending"
+        label="PD queue pending"
         accent="accent"
       />
       <app-stat-card
         icon="task_alt"
         [value]="dashboard.pd_queue.completed"
         label="PD calls completed"
+        accent="success"
+      />
+      <app-stat-card
+        icon="event_repeat"
+        [value]="dashboard.follow_up_reminders.overdue + dashboard.follow_up_reminders.today + dashboard.follow_up_reminders.upcoming"
+        label="Follow-ups"
+        [trend]="dashboard.follow_up_reminders.overdue > 0 ? dashboard.follow_up_reminders.overdue + ' overdue' : undefined"
+        accent="warn"
       />
     </div>
 
     <mat-card class="telecaller-dashboard__reminder">
       <mat-card-header>
         <mat-icon mat-card-avatar>notifications_active</mat-icon>
-        <mat-card-title>Follow-up reminder</mat-card-title>
+        <mat-card-title>Follow-up reminders</mat-card-title>
       </mat-card-header>
       <mat-card-content class="telecaller-dashboard__reminder-counts">
         <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--overdue" routerLink="/telecaller/follow-ups">
@@ -72,7 +87,7 @@
           <strong>{{ dashboard.follow_up_reminders.today }}</strong>
           <span>Today</span>
         </a>
-        <a class="telecaller-dashboard__reminder-item" routerLink="/telecaller/follow-ups">
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--upcoming" routerLink="/telecaller/follow-ups">
           <strong>{{ dashboard.follow_up_reminders.upcoming }}</strong>
           <span>Upcoming</span>
         </a>
@@ -81,53 +96,98 @@
 
     <app-notifications-panel class="telecaller-dashboard__notifications" />
 
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Recent submitted leads</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-list>
-          @for (lead of dashboard.recent_leads; track lead.id) {
-            <mat-list-item>
-              <span matListItemTitle>{{ lead.applicant_name }} · {{ lead.reference }}</span>
-              <span matListItemLine>
-                {{ lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }} ·
-                {{ lead.status_label }}
-              </span>
-            </mat-list-item>
-          } @empty {
+    <div class="telecaller-dashboard__lists">
+      <mat-card class="telecaller-dashboard__leads">
+        <mat-card-header>
+          <mat-card-title>Recent submitted leads</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (dashboard.recent_leads.length) {
+            <div class="telecaller-dashboard__table-wrap">
+              <table class="telecaller-dashboard__table">
+                <thead>
+                  <tr>
+                    <th>Applicant</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (lead of dashboard.recent_leads; track lead.id) {
+                    <tr>
+                      <td>
+                        <span class="telecaller-dashboard__person">
+                          <span class="telecaller-dashboard__avatar">{{ lead.applicant_name.slice(0, 2).toUpperCase() }}</span>
+                          <span class="telecaller-dashboard__person-text">
+                            <span class="telecaller-dashboard__person-name">{{ lead.applicant_name }}</span>
+                            <span class="telecaller-dashboard__person-meta">{{ lead.reference }}</span>
+                          </span>
+                        </span>
+                      </td>
+                      <td>{{ lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</td>
+                      <td><app-status-pill [label]="lead.status_label" colour="default" /></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
             <p class="telecaller-dashboard__muted">You haven't submitted any leads yet.</p>
           }
-        </mat-list>
-        <a mat-button routerLink="/telecaller/leads">View all submitted leads</a>
-      </mat-card-content>
-    </mat-card>
+          <a mat-button routerLink="/telecaller/leads">View all submitted leads</a>
+        </mat-card-content>
+      </mat-card>
 
-    <mat-card>
-      <mat-card-header>
-        <mat-card-title>Pending follow-ups</mat-card-title>
-      </mat-card-header>
-      <mat-card-content>
-        <mat-list>
-          @for (item of dashboard.pending_follow_ups; track item.id) {
-            <mat-list-item>
-              <span matListItemTitle>{{ item.lead?.applicant_name ?? '—' }} · {{ item.type }} · {{ item.priority }}</span>
-              <span matListItemLine>
-                {{ item.notes || '(no notes)' }}
-                @if (item.next_follow_up_at) {
-                  · Next {{ item.next_follow_up_at | date: 'mediumDate' }}
-                }
-              </span>
-            </mat-list-item>
-          } @empty {
+      <mat-card class="telecaller-dashboard__followups">
+        <mat-card-header>
+          <mat-card-title>Pending follow-ups</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          @if (dashboard.pending_follow_ups.length) {
+            <div class="telecaller-dashboard__table-wrap">
+              <table class="telecaller-dashboard__table">
+                <thead>
+                  <tr>
+                    <th>Applicant</th>
+                    <th>Type</th>
+                    <th>Priority</th>
+                    <th>Next follow-up</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of dashboard.pending_follow_ups; track item.id) {
+                    <tr>
+                      <td>
+                        <span class="telecaller-dashboard__person-text">
+                          <span class="telecaller-dashboard__person-name">{{ item.lead?.applicant_name ?? '—' }}</span>
+                          @if (item.notes) {
+                            <span class="telecaller-dashboard__person-meta">{{ item.notes }}</span>
+                          }
+                        </span>
+                      </td>
+                      <td>{{ item.type }}</td>
+                      <td>{{ item.priority }}</td>
+                      <td>
+                        @if (item.next_follow_up_at) {
+                          {{ item.next_follow_up_at | date: 'mediumDate' }}
+                        } @else {
+                          —
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
             <p class="telecaller-dashboard__muted">No pending follow-ups.</p>
           }
-        </mat-list>
-        <a mat-button routerLink="/telecaller/follow-ups">View all follow-ups</a>
-      </mat-card-content>
-    </mat-card>
+          <a mat-button routerLink="/telecaller/follow-ups">View all follow-ups</a>
+        </mat-card-content>
+      </mat-card>
+    </div>
 
-    <mat-card>
+    <mat-card class="telecaller-dashboard__account">
       <mat-card-header>
         <mat-card-title>Account status</mat-card-title>
       </mat-card-header>

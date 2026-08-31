@@ -94,16 +94,32 @@ export class SuperAdminConnectorCommissionComponent {
     };
   });
 
+  /**
+   * Email and referral code move into the name cell's secondary line
+   * (same pattern as UserRoleTableComponent's avatar+name cell) rather than
+   * their own columns — presentation only, the values are unchanged and
+   * still exported in full via `export()` below. `network_size` and
+   * `conversions` stay as their own columns: they're real per-connector
+   * metrics and dropping them from the table to chase the mockup's
+   * minimal 4-metric layout would be losing functionality, not restyling.
+   */
   protected readonly columns: TableColumn<Connector>[] = [
     { key: 'name', label: 'Connector', formatter: (row) => row.user.name },
-    { key: 'email', label: 'Email', formatter: (row) => row.user.email },
-    { key: 'referral_code', label: 'Code' },
-    { key: 'network_size', label: 'Network', formatter: (row) => String(row.network_size ?? 0) },
-    { key: 'referrals', label: 'Leads', formatter: (row) => String(row.referral_count ?? 0) },
-    { key: 'conversions', label: 'Disbursed', formatter: (row) => String(row.converted_count ?? 0) },
-    { key: 'earned', label: 'Commission' },
+    { key: 'network_size', label: 'Network', formatter: (row) => String(row.network_size ?? 0), align: 'right' },
+    { key: 'referrals', label: 'Leads Sourced', formatter: (row) => String(row.referral_count ?? 0), align: 'right' },
+    { key: 'conversions', label: 'Disbursed', formatter: (row) => String(row.converted_count ?? 0), align: 'right' },
+    { key: 'rate', label: 'Commission Rate', align: 'right' },
+    { key: 'earned', label: 'Commission Earned', align: 'right' },
     { key: 'status', label: 'Status' },
   ];
+
+  protected initials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+  }
 
   protected export(): void {
     exportToCsv(

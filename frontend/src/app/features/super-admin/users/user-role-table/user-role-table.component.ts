@@ -16,7 +16,6 @@ import { Subscription } from 'rxjs';
 import { ManagedUser, UserRole } from '@core/models/user.model';
 import { UserService } from '@core/services/user.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
-import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
@@ -41,7 +40,6 @@ import { UserViewModalComponent } from '../user-view-modal/user-view-modal.compo
     MatIconModule,
     MatInputModule,
     MatSelectModule,
-    PageHeaderComponent,
     StatusPillComponent,
     TableCellDirective,
     TableComponent,
@@ -89,7 +87,7 @@ export class UserRoleTableComponent {
   protected readonly pageSize = signal(10);
 
   protected readonly columns: TableColumn<ManagedUser>[] = [
-    { key: 'name', label: 'Name' },
+    { key: 'name', label: 'User' },
     { key: 'email', label: 'Email' },
     { key: 'phone', label: 'Phone', formatter: (row) => row.phone ?? '—' },
     { key: 'status', label: 'Status' },
@@ -146,7 +144,13 @@ export class UserRoleTableComponent {
     this.load(this.filterValues(), this.pageIndex(), this.pageSize());
   }
 
-  protected openCreate(): void {
+  /**
+   * Public so a host page (e.g. SuperAdminBankersComponent) can trigger it
+   * from an "Add {role}" button it projects into the shared
+   * UserRoleTabsComponent page-header, via a template reference variable on
+   * this component. Behavior is unchanged for the existing internal caller.
+   */
+  openCreate(): void {
     this.dialog
       .open<UserFormModalComponent, unknown, UserFormModalResult>(UserFormModalComponent, {
         data: { mode: 'create', roleLabel: this.roleLabel() },
@@ -206,7 +210,14 @@ export class UserRoleTableComponent {
   }
 
   protected openView(row: ManagedUser): void {
-    this.dialog.open(UserViewModalComponent, { data: { user: row } });
+    this.dialog
+      .open<UserViewModalComponent, unknown, boolean>(UserViewModalComponent, { data: { user: row } })
+      .afterClosed()
+      .subscribe((wantsEdit) => {
+        if (wantsEdit) {
+          this.openEdit(row);
+        }
+      });
   }
 
   protected toggleActive(row: ManagedUser): void {

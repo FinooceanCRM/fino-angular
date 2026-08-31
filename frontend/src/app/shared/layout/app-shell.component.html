@@ -1,6 +1,6 @@
-<app-topbar (menuToggle)="sidenavOpened.set(!sidenavOpened())" />
-
 @if (auth.isAuthenticated()) {
+  <app-topbar (menuToggle)="sidenavOpened.set(!sidenavOpened())" />
+
   <mat-sidenav-container class="shell-container">
     <mat-sidenav
       class="shell-sidenav"

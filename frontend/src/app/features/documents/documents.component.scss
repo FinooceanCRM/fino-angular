@@ -1,12 +1,62 @@
+.documents__filter-card,
+.documents__table-card {
+  margin-bottom: var(--app-space-4);
+  border-radius: var(--app-radius-md);
+}
+
+.documents__upload-panel {
+  border-radius: var(--app-radius-md);
+}
+
+.documents__applicant {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.documents__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  color: var(--tide-color-text-inverse);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+// Cycled by the row's parent lead id — mirrors the same avatar-colour
+// convention used on the Leads list table.
+.documents__avatar--0 {
+  background: var(--tide-color-success);
+}
+.documents__avatar--1 {
+  background: var(--tide-color-primary);
+}
+.documents__avatar--2 {
+  background: var(--tide-color-secondary);
+}
+.documents__avatar--3 {
+  background: var(--tide-color-warning);
+}
+.documents__avatar--4 {
+  background: var(--tide-color-error);
+}
+
+// Secondary "Upload a document" panel — the original per-lead workspace,
+// unchanged, now nested inside the expansion panel above.
 .documents__picker,
 .documents__upload-card,
 .documents__list-card {
-  margin-bottom: var(--app-space-4);
+  margin-top: var(--app-space-4);
   border-radius: var(--app-radius-md);
 }
 
 .documents__picker-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--app-space-3);
 }

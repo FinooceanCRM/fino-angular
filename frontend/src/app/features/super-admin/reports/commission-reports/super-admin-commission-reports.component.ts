@@ -17,8 +17,8 @@ import { LedgerEntry } from '../../data/models/commission.model';
 import { BarDatum } from '../../data/models/report.model';
 import { CommissionDataProvider } from '../../data/providers/commission-data.provider';
 import { bucketByWeek, defaultFrom, defaultTo, inRange } from '../../data/report-date-range.util';
-import { HorizontalBarListComponent } from '../charts/horizontal-bar-list.component';
-import { TrendChartComponent, TrendPoint } from '../charts/trend-chart.component';
+import { HorizontalBarListComponent } from '@shared/components/horizontal-bar-list.component';
+import { TrendChartComponent, TrendPoint } from '@shared/components/trend-chart.component';
 
 /** Commission Reports — accrual/payout trend and connector/affiliate split, sourced from the accounting ledger. */
 @Component({

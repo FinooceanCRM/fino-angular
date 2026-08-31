@@ -1,10 +1,35 @@
 <div class="login">
-  <section class="login__hero">
-    <div class="login__brand">
-      <mat-icon class="login__brand-icon">account_balance</mat-icon>
-      <span class="login__brand-name">{{ appName }}</span>
+  <section class="login__hero tide-wave-banner">
+    <div class="login__hero-content">
+      <div class="login__brand">
+        <span class="login__brand-icon">
+          <mat-icon>anchor</mat-icon>
+        </span>
+        <span class="login__brand-name">{{ appName }}</span>
+      </div>
+
+      <h1 class="login__headline">Lending, charted like a voyage.</h1>
+
+      <p class="login__tagline">
+        One workspace for connectors, employees, bankers and managers to
+        steer a loan from first lead to safe harbour.
+      </p>
+
+      <ul class="login__features">
+        <li>
+          <span class="login__feature-icon"><mat-icon>verified</mat-icon></span>
+          <span>Auto-match leads to the right bank in seconds</span>
+        </li>
+        <li>
+          <span class="login__feature-icon"><mat-icon>bar_chart</mat-icon></span>
+          <span>Real-time visibility across every stage of the voyage</span>
+        </li>
+        <li>
+          <span class="login__feature-icon"><mat-icon>shield</mat-icon></span>
+          <span>Bank-grade access control for every role</span>
+        </li>
+      </ul>
     </div>
-    <p class="login__tagline">Lending, simplified</p>
   </section>
 
   <section class="login__panel">
@@ -13,12 +38,20 @@
         <mat-progress-bar mode="indeterminate" class="login__progress" />
       }
 
-      <h1 class="login__title">Sign in to your account</h1>
+      <h2 class="login__title tide-display">Welcome back</h2>
+      <p class="login__subtitle">Sign in to your {{ appName }} account to continue.</p>
 
       <form class="login__form" [formGroup]="form" (ngSubmit)="submit()">
         <mat-form-field appearance="outline">
           <mat-label>Email</mat-label>
-          <input matInput type="email" formControlName="email" autocomplete="username" />
+          <mat-icon matPrefix>mail_outline</mat-icon>
+          <input
+            matInput
+            type="email"
+            formControlName="email"
+            autocomplete="username"
+            placeholder="you@company.com"
+          />
           @if (form.controls.email.touched && form.controls.email.invalid) {
             <mat-error>Enter a valid email address.</mat-error>
           }
@@ -26,6 +59,7 @@
 
         <mat-form-field appearance="outline">
           <mat-label>Password</mat-label>
+          <mat-icon matPrefix>lock_outline</mat-icon>
           <input
             matInput
             [type]="showPassword() ? 'text' : 'password'"
@@ -48,12 +82,19 @@
 
         <button
           mat-flat-button
+          color="primary"
           type="submit"
-          class="login__submit"
+          class="login__submit tide-cta-pill"
           [disabled]="form.invalid || auth.loading()"
         >
           Sign in
         </button>
+
+        <p class="login__forgot">
+          <!-- Presentational only — no password-reset flow exists yet
+               (out of scope: this phase changes UI, not auth logic/APIs). -->
+          Forgot your password? <span class="login__forgot-link">Reset it</span>
+        </p>
 
         @if (error()) {
           <p class="login__error" role="alert">{{ error() }}</p>

@@ -74,10 +74,10 @@ export class SuperAdminBankCriteriaComponent {
     { key: 'bank_name', label: 'Bank' },
     { key: 'product_name', label: 'Product' },
     { key: 'loan_type', label: 'Loan type', formatter: (row) => this.loanTypeLabel(row.loan_type) },
-    { key: 'amount', label: 'Amount range' },
-    { key: 'income', label: 'Min. income' },
-    { key: 'min_credit_score', label: 'Min. credit score', formatter: (row) => row.min_credit_score?.toString() ?? '—' },
-    { key: 'interest_rate', label: 'Interest', formatter: (row) => (row.interest_rate ? `${row.interest_rate}%` : '—') },
+    { key: 'amount', label: 'Amount range', align: 'right' },
+    { key: 'income', label: 'Min. income', align: 'right' },
+    { key: 'min_credit_score', label: 'Min. credit score', formatter: (row) => row.min_credit_score?.toString() ?? '—', align: 'right' },
+    { key: 'interest_rate', label: 'Interest', formatter: (row) => (row.interest_rate ? `${row.interest_rate}%` : '—'), align: 'right' },
     { key: 'status', label: 'Status' },
   ];
 

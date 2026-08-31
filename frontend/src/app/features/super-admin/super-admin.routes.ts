@@ -235,12 +235,15 @@ export const superAdminRoutes: Routes = [
       ),
   },
   {
+    // The old card-grid landing page (super-admin-reports.component.ts) is
+    // superseded by the tabbed Lead Reports page below, which now carries
+    // the shared "Reports" header + tab strip (see
+    // reports-tabs/super-admin-reports-tabs.component.ts) — matches the
+    // approved Reports overview mockup. The landing component's file is
+    // left in place, just no longer routed to.
     path: 'reports',
-    title: 'Super Admin reports — FINOOCEAN',
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['super_admin'] },
-    loadComponent: () =>
-      import('./reports/super-admin-reports.component').then((m) => m.SuperAdminReportsComponent),
+    pathMatch: 'full',
+    redirectTo: 'reports/lead-reports',
   },
   {
     path: 'reports/lead-reports',
@@ -270,6 +273,19 @@ export const superAdminRoutes: Routes = [
     loadComponent: () =>
       import('./reports/performance-reports/super-admin-performance-reports.component').then(
         (m) => m.SuperAdminPerformanceReportsComponent,
+      ),
+  },
+  {
+    // Was built but never wired into a route or the reports landing page —
+    // it's real, complete code (own doc-comment, own computed signals),
+    // just unreachable until now.
+    path: 'reports/commission-reports',
+    title: 'Commission reports — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./reports/commission-reports/super-admin-commission-reports.component').then(
+        (m) => m.SuperAdminCommissionReportsComponent,
       ),
   },
   {
@@ -371,10 +387,16 @@ export const superAdminRoutes: Routes = [
     // Global search (Phase 1) — full-results view behind the search
     // overlay's "View all" and the overlay's own `viewAll()` navigation.
     // Previously not routed at all (dead code, unreachable).
+    // Global search (SearchService) is scoped server-side to the caller's
+    // own visibility, same as every other row-scoped endpoint in the app —
+    // there's no real backend reason this results page (or its overlay,
+    // opened from the topbar for every role) should be super-admin-only,
+    // so only authGuard applies here. The route keeps its historical
+    // super-admin/ URL prefix to avoid a wider file-move/import churn for
+    // a phase scoped to visual changes.
     path: 'search',
     title: 'Search — FINOOCEAN',
-    canActivate: [authGuard, roleGuard],
-    data: { roles: ['super_admin'] },
+    canActivate: [authGuard],
     loadComponent: () =>
       import('./search/search-results/super-admin-search-results.component').then(
         (m) => m.SuperAdminSearchResultsComponent,

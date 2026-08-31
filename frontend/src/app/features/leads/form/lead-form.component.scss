@@ -1,16 +1,48 @@
 .lead-form__card {
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-md);
+  border: 1px solid var(--tide-color-border-subtle);
 }
 
 .lead-form__stepper {
   background: transparent;
+
+  // Tidewater step-indicator palette: teal for a completed/editable step,
+  // coral for the step currently in view, muted outline for what's ahead —
+  // consistent with the sibling PD-form wizard's step treatment.
+  --mat-stepper-header-icon-background-color: var(--tide-color-border);
+  --mat-stepper-header-icon-foreground-color: var(--tide-color-text-secondary);
+  --mat-stepper-header-label-text-color: var(--tide-color-text-muted);
+  --mat-stepper-header-selected-state-icon-background-color: var(--tide-color-action);
+  --mat-stepper-header-selected-state-icon-foreground-color: var(--tide-color-text-inverse);
+  --mat-stepper-header-selected-state-label-text-color: var(--tide-color-text-primary);
+  --mat-stepper-header-selected-state-label-text-weight: 700;
+  --mat-stepper-header-done-state-icon-background-color: var(--tide-color-secondary);
+  --mat-stepper-header-done-state-icon-foreground-color: var(--tide-color-text-inverse);
+  --mat-stepper-header-edit-state-icon-background-color: var(--tide-color-secondary);
+  --mat-stepper-header-edit-state-icon-foreground-color: var(--tide-color-text-inverse);
+  --mat-stepper-line-color: var(--tide-color-border);
 }
 
 .lead-form__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: var(--app-space-3);
-  padding-top: var(--app-space-4);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--app-space-4) var(--app-space-5);
+  padding-top: var(--app-space-5);
+
+  // matPrefix icons on the mockup-aligned fields (name/phone/email, loan
+  // type/amount/tenure, employment type, income, city/state) — muted grey
+  // to match placeholder text, spaced off the input like the mockup.
+  mat-icon[matPrefix] {
+    margin-right: var(--app-space-2);
+    color: var(--tide-color-text-muted);
+  }
+}
+
+@media (max-width: 720px) {
+  .lead-form__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .lead-form__span-2 {
@@ -30,9 +62,31 @@
 
 .lead-form__step-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--app-space-3);
   align-items: center;
-  margin-top: var(--app-space-4);
+  margin-top: var(--app-space-5);
+}
+
+// Pushes Back to the left edge so Cancel/submit (or a lone Next) settle on
+// the right, matching the mockup's bottom-right action cluster.
+.lead-form__back-button {
+  margin-right: auto;
+}
+
+.lead-form__final-actions {
+  display: flex;
+  gap: var(--app-space-3);
+  align-items: center;
+  margin-left: auto;
+}
+
+// Rounded, pill-shaped Cancel/submit pair on the final step — Cancel stays
+// a plain white stroked pill, the submit button layers this on top of
+// `.tide-cta-pill`'s coral glow (applied separately in the template).
+.lead-form__pill-button {
+  border-radius: var(--app-radius-pill) !important;
+  height: 44px;
 }
 
 .lead-form__review {
@@ -63,7 +117,9 @@
 }
 
 .lead-form__document-card {
-  border-radius: var(--app-radius-md);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  border: 1px solid var(--tide-color-border-subtle);
 }
 
 .lead-form__document-card-header {
@@ -145,6 +201,27 @@
   margin: var(--app-space-2) 0 0;
   color: var(--mat-sys-error, #b3261e);
   font-size: 0.8rem;
+}
+
+.lead-form__validation-summary {
+  display: flex;
+  gap: var(--app-space-3);
+  align-items: flex-start;
+  margin-bottom: var(--app-space-4);
+  padding: var(--app-space-3);
+  border: 1px solid var(--mat-sys-error, #b3261e);
+  border-radius: 8px;
+  background: var(--mat-sys-error-container, #f9dedc);
+  color: var(--mat-sys-on-error-container, #410e0b);
+
+  mat-icon {
+    color: var(--mat-sys-error, #b3261e);
+  }
+
+  ul {
+    margin: var(--app-space-1) 0 0;
+    padding-left: var(--app-space-4);
+  }
 }
 
 .lead-form__review-documents {

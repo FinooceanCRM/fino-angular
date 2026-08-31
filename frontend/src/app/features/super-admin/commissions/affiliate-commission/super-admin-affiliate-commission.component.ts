@@ -92,15 +92,34 @@ export class SuperAdminAffiliateCommissionComponent {
     };
   });
 
+  /**
+   * Email and referral code move into the name cell's secondary line
+   * (same pattern as UserRoleTableComponent's avatar+name cell, mirrored
+   * on the sibling Connector Commission page) rather than their own
+   * columns — presentation only, values are unchanged and still exported
+   * in full via `export()` below.
+   */
   protected readonly columns: TableColumn<Affiliate>[] = [
     { key: 'name', label: 'Affiliate', formatter: (row) => row.user.name },
-    { key: 'email', label: 'Email', formatter: (row) => row.user.email },
-    { key: 'referral_code', label: 'Code' },
-    { key: 'referrals', label: 'Referrals', formatter: (row) => String(row.referral_count ?? 0) },
-    { key: 'conversions', label: 'Conversions', formatter: (row) => String(row.converted_count ?? 0) },
-    { key: 'earned', label: 'Commission' },
+    { key: 'referrals', label: 'Referrals', formatter: (row) => String(row.referral_count ?? 0), align: 'right' },
+    {
+      key: 'conversions',
+      label: 'Conversions',
+      formatter: (row) => String(row.converted_count ?? 0),
+      align: 'right',
+    },
+    { key: 'rate', label: 'Commission Rate', align: 'right' },
+    { key: 'earned', label: 'Commission Earned', align: 'right' },
     { key: 'status', label: 'Status' },
   ];
+
+  protected initials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+  }
 
   protected export(): void {
     exportToCsv(

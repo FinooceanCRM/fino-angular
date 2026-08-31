@@ -40,3 +40,24 @@
 .report-page__table-card {
   border-radius: var(--app-radius-md);
 }
+
+.user-report__name-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  font-weight: 600;
+}
+
+.user-report__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tide-color-secondary);
+  color: var(--tide-color-text-inverse);
+  font-size: 0.68rem;
+  font-weight: 700;
+}

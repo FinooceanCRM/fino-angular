@@ -1,28 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
 
+import { OverviewGridComponent, OverviewGridSection } from '@shared/components/overview-grid.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
-
-interface BankingSection {
-  icon: string;
-  title: string;
-  description: string;
-  link: string;
-}
 
 /** Banking module landing — three distinct tools, not variations of one list. */
 @Component({
   selector: 'app-super-admin-banking',
   standalone: true,
-  imports: [RouterLink, MatCardModule, MatIconModule, PageHeaderComponent],
+  imports: [PageHeaderComponent, OverviewGridComponent],
   templateUrl: './super-admin-banking.component.html',
-  styleUrl: './super-admin-banking.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SuperAdminBankingComponent {
-  protected readonly sections: BankingSection[] = [
+  protected readonly sections: OverviewGridSection[] = [
     {
       icon: 'account_balance',
       title: 'Bank Criteria',

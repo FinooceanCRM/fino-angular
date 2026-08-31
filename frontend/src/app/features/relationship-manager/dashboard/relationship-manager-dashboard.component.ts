@@ -9,9 +9,9 @@ import { RouterLink } from '@angular/router';
 
 import { RelationshipManagerDashboard } from '@core/models/relationship-manager.model';
 import { RelationshipManagerService } from '@core/services/relationship-manager.service';
+import { DashboardHeroComponent } from '@shared/components/dashboard-hero.component';
 import { LeadLinkCardComponent } from '@shared/components/lead-link-card.component';
 import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
-import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 
@@ -26,9 +26,9 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
     MatIconModule,
     MatListModule,
     MatProgressBarModule,
+    DashboardHeroComponent,
     LeadLinkCardComponent,
     NotificationsPanelComponent,
-    PageHeaderComponent,
     StatCardComponent,
     StatusPillComponent,
   ],

@@ -1,21 +1,3 @@
 <app-page-header title="Commission" subtitle="Connector and affiliate commission, payouts, and accounting." />
 
-<div class="commissions-overview">
-  @for (section of sections; track section.link) {
-    <a class="commissions-overview__card" [routerLink]="section.link">
-      <mat-card>
-        <mat-card-content class="commissions-overview__content">
-          <span class="commissions-overview__icon">
-            <mat-icon>{{ section.icon }}</mat-icon>
-          </span>
-          <h2 class="commissions-overview__title">{{ section.title }}</h2>
-          <p class="commissions-overview__description">{{ section.description }}</p>
-          <span class="commissions-overview__link">
-            Open
-            <mat-icon>arrow_forward</mat-icon>
-          </span>
-        </mat-card-content>
-      </mat-card>
-    </a>
-  }
-</div>
+<app-overview-grid [sections]="sections" />

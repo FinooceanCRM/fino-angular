@@ -25,3 +25,14 @@
   gap: var(--app-space-3);
   align-items: center;
 }
+
+// Debit/credit/balance are financial figures — keep digits aligned and
+// never let them get crowded by neighbouring columns.
+.commission-page__amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.commission-page__amount--balance {
+  color: var(--tide-color-primary);
+}

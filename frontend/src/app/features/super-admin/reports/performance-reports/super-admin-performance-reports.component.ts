@@ -14,8 +14,8 @@ import { exportToCsv } from '../../data/csv-export.util';
 import { BarDatum } from '../../data/models/report.model';
 import { LeadDataProvider } from '../../data/providers/lead-data.provider';
 import { bucketByWeek, defaultFrom, defaultTo, inRange } from '../../data/report-date-range.util';
-import { HorizontalBarListComponent } from '../charts/horizontal-bar-list.component';
-import { TrendChartComponent, TrendPoint } from '../charts/trend-chart.component';
+import { HorizontalBarListComponent } from '@shared/components/horizontal-bar-list.component';
+import { TrendChartComponent, TrendPoint } from '@shared/components/trend-chart.component';
 
 const FUNNEL_STAGES: { value: string; label: string }[] = [
   { value: 'new', label: 'New' },

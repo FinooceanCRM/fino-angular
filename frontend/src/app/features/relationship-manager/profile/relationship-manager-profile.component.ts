@@ -16,6 +16,7 @@ import { NormalizedApiError } from '@core/interceptors/error.interceptor';
 import { RelationshipManagerProfile } from '@core/models/relationship-manager.model';
 import { AuthService } from '@core/services/auth.service';
 import { RelationshipManagerService } from '@core/services/relationship-manager.service';
+import { ProfileHeaderComponent } from '@shared/components/profile-header.component';
 
 /** Profile — User profile (real `relationship-managers/profile`), Settings (real `auth/preferences`) and Password management (real `auth/password`). */
 @Component({
@@ -32,6 +33,7 @@ import { RelationshipManagerService } from '@core/services/relationship-manager.
     MatSlideToggleModule,
     MatTabsModule,
     PageHeaderComponent,
+    ProfileHeaderComponent,
   ],
   templateUrl: './relationship-manager-profile.component.html',
   styleUrl: './relationship-manager-profile.component.scss',
@@ -48,6 +50,8 @@ export class RelationshipManagerProfileComponent {
   protected readonly email = signal('');
   protected readonly rmCode = signal('');
   protected readonly dateOfJoining = signal<string | null>(null);
+  protected readonly displayName = signal('');
+  protected readonly displaySubtitle = signal('');
 
   // ---------- User profile ----------
   protected readonly profileForm = this.fb.nonNullable.group({
@@ -102,6 +106,10 @@ export class RelationshipManagerProfileComponent {
     this.email.set(profile.user.email);
     this.rmCode.set(profile.rm_code ?? '—');
     this.dateOfJoining.set(profile.date_of_joining);
+    this.displayName.set(profile.user.name ?? '');
+    const roleLabel = profile.user.role_label ?? 'Relationship Manager';
+    const meta = profile.branch ? `${profile.branch} Branch` : profile.region || '';
+    this.displaySubtitle.set(meta ? `${roleLabel} · ${meta}` : roleLabel);
     this.resetProfile();
   }
 

@@ -1,5 +1,7 @@
+<app-super-admin-reports-tabs />
+
 <div class="report-page__header">
-  <app-page-header title="Lead Reports" subtitle="Volume, status mix and loan-type breakdown of the lead pipeline." />
+  <h2 class="report-page__tab-title">Lead Reports</h2>
   <button mat-stroked-button type="button" (click)="export()">
     <mat-icon>download</mat-icon>
     Export CSV
@@ -31,15 +33,6 @@
 <div class="report-page__charts">
   <mat-card class="report-page__chart-card">
     <mat-card-header>
-      <mat-card-title>Leads by status</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <app-horizontal-bar-list [data]="statusBreakdown()" />
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card class="report-page__chart-card">
-    <mat-card-header>
       <mat-card-title>Leads by loan type</mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -47,6 +40,28 @@
     </mat-card-content>
   </mat-card>
 
+  <!--
+    The mockup labels this card "Conversion Funnel" with sequential
+    milestones (Created → Documents → Bank Matched → Disbursed). The real
+    data behind this page is a parallel status breakdown (New/Assigned/…/
+    Rejected, not a strict funnel), so it's kept under its accurate label
+    rather than mislabeled as a funnel it isn't.
+  -->
+  <mat-card class="report-page__chart-card">
+    <mat-card-header>
+      <mat-card-title>Leads by status</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <app-horizontal-bar-list [data]="statusBreakdown()" />
+    </mat-card-content>
+  </mat-card>
+
+  <!--
+    The mockup calls this "Monthly Disbursal Trend" (₹ disbursed per
+    month). The real data here is weekly *lead volume* (a count, not a ₹
+    disbursed amount) — kept under its accurate label for the same reason
+    as above.
+  -->
   <mat-card class="report-page__chart-card">
     <mat-card-header>
       <mat-card-title>Weekly lead volume</mat-card-title>

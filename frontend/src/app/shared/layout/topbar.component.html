@@ -1,4 +1,4 @@
-<mat-toolbar color="primary" class="topbar">
+<mat-toolbar color="primary" class="topbar tide-shoreline">
   @if (auth.isAuthenticated()) {
     <button
       mat-icon-button
@@ -12,29 +12,28 @@
   }
 
   <a routerLink="/" class="topbar__brand">
-    <mat-icon class="topbar__brand-icon">account_balance</mat-icon>
+    <span class="topbar__brand-icon">
+      <mat-icon>anchor</mat-icon>
+    </span>
     <span class="topbar__brand-name">{{ appName }}</span>
   </a>
 
   @if (auth.isAuthenticated()) {
-    <form class="topbar__search" (ngSubmit)="search()">
+    <button
+      type="button"
+      class="topbar__search"
+      matTooltip="Search (Ctrl+K)"
+      aria-label="Search leads, users, employees, connectors and bankers"
+      (click)="openSearch()"
+    >
       <mat-icon class="topbar__search-icon">search</mat-icon>
-      <input
-        class="topbar__search-input"
-        type="search"
-        name="search"
-        placeholder="Search leads by name, phone or reference…"
-        [(ngModel)]="searchTerm"
-      />
-    </form>
+      <span class="topbar__search-placeholder">Search leads, users, employees, connectors, bankers…</span>
+    </button>
   }
 
   <span class="topbar__spacer"></span>
 
   @if (auth.isAuthenticated()) {
-    @if (auth.hasRole('super_admin')) {
-      <app-super-admin-search-trigger />
-    }
     <button
       mat-icon-button
       type="button"

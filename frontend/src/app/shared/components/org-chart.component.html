@@ -1,0 +1,28 @@
+<div class="org-chart">
+  <div class="org-chart__card">
+    <span
+      class="org-chart__avatar"
+      [class.org-chart__avatar--action]="tint() === 'action'"
+      [class.org-chart__avatar--secondary]="tint() === 'secondary'"
+    >
+      {{ initials() }}
+    </span>
+    <span class="org-chart__text">
+      <span class="org-chart__label">{{ node().label }}</span>
+      @if (node().sublabel) {
+        <span class="org-chart__sublabel">{{ node().sublabel }}</span>
+      }
+    </span>
+  </div>
+
+  @if (node().children?.length) {
+    <div class="org-chart__trunk"></div>
+    <div class="org-chart__children">
+      @for (child of node().children; track child.id) {
+        <div class="org-chart__branch">
+          <app-org-chart [node]="child" tint="secondary" />
+        </div>
+      }
+    </div>
+  }
+</div>

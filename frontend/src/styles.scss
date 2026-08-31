@@ -7,29 +7,123 @@ html {
         primary: mat.$azure-palette,
         tertiary: mat.$cyan-palette,
       ),
-      typography: Roboto,
+      // Two-typeface M3 type system: `brand-family` drives every typescale
+      // role the M3 spec marks as "brand" (display-*, headline-*,
+      // title-large) — i.e. exactly the page-title/hero moments Tidewater
+      // reserves for Lora. `plain-family` drives everything else
+      // (body/label/title-medium/title-small — nav, forms, tables,
+      // buttons, chips), which is where Poppins belongs. See
+      // @angular/material/core/tokens/m3/_md-sys-typescale.scss for the
+      // authoritative per-role $brand/$plain split this taps into.
+      typography: (
+        plain-family: Poppins,
+        brand-family: Lora,
+      ),
       density: 0,
     )
   );
 
-  // Pin the generated Material palette to the approved mockup spec
-  // (Material Design 3, azure #1B6EF3 / cyan #00838F / off-white #F7F9FC)
-  // instead of trusting the stock azure/cyan tone generation exactly.
-  --mat-sys-primary: #1b6ef3;
-  --mat-sys-on-primary: #ffffff;
-  --mat-sys-primary-container: #dce7ff;
-  --mat-sys-on-primary-container: #0a3d8f;
-  --mat-sys-tertiary: #00838f;
-  --mat-sys-on-tertiary: #ffffff;
-  --mat-sys-tertiary-container: #cdf0f4;
-  --mat-sys-on-tertiary-container: #003c40;
-  --mat-sys-surface: #f7f9fc;
-  --mat-sys-on-surface: #1a2130;
-  --mat-sys-surface-container: #ffffff;
-  --mat-sys-surface-container-high: #eef2fa;
-  --mat-sys-surface-container-highest: #e6ebf5;
-  --mat-sys-outline: #c3cadb;
-  --mat-sys-outline-variant: #dde2ee;
+  // ---------------------------------------------------------------------
+  // Tidewater brand primitives. Three colours only, per the brand brief:
+  // Navy for structural chrome (topbar/sidebar/hero/nav), Teal as the
+  // supporting accent, Coral reserved *only* for actions and decisions
+  // (primary buttons, checked checkboxes/radios, the modal accent bar) —
+  // never for navigation or structural surfaces. See
+  // ui-mockups/README.md for the rationale this encodes.
+  // ---------------------------------------------------------------------
+  --tide-navy: #0a2a43;
+  --tide-navy-700: #071d30;
+  --tide-teal: #17a398;
+  --tide-teal-700: #108a7f;
+  --tide-coral: #e85a3b;
+  --tide-coral-700: #cc4a2c;
+
+  // Semantic tokens — the names a component author reaches for. Every
+  // value below is a reference to a primitive or another semantic token,
+  // never a bare hex, so the whole palette can be re-tuned from the six
+  // primitive/status lines above and below.
+  --tide-color-primary: var(--tide-navy);
+  --tide-color-primary-hover: var(--tide-navy-700);
+  --tide-color-secondary: var(--tide-teal);
+  --tide-color-secondary-hover: var(--tide-teal-700);
+  --tide-color-action: var(--tide-coral);
+  --tide-color-action-hover: var(--tide-coral-700);
+
+  --tide-color-background: #f4faf9;
+  --tide-color-surface: #ffffff;
+  // Elevated surfaces (menus/dialogs/popovers) share the same surface
+  // colour as resting cards by design — separation comes from
+  // --app-shadow-lg, not a tint — so a dialog doesn't read as a different
+  // material, just a raised one.
+  --tide-color-surface-elevated: #ffffff;
+
+  --tide-color-text-primary: var(--tide-navy);
+  --tide-color-text-secondary: #4b5565;
+  --tide-color-text-muted: #8792a2;
+  --tide-color-text-inverse: #ffffff;
+
+  --tide-color-border: #bcd2d6;
+  --tide-color-border-subtle: #e3ecec;
+
+  --tide-color-success: #157a52;
+  --tide-color-success-bg: #dcf2e6;
+  --tide-color-warning: #c98a1e;
+  --tide-color-warning-bg: #fbead0;
+  --tide-color-error: #a3341f;
+  --tide-color-error-bg: #f6dad3;
+  --tide-color-info: #2b6ca8;
+  --tide-color-info-bg: #dceaf6;
+
+  // Typeface stacks — referenced by the global h1/hero rules below and
+  // available for any future component that needs to opt into a brand
+  // moment explicitly.
+  --tide-font-display: 'Lora', Georgia, 'Times New Roman', serif;
+  --tide-font-body: 'Poppins', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+  // Pin Material's system tokens to the Tidewater semantic tokens above
+  // instead of trusting generated tone ramps — same approach this file
+  // already used for the previous azure/cyan palette, now pointed at the
+  // brand tokens so every Material component (buttons, tabs, form
+  // fields, menus, snack bars…) inherits Navy/Teal automatically.
+  --mat-sys-primary: var(--tide-color-primary);
+  --mat-sys-on-primary: var(--tide-color-text-inverse);
+  --mat-sys-primary-container: #d7e3ea;
+  --mat-sys-on-primary-container: var(--tide-color-primary);
+  --mat-sys-secondary: var(--tide-color-secondary);
+  --mat-sys-on-secondary: var(--tide-color-text-inverse);
+  --mat-sys-secondary-container: #d2f1ec;
+  --mat-sys-on-secondary-container: #0b4a42;
+  --mat-sys-tertiary: var(--tide-color-secondary);
+  --mat-sys-on-tertiary: var(--tide-color-text-inverse);
+  --mat-sys-tertiary-container: #d2f1ec;
+  --mat-sys-on-tertiary-container: #0b4a42;
+  --mat-sys-error: var(--tide-color-error);
+  --mat-sys-on-error: var(--tide-color-text-inverse);
+  --mat-sys-error-container: var(--tide-color-error-bg);
+  --mat-sys-on-error-container: #4a150c;
+  --mat-sys-surface: var(--tide-color-background);
+  --mat-sys-on-surface: var(--tide-color-text-primary);
+  --mat-sys-surface-container: var(--tide-color-surface);
+  --mat-sys-surface-container-high: #ecf5f3;
+  --mat-sys-surface-container-highest: #e2efec;
+  --mat-sys-outline: var(--tide-color-border);
+  --mat-sys-outline-variant: var(--tide-color-border-subtle);
+
+  // Coral is reserved for actions/decisions only (see brief above), so it
+  // is applied surgically to the specific component tokens that render a
+  // "primary action" — filled/raised buttons and checked checkbox/radio
+  // controls — rather than to --mat-sys-primary itself, which stays Navy
+  // and keeps driving structural interactive states (tabs, focus rings,
+  // form-field focus, links) app-wide.
+  --mat-button-filled-container-color: var(--tide-color-action);
+  --mat-button-filled-label-text-color: var(--tide-color-text-inverse);
+  --mat-button-protected-container-color: var(--tide-color-action);
+  --mat-button-protected-label-text-color: var(--tide-color-text-inverse);
+  --mat-checkbox-selected-icon-color: var(--tide-color-action);
+  --mat-checkbox-selected-focus-icon-color: var(--tide-color-action);
+  --mat-checkbox-selected-hover-icon-color: var(--tide-color-action-hover);
+  --mat-checkbox-selected-pressed-icon-color: var(--tide-color-action-hover);
+  --mat-radio-selected-icon-color: var(--tide-color-action);
 
   // App-level design tokens. Angular Material's --mat-sys-* set covers
   // component theming; these cover layout rhythm shared across every
@@ -41,6 +135,7 @@ html {
   --app-space-5: 24px;
   --app-space-6: 32px;
   --app-space-7: 48px;
+  --app-space-8: 64px;
 
   --app-radius-sm: 8px;
   --app-radius-md: 12px;
@@ -53,24 +148,28 @@ html {
 
   // Motion tokens — one easing curve and three durations used everywhere a
   // transition or entrance animation is added, so motion feels of a piece
-  // rather than each component inventing its own timing.
+  // rather than each component inventing its own timing. `--app-duration-normal`
+  // is an alias for `-base` so either name reads correctly at a call site.
   --app-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --app-duration-fast: 120ms;
   --app-duration-base: 200ms;
+  --app-duration-normal: var(--app-duration-base);
   --app-duration-slow: 320ms;
 
   // Semantic status colours, independent of the brand accent — used by
   // app-status-pill and anything else encoding lead/document/request state.
-  --app-status-default-fg: #4b5565;
+  // Aligned to the --tide-color-* status tokens above so the pill palette
+  // and the foundation palette never drift apart.
+  --app-status-default-fg: var(--tide-color-text-secondary);
   --app-status-default-bg: #eef1f6;
-  --app-status-primary-fg: #0a3d8f;
-  --app-status-primary-bg: #dce7ff;
-  --app-status-accent-fg: #7a4b00;
-  --app-status-accent-bg: #fbe8cc;
-  --app-status-success-fg: #0f6b3f;
-  --app-status-success-bg: #d9f2e3;
-  --app-status-warn-fg: #a3341f;
-  --app-status-warn-bg: #f8dfd8;
+  --app-status-primary-fg: var(--tide-color-primary);
+  --app-status-primary-bg: #d7e3ea;
+  --app-status-accent-fg: var(--tide-color-warning);
+  --app-status-accent-bg: var(--tide-color-warning-bg);
+  --app-status-success-fg: var(--tide-color-success);
+  --app-status-success-bg: var(--tide-color-success-bg);
+  --app-status-warn-fg: var(--tide-color-error);
+  --app-status-warn-bg: var(--tide-color-error-bg);
 }
 
 html,
@@ -79,11 +178,36 @@ body {
   margin: 0;
   background: var(--mat-sys-surface);
   color: var(--mat-sys-on-surface);
-  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  font-family: var(--tide-font-body);
 }
 
 * {
   box-sizing: border-box;
+}
+
+// Lora is reserved for brand/page-title/hero moments (see the M3
+// `brand-family` mapping above); every other heading level stays on the
+// Poppins body face so dense UI (card/table/section headings) doesn't
+// pick up serif weight it was never designed to carry.
+h1 {
+  font-family: var(--tide-font-display);
+}
+
+// Opt-in hook for hero copy that isn't a bare h1 (e.g. the login hero
+// headline) — not wired into any component yet, available for later use.
+.tide-display {
+  font-family: var(--tide-font-display);
+}
+
+// Pill-shaped, glowing coral CTA treatment for the handful of buttons the
+// mockups render larger/rounder than the standard filled-button shape
+// (login submit, "Back to dashboard"). Layers on top of the coral
+// `--mat-button-filled-*` tokens set above rather than reintroducing
+// colour — this only changes shape/elevation.
+.tide-cta-pill {
+  border-radius: var(--app-radius-pill) !important;
+  height: 44px;
+  box-shadow: 0 12px 24px -6px rgba(232, 90, 59, 0.45);
 }
 
 // Wide content (tables, etc.) scrolls inside its own container instead of
@@ -150,8 +274,14 @@ body {
 
 // Sharper, on-brand focus ring (replaces the browser default outline) for
 // keyboard navigation, without relying on :hover-only affordances.
+// `--app-focus-outline-color` is a normal inheriting custom property, so a
+// dark-background container (topbar, the active sidebar nav gradient) can
+// repaint it to a light colour for every descendant — including elements
+// rendered by a *child* component, since custom-property inheritance
+// crosses Angular's per-component style encapsulation even though
+// selectors like `.topbar button` don't.
 :focus-visible {
-  outline: 2px solid var(--mat-sys-primary);
+  outline: 2px solid var(--app-focus-outline-color, var(--mat-sys-primary));
   outline-offset: 2px;
 }
 
@@ -169,6 +299,21 @@ body {
     // horizontal overflow (e.g. one long unbroken word) square off a
     // corner or spawn its own scrollbar.
     overflow: hidden;
+    // Coral top accent bar — the one place outside buttons/checkboxes
+    // the brief calls out for the action colour, applied here globally
+    // so every dialog in the app (app-modal and any MatDialog opened
+    // directly) picks it up without per-dialog styling.
+    position: relative;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: var(--tide-color-action);
+    }
   }
 }
 
@@ -290,5 +435,136 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+// ---------------------------------------------------------------------
+// Tidewater wave/shoreline language — one reusable shape, exposed as a
+// mixin plus two ready-made classes, so a "thin shoreline line under the
+// topbar" and a "tall wave banner behind a hero" never end up as two
+// separately hand-drawn SVGs per page. Both classes mask a flat colour
+// with the same wave silhouette (via `mask-image`), so the colour is a
+// normal CSS custom property, not baked into the SVG — recolour by
+// setting --tide-wave-color on the element, no new asset needed.
+//
+// Not wired into any page/component yet (foundation only, per Phase 1
+// scope) — available for the topbar/hero work in a later phase.
+// ---------------------------------------------------------------------
+@mixin tide-wave($height) {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: $height;
+  background: var(--tide-wave-color, var(--tide-color-secondary));
+  $tide-wave-svg: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 480 40' preserveAspectRatio='none'%3E%3Cpath d='M0,20 C80,40 160,0 240,20 C320,40 400,0 480,20 L480,40 L0,40 Z'/%3E%3C/svg%3E";
+  -webkit-mask-image: url("#{$tide-wave-svg}");
+  mask-image: url("#{$tide-wave-svg}");
+  -webkit-mask-size: 480px 100%;
+  mask-size: 480px 100%;
+  -webkit-mask-repeat: repeat-x;
+  mask-repeat: repeat-x;
+  -webkit-mask-position: bottom left;
+  mask-position: bottom left;
+}
+
+// A thin shoreline rule — "a thin shoreline line rides under every
+// topbar" (ui-mockups/README.md). Apply to a `position: relative`
+// container's trailing edge.
+.tide-shoreline {
+  position: relative;
+
+  &::after {
+    @include tide-wave(6px);
+  }
+}
+
+// A tall wave band for hero/welcome banners. Override --tide-wave-height
+// per usage if 56px doesn't fit the banner.
+.tide-wave-banner {
+  position: relative;
+
+  &::after {
+    @include tide-wave(var(--tide-wave-height, 56px));
+  }
+}
+
+// ---------------------------------------------------------------------
+// Toast / snack-bar. MatSnackBar renders into the CDK overlay, outside
+// any component's style encapsulation, so — like the dialog rounding
+// above — this has to live here rather than in a component stylesheet.
+// Every existing `snackBar.open(message, action, {...})` call site
+// picks this up automatically with no code changes. The default (no
+// panelClass) look is the dark surface + rounded shape + coral action
+// link shown in the toast reference; the four semantic panelClass
+// helpers below are opt-in for a later pass that wants to colour-code
+// a toast by severity without touching call sites yet.
+// ---------------------------------------------------------------------
+.mat-mdc-snack-bar-container {
+  --mat-snack-bar-container-color: var(--tide-color-primary);
+  --mat-snack-bar-supporting-text-color: var(--tide-color-text-inverse);
+  --mat-snack-bar-button-color: var(--tide-color-secondary);
+  --mat-snack-bar-container-shape: var(--app-radius-md);
+
+  .mdc-snackbar__surface {
+    box-shadow: var(--app-shadow-lg);
+  }
+
+  .mat-mdc-snack-bar-label {
+    display: flex;
+    align-items: center;
+    gap: var(--app-space-3);
+
+    // Decorative leading check mark — a lightweight stand-in for the
+    // reference toast's icon without requiring every call site to pass
+    // one; harmless on non-success toasts, and easy to hide per-variant
+    // via the panelClass helpers below if that turns out to be needed.
+    &::before {
+      content: '✓';
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.18);
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+  }
+
+  .mat-mdc-snack-bar-action {
+    font-weight: 600;
+    text-decoration: underline;
+  }
+}
+
+.tide-toast-success {
+  --mat-snack-bar-container-color: var(--tide-color-success);
+}
+
+.tide-toast-error {
+  --mat-snack-bar-container-color: var(--tide-color-error);
+
+  .mat-mdc-snack-bar-label::before {
+    content: '!';
+  }
+}
+
+.tide-toast-warning {
+  --mat-snack-bar-container-color: var(--tide-color-warning);
+
+  .mat-mdc-snack-bar-label::before {
+    content: '!';
+  }
+}
+
+.tide-toast-info {
+  --mat-snack-bar-container-color: var(--tide-color-info);
+
+  .mat-mdc-snack-bar-label::before {
+    content: 'i';
   }
 }

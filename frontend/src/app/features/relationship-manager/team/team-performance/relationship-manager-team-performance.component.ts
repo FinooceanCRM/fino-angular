@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { MatCardModule } from '@angular/material/card';
 
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
+import { initialsOf } from '@shared/components/org-chart.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
+import { StatusPillComponent } from '@shared/components/status-pill.component';
+import { TableCellDirective } from '@shared/components/table-cell.directive';
+import { TableColumn, TableComponent } from '@shared/components/table.component';
 
 import { ManagedUser } from '@core/models/user.model';
 import { UserService } from '@core/services/user.service';
@@ -21,7 +26,14 @@ interface EmployeePerformanceRow {
 @Component({
   selector: 'app-relationship-manager-team-performance',
   standalone: true,
-  imports: [EmptyStateComponent, StatCardComponent],
+  imports: [
+    MatCardModule,
+    EmptyStateComponent,
+    StatCardComponent,
+    StatusPillComponent,
+    TableCellDirective,
+    TableComponent,
+  ],
   templateUrl: './relationship-manager-team-performance.component.html',
   styleUrl: './relationship-manager-team-performance.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -71,4 +83,29 @@ export class RelationshipManagerTeamPerformanceComponent {
         rows.length === 0 ? 0 : Math.round(rows.reduce((sum, row) => sum + row.conversionRatePct, 0) / rows.length),
     };
   });
+
+  protected readonly columns: TableColumn<EmployeePerformanceRow>[] = [
+    { key: 'employee', label: 'Employee' },
+    { key: 'leads', label: 'Leads', formatter: (row) => `${row.leadsHandled} lead${row.leadsHandled === 1 ? '' : 's'}` },
+    { key: 'approved', label: 'Approved' },
+    { key: 'disbursed', label: 'Disbursed' },
+    { key: 'approvalRate', label: 'Approval rate', formatter: (row) => `${row.conversionRatePct}% approval` },
+    { key: 'status', label: 'Status' },
+  ];
+
+  protected initials(name: string): string {
+    return initialsOf(name);
+  }
+
+  /**
+   * Presentation-only derived status: "On track" at/above a 50% approval
+   * rate, "Needs attention" below it. There is no backend status field for
+   * team performance rows, so this reads an honest threshold off the real,
+   * already-computed `conversionRatePct` above rather than fabricating one.
+   */
+  protected status(row: EmployeePerformanceRow): { label: string; colour: 'success' | 'accent' } {
+    return row.conversionRatePct >= 50
+      ? { label: 'On track', colour: 'success' }
+      : { label: 'Needs attention', colour: 'accent' };
+  }
 }

@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import {
@@ -59,6 +60,7 @@ const DOC_STATUS_COLOUR: Record<'pending' | 'verified' | 'rejected', string> = {
     MatInputModule,
     MatProgressBarModule,
     MatSelectModule,
+    MatTooltipModule,
     EmptyStateComponent,
     EntityHeaderComponent,
     StatusPillComponent,

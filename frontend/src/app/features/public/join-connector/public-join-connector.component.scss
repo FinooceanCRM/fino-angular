@@ -1,7 +1,7 @@
 :host {
   display: block;
   min-height: 100vh;
-  background: #f4f6fb;
+  background: var(--tide-color-background);
 }
 
 .page {
@@ -19,13 +19,13 @@
   font-size: 1.1rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--mat-sys-primary, #1b6ef3);
+  color: var(--mat-sys-primary);
 }
 
 .card {
-  background: #fff;
+  background: var(--tide-color-surface);
   border-radius: var(--app-radius-lg, 16px);
-  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+  box-shadow: var(--app-shadow-md);
   padding: 2rem;
 }
 
@@ -33,12 +33,12 @@ h1 {
   margin: 0 0 0.4rem;
   font-size: 1.4rem;
   font-weight: 700;
-  color: #0f172a;
+  color: var(--tide-color-text-primary);
 }
 
 .subtitle {
   margin: 0 0 1.5rem;
-  color: #475569;
+  color: var(--tide-color-text-secondary);
   font-size: 0.95rem;
 }
 
@@ -47,8 +47,8 @@ h1 {
   padding-bottom: 0.5rem;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #0f172a;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--tide-color-text-primary);
+  border-bottom: 1px solid var(--tide-color-border-subtle);
 }
 
 .section-title:first-of-type {
@@ -65,48 +65,48 @@ h1 {
 label {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #334155;
+  color: var(--tide-color-text-primary);
 }
 
 input,
 select {
   padding: 0.6rem 0.75rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--tide-color-border);
   border-radius: var(--app-radius-sm, 8px);
   font-size: 0.95rem;
   font-family: inherit;
-  color: #0f172a;
-  background: #fff;
+  color: var(--tide-color-text-primary);
+  background: var(--tide-color-surface);
 
   &:focus {
-    outline: 2px solid var(--mat-sys-primary, #1b6ef3);
+    outline: 2px solid var(--mat-sys-primary);
     outline-offset: 1px;
   }
 }
 
 .field-hint {
   font-size: 0.78rem;
-  color: #64748b;
+  color: var(--tide-color-text-muted);
 }
 
 .field-error,
 .form-error {
   font-size: 0.8rem;
-  color: #dc2626;
+  color: var(--app-status-warn-fg);
 }
 
 .form-error {
   margin: 0 0 1rem;
   padding: 0.6rem 0.75rem;
-  background: #fef2f2;
+  background: var(--app-status-warn-bg);
   border-radius: var(--app-radius-sm, 8px);
 }
 
 .dev-hint {
   margin: 0 0 1rem;
   padding: 0.6rem 0.75rem;
-  background: #fffbeb;
-  color: #92400e;
+  background: var(--tide-color-warning-bg);
+  color: var(--tide-color-warning);
   font-size: 0.85rem;
   border-radius: var(--app-radius-sm, 8px);
 }
@@ -117,8 +117,8 @@ select {
   padding: 0.75rem 1rem;
   border: none;
   border-radius: var(--app-radius-sm, 8px);
-  background: var(--mat-sys-primary, #1b6ef3);
-  color: #fff;
+  background: var(--mat-sys-primary);
+  color: var(--tide-color-text-inverse);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
@@ -140,7 +140,7 @@ select {
   padding: 0;
   border: none;
   background: none;
-  color: var(--mat-sys-primary, #1b6ef3);
+  color: var(--mat-sys-primary);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
@@ -165,7 +165,7 @@ select {
   }
 
   p {
-    color: #475569;
+    color: var(--tide-color-text-secondary);
     font-size: 0.95rem;
   }
 }

@@ -64,54 +64,47 @@
           emptyMessage="Nothing waiting on you here."
           itemLabel="requests"
         >
-          <ng-template appTableCell="name" let-row>
-            <span class="access-request-list__title">{{ row.lead?.applicant_name ?? 'Unknown applicant' }}</span>
-            <span class="access-request-list__subtitle">
-              @if (leadReference(row); as ref) {
-                {{ ref }}
-              }
-            </span>
+          <ng-template appTableCell="requested_by" let-row>
+            <div class="access-request-list__requester">
+              <span class="access-request-list__avatar">{{ initials(row.banker?.name) }}</span>
+              <span class="access-request-list__requester-text">
+                <span class="access-request-list__title">{{ row.banker?.name ?? 'Unknown' }}</span>
+                <span class="access-request-list__subtitle">{{ roleLabel(row.banker?.role) }}</span>
+              </span>
+            </div>
           </ng-template>
 
-          <ng-template appTableCell="loan_type" let-row>
-            {{ row.lead ? loanTypeLabel(row.lead.loan_type) : '—' }}
+          <ng-template appTableCell="lead" let-row>
+            @if (leadReference(row); as ref) {
+              {{ ref }} — {{ row.origin_label }}
+            } @else {
+              —
+            }
           </ng-template>
 
-          <ng-template appTableCell="loan_amount" let-row>
-            {{ row.lead ? (row.lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0') : '—' }}
+          <ng-template appTableCell="details" let-row>
+            {{ row.remarks || '—' }}
           </ng-template>
 
-          <ng-template appTableCell="city" let-row>
-            {{ row.lead?.city ?? '—' }}
-          </ng-template>
-
-          <ng-template appTableCell="banker" let-row>
-            {{ row.banker?.name ?? 'Unknown' }}
-          </ng-template>
-
-          <ng-template appTableCell="status" let-row>
-            <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+          <ng-template appTableCell="requested" let-row>
+            {{ row.created_at ? (row.created_at | date: 'd MMM y') : '—' }}
           </ng-template>
 
           <ng-template #rowActions let-row>
-            <button mat-icon-button type="button" matTooltip="Review" aria-label="Review" (click)="review(row)">
-              <mat-icon>rate_review</mat-icon>
-            </button>
-            @if (row.status === 'pending') {
-              <button mat-icon-button type="button" matTooltip="Reject" aria-label="Reject" (click)="reject(row)">
-                <mat-icon>close</mat-icon>
-              </button>
+            <div class="access-request-list__actions">
+              @if (row.status !== 'pending') {
+                <app-status-pill [label]="row.status_label" [colour]="row.status_colour" />
+              }
               <button
-                mat-icon-button
-                type="button"
+                mat-flat-button
                 color="primary"
-                matTooltip="Approve"
-                aria-label="Approve"
-                (click)="approve(row)"
+                type="button"
+                class="tide-cta-pill access-request-list__review-pill"
+                (click)="review(row)"
               >
-                <mat-icon>check</mat-icon>
+                Review
               </button>
-            }
+            </div>
           </ng-template>
         </app-table>
       </mat-card-content>

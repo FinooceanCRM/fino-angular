@@ -1,4 +1,4 @@
-<app-page-header title="Banker profile" subtitle="View and update your banker details" />
+<app-page-header icon="person" title="My Profile" subtitle="View and update your banker details" />
 
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" />
@@ -7,6 +7,8 @@
 <mat-card class="banker-profile">
   <mat-card-content>
     <form [formGroup]="form" (ngSubmit)="save()">
+      <app-profile-header [name]="displayName()" [subtitle]="displaySubtitle()" />
+
       <h3 class="banker-profile__section-title">Personal Information</h3>
       <div class="banker-profile__grid">
         <mat-form-field appearance="outline">
@@ -96,7 +98,7 @@
         <button mat-stroked-button type="button" [disabled]="saving()" (click)="reset()">
           Cancel
         </button>
-        <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+        <button mat-flat-button color="primary" type="submit" class="tide-cta-pill" [disabled]="form.invalid || saving()">
           <mat-icon>save</mat-icon>
           Save changes
         </button>

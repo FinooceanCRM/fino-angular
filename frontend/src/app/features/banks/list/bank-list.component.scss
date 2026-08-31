@@ -1,120 +1,138 @@
-.bank-list__form-card {
-  margin-bottom: var(--app-space-4);
-  border-radius: var(--app-radius-md);
-}
-
-.bank-list__form-section {
-  margin-bottom: var(--app-space-4);
-}
-
-.bank-list__form-section-title {
-  margin: 0 0 var(--app-space-2);
-  font-size: 0.95rem;
-  color: var(--app-status-default-fg);
-}
-
-.bank-list__form-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.bank-list__form-section--advanced {
-  padding: var(--app-space-3);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-radius: var(--app-radius-sm);
-}
-
-.bank-list__form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--app-space-3);
-  align-items: center;
-}
-
-.bank-list__form-span-2 {
-  grid-column: 1 / -1;
-}
-
-.bank-list__form-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: var(--app-space-4);
-}
-
-.bank-list__chips {
-  margin-bottom: var(--app-space-4);
-}
-
-.bank-list__grid {
-  display: grid;
-  gap: var(--app-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
-
-.bank-list__card {
-  border-radius: var(--app-radius-md);
+.bank-list__toolbar,
+.bank-list__table-card {
+  border-radius: var(--app-radius-lg);
   box-shadow: var(--app-shadow-sm);
+  margin-bottom: var(--app-space-4);
 }
 
-.bank-list__card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--app-space-3);
-  margin-bottom: var(--app-space-3);
-}
-
-.bank-list__bank-icon {
-  width: 44px;
-  height: 44px;
-  font-size: 44px;
-  color: var(--mat-sys-primary);
-}
-
-.bank-list__bank-name {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.bank-list__product-name {
-  margin: 0;
-  color: var(--app-status-default-fg);
-  font-size: 0.85rem;
-}
-
-.bank-list__badges {
+.bank-list__filters {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--app-space-2);
-  margin-bottom: var(--app-space-3);
+  align-items: center;
+  gap: var(--app-space-3);
+
+  mat-form-field {
+    flex: 1 1 200px;
+    min-width: 160px;
+  }
 }
 
-.bank-list__stats {
-  display: grid;
-  gap: var(--app-space-2);
-  margin: 0 0 var(--app-space-3);
+.bank-list__table {
+  width: 100%;
+  border-collapse: collapse;
 
-  div {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--app-space-2);
-    font-size: 0.85rem;
-  }
-
-  dt {
+  th {
+    text-align: left;
+    padding: var(--app-space-2) var(--app-space-3);
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: var(--app-status-default-fg);
   }
 
-  dd {
-    margin: 0;
-    font-weight: 600;
+  td {
+    padding: var(--app-space-3);
+    font-size: 0.88rem;
+    border-top: 1px solid var(--mat-sys-outline-variant);
   }
 }
 
+.bank-list__row {
+  cursor: pointer;
+  transition: background-color var(--app-duration-fast) var(--app-ease);
+
+  &:hover {
+    background: var(--mat-sys-surface-container-high);
+  }
+}
+
+.bank-list__bank-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.bank-list__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tide-color-secondary);
+  color: var(--tide-color-text-inverse);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.bank-list__bank-name {
+  font-weight: 700;
+}
+
+.bank-list__actions {
+  display: flex;
+  gap: var(--app-space-1);
+  white-space: nowrap;
+}
+
+/* Currency column — right-aligned with tabular figures so ticket sizes line
+   up on their ones place instead of ragging left like the prose columns
+   (mirrors .app-table__cell--right in the shared table component). */
+.bank-list__amount-head,
+.bank-list__amount {
+  text-align: right;
+}
+
+.bank-list__amount {
+  font-variant-numeric: tabular-nums;
+}
+
+.bank-list__expanded-row td {
+  padding: 0 var(--app-space-3) var(--app-space-3);
+  border-top: none;
+}
+
+.bank-list__products {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding: var(--app-space-3);
+  border-radius: var(--app-radius-md);
+  background: var(--mat-sys-surface-container-high);
+}
+
+.bank-list__product {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--app-space-3);
+  padding: var(--app-space-2) var(--app-space-3);
+  border-radius: var(--app-radius-sm);
+  background: var(--tide-color-surface, #fff);
+}
+
+.bank-list__product-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.bank-list__product-name {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.bank-list__product-meta {
+  font-size: 0.78rem;
+  color: var(--app-status-default-fg);
+}
+
 .bank-list__toggle {
-  width: 100%;
+  flex-shrink: 0;
 }
 
 .bank-list__empty {

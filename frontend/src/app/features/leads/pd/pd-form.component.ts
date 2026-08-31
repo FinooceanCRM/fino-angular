@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -43,6 +43,7 @@ import { PdSalariedIncomeBankingComponent } from './sections/salaried-income-ban
   selector: 'app-pd-form',
   standalone: true,
   imports: [
+    CurrencyPipe,
     DatePipe,
     ReactiveFormsModule,
     RouterLink,
@@ -65,6 +66,7 @@ import { PdSalariedIncomeBankingComponent } from './sections/salaried-income-ban
     PdPropertyComponent,
   ],
   templateUrl: './pd-form.component.html',
+  styleUrl: './pd-form.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PdFormComponent implements OnInit {

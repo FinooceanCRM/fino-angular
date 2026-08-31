@@ -4,6 +4,15 @@
   justify-content: space-between;
   gap: var(--app-space-3);
   flex-wrap: wrap;
+  margin-bottom: var(--app-space-3);
+}
+
+.report-page__tab-title {
+  margin: 0;
+  font-family: var(--tide-font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--tide-color-text-primary);
 }
 
 .report-page__range {

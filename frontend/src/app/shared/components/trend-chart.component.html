@@ -1,0 +1,41 @@
+@if (plotted().length === 0) {
+  <p class="trend-chart__empty">No data for the selected range.</p>
+} @else {
+  <svg
+    class="trend-chart"
+    viewBox="0 0 320 118"
+    preserveAspectRatio="none"
+    role="img"
+    [attr.aria-label]="'Trend across ' + plotted().length + ' points'"
+  >
+    <defs>
+      <linearGradient [attr.id]="gradientId" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" [attr.stop-color]="accentVar()" stop-opacity="0.35" />
+        <stop offset="100%" [attr.stop-color]="accentVar()" stop-opacity="0" />
+      </linearGradient>
+    </defs>
+    <line x1="0" y1="12" x2="320" y2="12" class="trend-chart__grid" />
+    <line x1="0" y1="60" x2="320" y2="60" class="trend-chart__grid" />
+    <line x1="0" y1="108" x2="320" y2="108" class="trend-chart__grid" />
+    <path class="trend-chart__area" [attr.d]="areaPath()" [attr.fill]="'url(#' + gradientId + ')'"></path>
+    <path class="trend-chart__line" [attr.d]="linePath()" [attr.stroke]="accentVar()"></path>
+    @for (point of plotted(); track point.label; let last = $last) {
+      <circle
+        class="trend-chart__point"
+        [class.trend-chart__point--end]="last"
+        [attr.cx]="point.x"
+        [attr.cy]="point.y"
+        [attr.r]="last ? 4.5 : 3"
+        [attr.stroke]="accentVar()"
+        [attr.fill]="last ? accentVar() : 'var(--mat-sys-surface)'"
+      >
+        <title>{{ point.label }}: {{ valuePrefix() }}{{ point.value }}</title>
+      </circle>
+    }
+  </svg>
+  <div class="trend-chart__labels">
+    @for (point of plotted(); track point.label) {
+      <span>{{ point.label }}</span>
+    }
+  </div>
+}

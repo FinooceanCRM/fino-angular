@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -31,7 +31,6 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
   selector: 'app-manager-access-request-list',
   standalone: true,
   imports: [
-    CurrencyPipe,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -63,12 +62,10 @@ export class ManagerAccessRequestListComponent {
   protected readonly selected = signal<AccessRequest | undefined>(undefined);
 
   protected readonly columns: TableColumn<AccessRequest>[] = [
-    { key: 'name', label: 'Name' },
-    { key: 'loan_type', label: 'Loan type' },
-    { key: 'loan_amount', label: 'Loan amount' },
-    { key: 'city', label: 'City' },
-    { key: 'banker', label: 'Banker' },
-    { key: 'status', label: 'Status' },
+    { key: 'requested_by', label: 'Requested by' },
+    { key: 'lead', label: 'Lead' },
+    { key: 'details', label: 'Details' },
+    { key: 'requested', label: 'Requested' },
   ];
 
   constructor() {
@@ -105,8 +102,18 @@ export class ManagerAccessRequestListComponent {
     return row.lead ? row.lead.reference : null;
   }
 
-  protected loanTypeLabel(value: string): string {
-    return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  /** Title-cases the backend role string (e.g. "banker" -> "Banker") for the requester subtext. */
+  protected roleLabel(role: string | undefined): string {
+    return role ? role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Unknown';
+  }
+
+  /** Two-letter avatar initials for the requesting banker, mirroring EntityHeaderComponent's pattern. */
+  protected initials(name: string | undefined): string {
+    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
   }
 
   protected review(row: AccessRequest): void {

@@ -2,7 +2,8 @@
   <div class="assign-banker">
     <p class="assign-banker__lead">
       <strong>{{ data.lead.reference }}</strong> — {{ data.lead.applicant_name }}
-      ({{ data.lead.loan_type }} · {{ data.lead.loan_amount | number: '1.0-0' }})
+      ({{ loanTypeLabel(data.lead.loan_type) }} ·
+      <span class="assign-banker__amount">{{ data.lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</span>)
     </p>
 
     <mat-form-field appearance="outline" class="assign-banker__select">
@@ -16,8 +17,9 @@
     </mat-form-field>
   </div>
 
-  <button modal-actions mat-button type="button" (click)="dialogRef.close()">Cancel</button>
-  <button modal-actions mat-flat-button color="primary" type="button" (click)="confirm()">
+  <button modal-actions mat-stroked-button type="button" (click)="dialogRef.close()">Cancel</button>
+  <button modal-actions mat-flat-button color="primary" class="tide-cta-pill" type="button" (click)="confirm()">
+    <mat-icon>check</mat-icon>
     Save assignment
   </button>
 </app-modal>

@@ -10,7 +10,11 @@ import { ManagerAccessRequestListComponent } from '../../approvals/access-reques
   standalone: true,
   imports: [PageHeaderComponent, ManagerAccessRequestListComponent],
   template: `
-    <app-page-header title="Access Requests" subtitle="Bankers requesting access to your team's leads" />
+    <app-page-header
+      title="Access Requests"
+      subtitle="Banker requests to unlock full lead details"
+      icon="fact_check"
+    />
     <app-manager-access-request-list />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 
 import { ModalComponent } from '@shared/components/modal.component';
@@ -12,17 +13,25 @@ export interface UserViewModalData {
   user: ManagedUser;
 }
 
-/** Read-only profile dialog — the modal equivalent of the routed user-detail page. */
+/**
+ * Read-only profile dialog — the modal equivalent of the routed user-detail
+ * page. Resolves `afterClosed()` with `true` when the caller should follow
+ * up by opening the edit form for the same user (the "Edit" footer action),
+ * or `undefined`/`false` otherwise — mirrors how `ConfirmDialogComponent`
+ * hands its caller a plain boolean rather than performing the follow-up
+ * action itself.
+ */
 @Component({
   selector: 'app-user-view-modal',
   standalone: true,
-  imports: [DatePipe, MatIconModule, ModalComponent, StatusPillComponent],
+  imports: [DatePipe, MatButtonModule, MatIconModule, ModalComponent, StatusPillComponent],
   templateUrl: './user-view-modal.component.html',
   styleUrl: './user-view-modal.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UserViewModalComponent {
   protected readonly data = inject<UserViewModalData>(MAT_DIALOG_DATA);
+  protected readonly dialogRef = inject(MatDialogRef<UserViewModalComponent, boolean>);
 
   protected readonly initials = computed(() => {
     const parts = this.data.user.name.trim().split(/\s+/).filter(Boolean);

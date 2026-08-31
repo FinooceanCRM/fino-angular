@@ -21,6 +21,10 @@
       }
     </div>
 
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
     <mat-chip-listbox
       class="notif-dropdown__filters"
       [value]="activeCategory()"

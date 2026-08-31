@@ -1,28 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { RouterLink } from '@angular/router';
 
+import { OverviewGridComponent, OverviewGridSection } from '@shared/components/overview-grid.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
-
-interface CommissionSection {
-  icon: string;
-  title: string;
-  description: string;
-  link: string;
-}
 
 /** Commission module landing — four distinct ledgers, not variations of one list. */
 @Component({
   selector: 'app-super-admin-commissions',
   standalone: true,
-  imports: [RouterLink, MatCardModule, MatIconModule, PageHeaderComponent],
+  imports: [PageHeaderComponent, OverviewGridComponent],
   templateUrl: './super-admin-commissions.component.html',
-  styleUrl: './super-admin-commissions.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SuperAdminCommissionsComponent {
-  protected readonly sections: CommissionSection[] = [
+  protected readonly sections: OverviewGridSection[] = [
     {
       icon: 'hub',
       title: 'Connector Commission',

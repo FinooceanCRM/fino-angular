@@ -1,0 +1,109 @@
+.org-chart {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.org-chart__card {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  padding: var(--app-space-2) var(--app-space-4);
+  border-radius: var(--app-radius-md);
+  background: var(--tide-color-surface-elevated);
+  border: 1px solid var(--mat-sys-outline-variant);
+  box-shadow: 0 1px 2px rgba(10, 42, 67, 0.08);
+  min-width: 190px;
+}
+
+.org-chart__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--tide-color-text-inverse);
+}
+
+.org-chart__avatar--action {
+  background: var(--tide-color-action);
+}
+
+.org-chart__avatar--secondary {
+  background: var(--tide-color-secondary);
+}
+
+.org-chart__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.org-chart__label {
+  font-weight: 600;
+  color: var(--mat-sys-on-surface);
+  white-space: nowrap;
+}
+
+.org-chart__sublabel {
+  font-size: 0.78rem;
+  color: var(--app-status-default-fg);
+}
+
+.org-chart__trunk {
+  width: 1px;
+  height: var(--app-space-5);
+  background: var(--mat-sys-outline-variant);
+}
+
+.org-chart__children {
+  display: flex;
+  justify-content: center;
+  gap: var(--app-space-5);
+  flex-wrap: wrap;
+}
+
+/* Classic pure-CSS org-chart connector: each branch gets a vertical stub
+   down to its card, plus a horizontal segment trimmed to run only between
+   sibling centers (not past the first/last child). */
+.org-chart__branch {
+  position: relative;
+  padding-top: var(--app-space-5);
+  display: flex;
+}
+
+.org-chart__branch::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: var(--app-space-5);
+  background: var(--mat-sys-outline-variant);
+}
+
+.org-chart__branch::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--mat-sys-outline-variant);
+}
+
+.org-chart__branch:first-child::after {
+  left: 50%;
+}
+
+.org-chart__branch:last-child::after {
+  right: 50%;
+}
+
+.org-chart__branch:only-child::after {
+  display: none;
+}

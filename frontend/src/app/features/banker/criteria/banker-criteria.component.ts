@@ -83,12 +83,13 @@ export class BankerCriteriaComponent implements OnInit {
       label: 'Amount range',
       formatter: (row) =>
         `₹${row.min_loan_amount.toLocaleString('en-IN')} – ${row.max_loan_amount ? '₹' + row.max_loan_amount.toLocaleString('en-IN') : 'no max'}`,
+      align: 'right',
     },
-    { key: 'min_monthly_income', label: 'Min income', formatter: (row) => `₹${row.min_monthly_income.toLocaleString('en-IN')}` },
-    { key: 'min_credit_score', label: 'Min score', formatter: (row) => row.min_credit_score?.toString() ?? '—' },
+    { key: 'min_monthly_income', label: 'Min income', formatter: (row) => `₹${row.min_monthly_income.toLocaleString('en-IN')}`, align: 'right' },
+    { key: 'min_credit_score', label: 'Min score', formatter: (row) => row.min_credit_score?.toString() ?? '—', align: 'right' },
     { key: 'employment_type', label: 'Employment', formatter: (row) => this.employmentTypeLabel(row.employment_type) },
-    { key: 'interest_rate', label: 'Rate', formatter: (row) => (row.interest_rate ? `${row.interest_rate}%` : '—') },
-    { key: 'rules', label: 'Rules', formatter: (row) => `${row.eligibility_rules.length}` },
+    { key: 'interest_rate', label: 'Rate', formatter: (row) => (row.interest_rate ? `${row.interest_rate}%` : '—'), align: 'right' },
+    { key: 'rules', label: 'Rules', formatter: (row) => `${row.eligibility_rules.length}`, align: 'right' },
     { key: 'status', label: 'Active' },
   ];
 

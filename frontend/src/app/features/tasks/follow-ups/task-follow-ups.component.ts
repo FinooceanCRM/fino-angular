@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MatTabsModule } from '@angular/material/tabs';
 
+import { Task } from '@core/models/task.model';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 
-import { TaskBucketNavComponent } from '../task-bucket-nav/task-bucket-nav.component';
+import { TaskBucketNavComponent, computeTaskBucketCounts } from '../task-bucket-nav/task-bucket-nav.component';
 import { TasksComponent } from '../tasks.component';
 
 /**
@@ -20,4 +21,15 @@ import { TasksComponent } from '../tasks.component';
   styleUrl: './task-follow-ups.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TaskFollowUpsComponent {}
+export class TaskFollowUpsComponent {
+  // This page has no task list of its own — it's four tab-scoped TasksComponent
+  // instances, each loading the exact same unfiltered set (see
+  // TasksComponent.reload()). Real bucket-nav counts are sourced from
+  // whichever tab reports in first via (tasksLoaded), rather than issuing a
+  // second API call just to feed the bucket nav.
+  protected readonly bucketCounts = signal<Record<string, number>>({});
+
+  protected onTasksLoaded(tasks: Task[]): void {
+    this.bucketCounts.set(computeTaskBucketCounts(tasks));
+  }
+}

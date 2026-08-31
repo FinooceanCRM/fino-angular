@@ -83,7 +83,7 @@ export class ManagerTeamDataProvider {
 
   readonly manager = computed(() => {
     const user = this.auth.user();
-    return user ? { name: user.name } : null;
+    return user ? { name: user.name, role_label: user.role_label } : null;
   });
 
   constructor() {

@@ -1,8 +1,8 @@
 @if (showHeader()) {
-  <app-task-bucket-nav />
+  <app-task-bucket-nav [counts]="bucketCounts()" />
   <div class="tasks__header">
-    <app-page-header [title]="title()" [subtitle]="subtitle()" />
-    <button mat-flat-button color="primary" type="button" (click)="newTask()">
+    <app-page-header [title]="title()" [subtitle]="subtitle()" icon="calendar_month" />
+    <button mat-flat-button color="primary" type="button" class="tide-cta-pill" (click)="newTask()">
       <mat-icon>add</mat-icon>
       New {{ type() ?? 'task' }}
     </button>
@@ -77,12 +77,37 @@
         <span class="type-cell"><mat-icon>{{ typeIcon(row) }}</mat-icon>{{ typeLabel(row) }}</span>
       </ng-template>
 
-      <ng-template appTableCell="priority" let-row>
-        <span class="priority-dot" [class]="'priority-dot--' + row.priority">{{ priorityLabel(row) }}</span>
+      <ng-template appTableCell="due_at" let-row>
+        <div class="due-cell">
+          <span class="due-cell__time">{{ row.due_at | date: 'shortTime' }}</span>
+          <span class="due-cell__date">{{ row.due_at | date: 'mediumDate' }}</span>
+        </div>
       </ng-template>
 
-      <ng-template appTableCell="due_at" let-row>
-        {{ row.due_at | date: 'mediumDate' }}
+      <ng-template appTableCell="contact" let-row>
+        <div class="contact-cell">
+          @if (contactReference(row)) {
+            <span class="contact-cell__avatar">{{ contactInitials(row) }}</span>
+          } @else {
+            <span class="contact-cell__avatar contact-cell__avatar--general" aria-hidden="true">
+              <mat-icon>person_outline</mat-icon>
+            </span>
+          }
+          <span class="contact-cell__name">{{ contactName(row) }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="title" let-row>
+        <div class="task-cell">
+          <span class="task-cell__title">{{ row.title }}</span>
+          @if (contactReference(row)) {
+            <span class="task-cell__sub">{{ contactReference(row) }}</span>
+          }
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="priority" let-row>
+        <span class="priority-dot" [class]="'priority-dot--' + row.priority">{{ priorityLabel(row) }}</span>
       </ng-template>
 
       <ng-template appTableCell="status" let-row>
@@ -90,21 +115,45 @@
       </ng-template>
 
       <ng-template #rowActions let-row>
-        <button mat-icon-button class="row-action row-action--view" type="button" matTooltip="View" aria-label="View task" (click)="view(row)">
-          <mat-icon>visibility</mat-icon>
-        </button>
-        @if (row.status === 'pending') {
-          <button mat-icon-button class="row-action row-action--edit" type="button" matTooltip="Mark complete" aria-label="Mark complete" (click)="complete(row)">
-            <mat-icon>task_alt</mat-icon>
+        <div class="row-actions">
+          @if (row.status === 'pending') {
+            <button type="button" class="mark-done-pill" (click)="complete(row)">Mark done</button>
+          }
+          <button
+            mat-icon-button
+            class="row-action row-action--more"
+            type="button"
+            matTooltip="More actions"
+            aria-label="More actions"
+            [matMenuTriggerFor]="rowMenu"
+            [matMenuTriggerData]="{ row: row }"
+          >
+            <mat-icon>more_vert</mat-icon>
           </button>
-          <button mat-icon-button class="row-action row-action--edit" type="button" matTooltip="Reschedule" aria-label="Reschedule" (click)="reschedule(row)">
-            <mat-icon>event</mat-icon>
-          </button>
-          <button mat-icon-button class="row-action row-action--delete" type="button" matTooltip="Cancel" aria-label="Cancel task" (click)="cancel(row)">
-            <mat-icon>close</mat-icon>
-          </button>
-        }
+        </div>
       </ng-template>
     </app-table>
   </mat-card-content>
 </mat-card>
+
+<!-- All four real row actions (view/complete/reschedule/cancel) stay reachable: "Mark done"
+     (calling the real complete()) is the primary pill per the mock, and view/reschedule/cancel
+     move into this overflow menu rather than being dropped. -->
+<mat-menu #rowMenu="matMenu">
+  <ng-template matMenuContent let-row="row">
+    <button mat-menu-item type="button" (click)="view(row)">
+      <mat-icon>visibility</mat-icon>
+      <span>View</span>
+    </button>
+    @if (row.status === 'pending') {
+      <button mat-menu-item type="button" (click)="reschedule(row)">
+        <mat-icon>event</mat-icon>
+        <span>Reschedule</span>
+      </button>
+      <button mat-menu-item type="button" (click)="cancel(row)">
+        <mat-icon>close</mat-icon>
+        <span>Cancel</span>
+      </button>
+    }
+  </ng-template>
+</mat-menu>

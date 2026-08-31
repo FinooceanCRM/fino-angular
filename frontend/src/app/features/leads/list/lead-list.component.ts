@@ -3,21 +3,24 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { CatalogueOption, Lead, PaginationMeta, UserSummary } from '@core/models/lead.model';
+import { CatalogueOption, Lead, labelFromOptions, PaginationMeta, UserSummary } from '@core/models/lead.model';
 import { AuthService } from '@core/services/auth.service';
 import { LeadService } from '@core/services/lead.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
+import { TableCellDirective } from '@shared/components/table-cell.directive';
+import { TableComponent } from '@shared/components/table.component';
+
+import { LeadViewDialogComponent } from '../view-dialog/lead-view-dialog.component';
 
 const ROLE_LABEL: Record<string, string> = {
   relationship_manager: 'Relationship Manager',
@@ -53,15 +56,14 @@ const SOURCE_PREFIX: Record<string, string> = {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
-    MatPaginatorModule,
-    MatProgressBarModule,
     MatSelectModule,
-    MatTableModule,
     MatTooltipModule,
     PageHeaderComponent,
     ReactiveFormsModule,
     RouterLink,
     StatusPillComponent,
+    TableCellDirective,
+    TableComponent,
   ],
   templateUrl: './lead-list.component.html',
   styleUrl: './lead-list.component.scss',
@@ -72,6 +74,7 @@ export class LeadListComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
   private readonly auth = inject(AuthService);
+  private readonly dialog = inject(MatDialog);
 
   /** Telecallers work leads assigned to them; they don't create new ones. */
   readonly canCreateLead = !this.auth.hasRole('telecaller');
@@ -87,6 +90,7 @@ export class LeadListComponent implements OnInit {
   });
   readonly statuses = signal<CatalogueOption[]>([]);
   readonly loanTypes = signal<CatalogueOption[]>([]);
+  readonly employmentTypes = signal<CatalogueOption[]>([]);
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
@@ -103,6 +107,7 @@ export class LeadListComponent implements OnInit {
       next: (metadata) => {
         this.statuses.set(metadata.statuses);
         this.loanTypes.set(metadata.loan_types);
+        this.employmentTypes.set(metadata.employment_types);
       },
       error: () => undefined,
     });
@@ -173,5 +178,16 @@ export class LeadListComponent implements OnInit {
       `Mob - ${person.phone ?? '—'}`,
       `Source - ${ROLE_LABEL[person.role] ?? person.role}`,
     ].join('\n');
+  }
+
+  /** Opens the Tidewater "Lead summary" quick-view dialog for a row without navigating away from the list. */
+  openQuickView(row: Lead): void {
+    this.dialog.open(LeadViewDialogComponent, {
+      data: {
+        lead: row,
+        loanTypeLabel: labelFromOptions(this.loanTypes(), row.loan_type),
+        employmentTypeLabel: labelFromOptions(this.employmentTypes(), row.employment_type),
+      },
+    });
   }
 }

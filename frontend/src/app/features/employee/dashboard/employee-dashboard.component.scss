@@ -5,7 +5,27 @@
   margin-top: var(--app-space-4);
 }
 
-.employee-dashboard__welcome,
+.employee-dashboard mat-card {
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+}
+
+// --- Wave hero banner ----------------------------------------------------
+// The shared app-dashboard-hero component spans the full grid width; it
+// doesn't know it's a grid child, so that placement is set here.
+app-dashboard-hero {
+  grid-column: 1 / -1;
+}
+
+// --- KPI row / actions / status ----------------------------------------
+.employee-dashboard__stats {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.employee-dashboard__quick-actions,
 .employee-dashboard__notifications {
   grid-column: 1 / -1;
 }
@@ -14,13 +34,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--app-space-2);
-}
-
-.employee-dashboard__stats {
-  grid-column: 1 / -1;
-  display: grid;
-  gap: var(--app-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .employee-dashboard__status {

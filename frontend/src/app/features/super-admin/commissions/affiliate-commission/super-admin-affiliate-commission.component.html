@@ -1,5 +1,9 @@
 <div class="commission-page__header">
-  <app-page-header title="Affiliate Commission" subtitle="Referral partners outside the connector hierarchy." />
+  <app-page-header
+    icon="hub"
+    title="Affiliate Commission"
+    subtitle="Referral partners outside the connector hierarchy."
+  />
   <button mat-stroked-button type="button" (click)="export()">
     <mat-icon>download</mat-icon>
     Export CSV
@@ -36,11 +40,30 @@
       [loading]="loading()"
       emptyMessage="No affiliates match the current filters."
     >
+      <ng-template appTableCell="name" let-row>
+        <div class="commission-table__name-cell">
+          <span class="commission-table__avatar">{{ initials(row.user.name) }}</span>
+          <span class="commission-table__name-text">
+            <strong>{{ row.user.name }}</strong>
+            <span class="commission-table__meta">{{ row.user.email }} &middot; {{ row.referral_code }}</span>
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="rate" let-row>
+        <span class="commission-table__metric">
+          @if (row.commission_rate !== null) {
+            {{ row.commission_rate }}%
+          } @else {
+            &mdash;
+          }
+        </span>
+      </ng-template>
+
       <ng-template appTableCell="earned" let-row>
-        ₹{{ row.commission_accrued ?? 0 | number: '1.0-0' }}
-        @if (row.commission_rate !== null) {
-          ({{ row.commission_rate }}%)
-        }
+        <span class="commission-table__metric commission-table__metric--strong">
+          ₹{{ row.commission_accrued ?? 0 | number: '1.0-0' }}
+        </span>
       </ng-template>
 
       <ng-template appTableCell="status" let-row>

@@ -1,5 +1,3 @@
-<app-page-header title="Employee dashboard" subtitle="Your personal workspace" />
-
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" />
 }
@@ -12,45 +10,53 @@
 
 @if (data(); as dashboard) {
   <div class="employee-dashboard">
-    <mat-card class="employee-dashboard__welcome">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>waving_hand</mat-icon>
-        <mat-card-title>{{ dashboard.welcome.headline }}</mat-card-title>
-        <mat-card-subtitle>{{ dashboard.welcome.message }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-actions class="employee-dashboard__actions">
-        @for (action of dashboard.quick_actions; track action.label + action.route) {
-          <a mat-stroked-button [routerLink]="action.route">
-            <mat-icon>{{ action.icon }}</mat-icon>
-            {{ action.label }}
-          </a>
-        }
-      </mat-card-actions>
-    </mat-card>
+    <app-dashboard-hero
+      eyebrowIcon="waving_hand"
+      eyebrowLabel="Employee dashboard"
+      [headline]="dashboard.welcome.headline"
+      [subtitle]="dashboard.welcome.message"
+      [stats]="[
+        { value: dashboard.stats.leads_assigned, label: 'My leads' },
+        { value: dashboard.stats.approved_leads, label: 'Approved' },
+      ]"
+    />
 
     <div class="employee-dashboard__stats">
       <app-stat-card
         icon="assignment"
         [value]="dashboard.stats.leads_assigned"
-        label="Leads assigned"
+        label="My Leads"
         accent="primary"
       />
       <app-stat-card
         icon="pending_actions"
         [value]="dashboard.stats.pending_documents"
-        label="Pending documents"
+        label="Documents Pending"
         accent="accent"
       />
       <app-stat-card
         icon="task_alt"
         [value]="dashboard.stats.approved_leads"
         label="Approved"
+        accent="success"
       />
     </div>
 
-    <app-lead-link-card />
-
-    <app-notifications-panel class="employee-dashboard__notifications" />
+    @if (dashboard.quick_actions.length) {
+      <mat-card class="employee-dashboard__quick-actions">
+        <mat-card-header>
+          <mat-card-title>Quick actions</mat-card-title>
+        </mat-card-header>
+        <mat-card-actions class="employee-dashboard__actions">
+          @for (action of dashboard.quick_actions; track action.label + action.route) {
+            <a mat-stroked-button [routerLink]="action.route">
+              <mat-icon>{{ action.icon }}</mat-icon>
+              {{ action.label }}
+            </a>
+          }
+        </mat-card-actions>
+      </mat-card>
+    }
 
     <mat-card>
       <mat-card-header>
@@ -122,6 +128,10 @@
         <a mat-button routerLink="/employee/team">View my team</a>
       </mat-card-content>
     </mat-card>
+
+    <app-lead-link-card />
+
+    <app-notifications-panel class="employee-dashboard__notifications" />
 
     <mat-card>
       <mat-card-header>

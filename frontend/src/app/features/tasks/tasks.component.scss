@@ -50,6 +50,100 @@
   }
 }
 
+.due-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-variant-numeric: tabular-nums;
+}
+
+.due-cell__time {
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.due-cell__date {
+  font-size: 0.76rem;
+  color: var(--app-status-default-fg);
+}
+
+.contact-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.contact-cell__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-primary);
+  font-weight: 700;
+  font-size: 0.72rem;
+}
+
+.contact-cell__avatar--general {
+  background: var(--mat-sys-surface-container-high);
+  color: var(--app-status-default-fg);
+
+  mat-icon {
+    font-size: 1.1rem;
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+}
+
+.contact-cell__name {
+  font-weight: 600;
+}
+
+.task-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.task-cell__title {
+  font-weight: 500;
+}
+
+.task-cell__sub {
+  font-size: 0.78rem;
+  color: var(--app-status-default-fg);
+}
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+  justify-content: flex-end;
+}
+
+// Text-pill "Mark done" — the mock's primary per-row action, calling the
+// same real TaskService.complete() the old icon button did.
+.mark-done-pill {
+  padding: 5px 14px;
+  border-radius: var(--app-radius-pill);
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface-container);
+  color: var(--mat-sys-primary);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--mat-sys-surface-container-high);
+    border-color: var(--mat-sys-primary);
+  }
+}
+
 .priority-dot {
   display: inline-flex;
   align-items: center;

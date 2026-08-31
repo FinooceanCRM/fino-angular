@@ -9,6 +9,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { ReasonDialogComponent } from '@shared/components/reason-dialog.component';
@@ -45,6 +46,7 @@ const STATUS_COLOUR: Record<Payout['status'], StatusPillColour> = {
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatMenuModule,
     PageHeaderComponent,
     StatCardComponent,
     StatusPillComponent,
@@ -103,11 +105,13 @@ export class SuperAdminPayoutsComponent {
     return { totalCount: all.length, pendingAmount, paidThisMonth, failedCount };
   });
 
+  // Payee type folded into the payee cell (avatar + name + role subtext,
+  // matching the mockup) rather than its own column — no data is dropped,
+  // it's just shown alongside the name instead of in a separate column.
   protected readonly columns: TableColumn<Payout>[] = [
-    { key: 'reference', label: 'Reference' },
     { key: 'payee_name', label: 'Payee' },
-    { key: 'payee_type', label: 'Type' },
-    { key: 'amount', label: 'Amount' },
+    { key: 'reference', label: 'Reference' },
+    { key: 'amount', label: 'Amount', align: 'right' },
     { key: 'method', label: 'Method' },
     { key: 'status', label: 'Status' },
     { key: 'requested_at', label: 'Requested' },
@@ -115,6 +119,18 @@ export class SuperAdminPayoutsComponent {
 
   protected colourFor(status: Payout['status']): StatusPillColour {
     return STATUS_COLOUR[status];
+  }
+
+  protected initials(name: string): string {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) {
+      return '?';
+    }
+    return (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+  }
+
+  protected payeeTypeLabel(type: Payout['payee_type']): string {
+    return type === 'connector' ? 'Connector' : 'Affiliate';
   }
 
   protected approve(row: Payout): void {

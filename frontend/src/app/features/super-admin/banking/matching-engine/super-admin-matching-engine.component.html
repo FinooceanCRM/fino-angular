@@ -1,11 +1,54 @@
-<app-page-header title="Matching Engine" subtitle="Evaluate a lead against every active bank product." />
+<app-page-header
+  title="Matching Engine"
+  subtitle="Leads auto-matched against bank lending criteria"
+  icon="hub"
+/>
 
-<div class="matching__stats">
-  <app-stat-card icon="assignment" [value]="overview().totalLeads" label="Total leads" accent="primary" />
-  <app-stat-card icon="account_balance" [value]="overview().activeProducts" label="Active bank products" accent="accent" />
+<div class="matching__kpis">
+  <app-stat-card icon="assignment" [value]="kpis().leadsProcessed" label="Leads Processed" accent="primary" />
+  <app-stat-card
+    icon="check_circle"
+    [value]="kpis().autoMatched"
+    label="Auto-Matched"
+    accent="success"
+    [trend]="kpis().autoMatchedPct + '%'"
+  />
+  <app-stat-card icon="fact_check" [value]="kpis().needsReview" label="Needs Manual Review" accent="warn" />
+  <app-stat-card icon="account_balance" [value]="kpis().activeBanks" label="Active Banks" accent="secondary" />
 </div>
 
+<mat-card class="matching__table-card">
+  <mat-card-content>
+    <app-table [columns]="tableColumns" [rows]="matchingRows()" emptyMessage="No leads to display.">
+      <ng-template appTableCell="applicant_name" let-row>
+        <div class="matching__applicant">
+          <span class="matching__avatar" [style.background]="avatarColour(row)">{{ initials(row.applicant_name) }}</span>
+          {{ row.applicant_name }}
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="matches" let-row>
+        <span class="matching__count">{{ row.candidateCount }}</span> {{ row.candidateCount === 1 ? 'bank' : 'banks' }} matched
+      </ng-template>
+
+      <ng-template appTableCell="status" let-row>
+        <app-status-pill [label]="row.statusLabel" [colour]="row.statusColour" />
+      </ng-template>
+
+      <ng-template #rowActions let-row>
+        <button mat-stroked-button type="button" class="matching__assign-pill" (click)="assignBanker(row)">
+          Assign banker
+        </button>
+      </ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>
+
 <mat-card class="matching__picker-card">
+  <mat-card-header>
+    <mat-card-title>Run matching engine for a lead</mat-card-title>
+    <mat-card-subtitle>Evaluate a single lead against every active bank product in real time.</mat-card-subtitle>
+  </mat-card-header>
   <mat-card-content class="matching__picker">
     <mat-form-field appearance="outline" class="matching__select">
       <mat-label>Lead</mat-label>

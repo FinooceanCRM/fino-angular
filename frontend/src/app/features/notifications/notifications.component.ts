@@ -2,11 +2,12 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 
-import { AppNotification, notificationCategory } from '@core/models/notification.model';
+import { AppNotification, notificationCategory, notificationIcon } from '@core/models/notification.model';
 import { NotificationService } from '@core/services/notification.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 
@@ -23,7 +24,16 @@ const TABS: { key: NotificationTab; label: string }[] = [
 @Component({
   selector: 'app-notifications',
   standalone: true,
-  imports: [DatePipe, MatButtonModule, MatCardModule, MatListModule, MatProgressBarModule, MatTabsModule, PageHeaderComponent],
+  imports: [
+    DatePipe,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule,
+    MatListModule,
+    MatProgressBarModule,
+    MatTabsModule,
+    PageHeaderComponent,
+  ],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,6 +46,7 @@ export class NotificationsComponent implements OnInit {
   readonly selectedTabIndex = signal(0);
 
   protected readonly tabs = TABS;
+  protected readonly notificationIcon = notificationIcon;
 
   readonly filteredItems = computed(() => {
     const tab = TABS[this.selectedTabIndex()]?.key ?? 'all';
@@ -58,6 +69,9 @@ export class NotificationsComponent implements OnInit {
   }
 
   markRead(item: AppNotification): void {
+    if (item.is_read) {
+      return;
+    }
     this.notifications.markRead(item.id).subscribe({ next: () => this.load() });
   }
 

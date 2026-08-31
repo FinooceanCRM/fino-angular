@@ -1,11 +1,3 @@
-<div class="user-role-table__header">
-  <app-page-header [title]="title()" [subtitle]="subtitle()" />
-  <button mat-flat-button color="primary" type="button" class="user-role-table__new" (click)="openCreate()">
-    <mat-icon>add</mat-icon>
-    Add {{ roleLabel() }}
-  </button>
-</div>
-
 <mat-card class="user-role-table__toolbar">
   <mat-card-content>
     <form class="user-role-table__filters" [formGroup]="filters" (ngSubmit)="applyFilters()">
@@ -41,13 +33,18 @@
       [length]="total()"
       [pageSize]="pageSize()"
       [pageIndex]="pageIndex()"
-      itemLabel="results"
+      [itemLabel]="roleLabel().toLowerCase() + 's'"
       (pageChange)="onPage($event)"
     >
       <ng-template appTableCell="name" let-row>
         <div class="user-role-table__name-cell">
           <span class="user-role-table__avatar">{{ initials(row.name) }}</span>
-          <strong>{{ row.name }}</strong>
+          <span class="user-role-table__name-text">
+            <strong>{{ row.name }}</strong>
+            @if (row.department_label) {
+              <span class="user-role-table__org">{{ row.department_label }}</span>
+            }
+          </span>
         </div>
       </ng-template>
 

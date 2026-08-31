@@ -7,6 +7,12 @@
       class="search-overlay__input"
       placeholder="Search leads, users, employees, connectors, bankers…"
       autocomplete="off"
+      role="combobox"
+      aria-autocomplete="list"
+      aria-label="Search leads, users, employees, connectors, bankers"
+      [attr.aria-expanded]="flatResults().length > 0"
+      [attr.aria-controls]="flatResults().length > 0 ? 'search-overlay-listbox' : null"
+      [attr.aria-activedescendant]="activeItemId()"
       [value]="query()"
       (input)="onInput(searchInput.value)"
       (keydown)="onKeydown($event)"
@@ -29,33 +35,38 @@
     } @else if (groups().length === 0 && !loading()) {
       <app-empty-state icon="search_off" [message]="'No matches for “' + query() + '”.'" />
     } @else if (groups().length > 0) {
-      @for (group of groups(); track group.type) {
-        <div class="search-overlay__group">
-          <span class="search-overlay__group-label">{{ group.label }}</span>
-          <ul class="search-overlay__list">
-            @for (item of group.items; track item.id) {
-              <li
-                class="search-overlay__item"
-                [class.search-overlay__item--active]="isActive(item)"
-                (mouseenter)="activeIndex.set(flatResults().indexOf(item))"
-                (click)="select(item)"
-              >
-                <span class="search-overlay__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
-                <span class="search-overlay__text">
-                  <span class="search-overlay__title">{{ item.title }}</span>
-                  <span class="search-overlay__subtitle">{{ item.subtitle }}</span>
-                </span>
-                <span class="search-overlay__meta">{{ item.meta }}</span>
-              </li>
+      <div id="search-overlay-listbox" role="listbox" aria-label="Search results">
+        @for (group of groups(); track group.type) {
+          <div class="search-overlay__group">
+            <span class="search-overlay__group-label" [attr.id]="'search-overlay-group-' + group.type">{{ group.label }}</span>
+            <ul class="search-overlay__list" role="group" [attr.aria-labelledby]="'search-overlay-group-' + group.type">
+              @for (item of group.items; track item.id) {
+                <li
+                  [id]="'search-overlay-item-' + item.id"
+                  class="search-overlay__item"
+                  role="option"
+                  [attr.aria-selected]="isActive(item)"
+                  [class.search-overlay__item--active]="isActive(item)"
+                  (mouseenter)="activeIndex.set(flatResults().indexOf(item))"
+                  (click)="select(item)"
+                >
+                  <span class="search-overlay__icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+                  <span class="search-overlay__text">
+                    <span class="search-overlay__title">{{ item.title }}</span>
+                    <span class="search-overlay__subtitle">{{ item.subtitle }}</span>
+                  </span>
+                  <span class="search-overlay__meta">{{ item.meta }}</span>
+                </li>
+              }
+            </ul>
+            @if (group.total > group.items.length) {
+              <button mat-button class="search-overlay__more" type="button" (click)="viewAll()">
+                +{{ group.total - group.items.length }} more {{ group.label.toLowerCase() }}
+              </button>
             }
-          </ul>
-          @if (group.total > group.items.length) {
-            <button mat-button class="search-overlay__more" type="button" (click)="viewAll()">
-              +{{ group.total - group.items.length }} more {{ group.label.toLowerCase() }}
-            </button>
-          }
-        </div>
-      }
+          </div>
+        }
+      </div>
     }
   </div>
 

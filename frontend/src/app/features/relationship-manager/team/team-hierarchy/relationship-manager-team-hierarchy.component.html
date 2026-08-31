@@ -1,0 +1,15 @@
+<mat-card class="team-hierarchy">
+  <mat-card-content>
+    @if (loading()) {
+      <mat-progress-bar mode="indeterminate" />
+    }
+
+    @if (!loading() && employees().length === 0) {
+      <app-empty-state icon="diversity_3" message="No employees are assigned to you yet." />
+    } @else if (chartRoot(); as root) {
+      <div class="team-hierarchy__chart">
+        <app-org-chart [node]="root" />
+      </div>
+    }
+  </mat-card-content>
+</mat-card>

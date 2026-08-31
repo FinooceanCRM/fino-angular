@@ -2,28 +2,17 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
 import { PermissionMatrix } from '@core/models/permission.model';
 import { ROLE_LABELS, UserRole } from '@core/models/user.model';
 import { PermissionService } from '@core/services/permission.service';
-import { PageHeaderComponent } from '@shared/components/page-header.component';
-import { StatusPillComponent } from '@shared/components/status-pill.component';
+import { TableColumn, TableComponent } from '@shared/components/table.component';
 
 import { PERMISSION_MODULES } from '../../data/models/role.model';
 import { UserDataProvider } from '../../data/providers/user-data.provider';
-
-const ROLE_ICON: Record<UserRole, string> = {
-  super_admin: 'admin_panel_settings',
-  manager: 'supervisor_account',
-  relationship_manager: 'support_agent',
-  employee: 'badge',
-  connector: 'hub',
-  banker: 'account_balance',
-  telecaller: 'call',
-  affiliate: 'storefront',
-};
+import { UserRoleTabsComponent } from '../user-role-tabs/user-role-tabs.component';
 
 const ROLE_DESCRIPTION: Record<UserRole, string> = {
   super_admin: 'Full platform access — every module, every action.',
@@ -36,16 +25,33 @@ const ROLE_DESCRIPTION: Record<UserRole, string> = {
   affiliate: 'Self-service referral partner; tracks referral leads and commission payouts.',
 };
 
+interface RoleRow {
+  value: UserRole;
+  label: string;
+  description: string;
+  userCount: number;
+  moduleCount: number;
+  totalModules: number;
+}
+
 /**
  * Role Management — the real 8-role system (`permission:` middleware,
  * RolePermissionSeeder, Phase 0). Module-access counts come from the live
  * permissions matrix; user counts still read the (not yet migrated in this
  * phase) Users mock provider.
+ *
+ * Table only — there is no "create role" capability anywhere in the app
+ * (roles are seeded, not authored through the UI), so the mockup's
+ * "+ Add role" affordance is rendered disabled rather than wired to a
+ * destination that doesn't exist. Both row actions (view/edit) route to the
+ * same real permissions-matrix page: `SuperAdminPermissionsComponent` has no
+ * read-only mode, so a distinct "view" destination would have to be
+ * invented — duplicating the one real affordance is the honest choice.
  */
 @Component({
   selector: 'app-super-admin-roles',
   standalone: true,
-  imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, MatProgressBarModule, PageHeaderComponent, StatusPillComponent],
+  imports: [RouterLink, MatButtonModule, MatCardModule, MatIconModule, MatTooltipModule, TableComponent, UserRoleTabsComponent],
   templateUrl: './super-admin-roles.component.html',
   styleUrl: './super-admin-roles.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,7 +65,17 @@ export class SuperAdminRolesComponent implements OnInit {
   protected readonly matrix = signal<PermissionMatrix | null>(null);
   protected readonly totalModules = PERMISSION_MODULES.length;
 
-  protected readonly roles = computed(() => {
+  protected readonly columns: TableColumn<RoleRow>[] = [
+    { key: 'label', label: 'Role' },
+    { key: 'description', label: 'Description' },
+    {
+      key: 'users',
+      label: 'Users',
+      formatter: (row) => `${row.userCount} user${row.userCount === 1 ? '' : 's'}`,
+    },
+  ];
+
+  protected readonly roles = computed<RoleRow[]>(() => {
     const matrix = this.matrix();
     if (!matrix) {
       return [];
@@ -74,7 +90,6 @@ export class SuperAdminRolesComponent implements OnInit {
         value: slug,
         label: role.name,
         description: ROLE_DESCRIPTION[slug] ?? '',
-        icon: ROLE_ICON[slug] ?? 'badge',
         userCount: this.userData.byRole(slug).length,
         moduleCount,
         totalModules: this.totalModules,

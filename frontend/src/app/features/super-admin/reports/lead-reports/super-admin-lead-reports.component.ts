@@ -7,7 +7,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 
-import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatCardComponent } from '@shared/components/stat-card.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
@@ -18,8 +17,10 @@ import { Lead, LEAD_STATUS_CATALOGUE, LOAN_TYPE_CATALOGUE } from '../../data/mod
 import { BarDatum } from '../../data/models/report.model';
 import { LeadDataProvider } from '../../data/providers/lead-data.provider';
 import { bucketByWeek, defaultFrom, defaultTo, inRange } from '../../data/report-date-range.util';
-import { HorizontalBarListComponent } from '../charts/horizontal-bar-list.component';
-import { TrendChartComponent, TrendPoint } from '../charts/trend-chart.component';
+import { HorizontalBarListComponent } from '@shared/components/horizontal-bar-list.component';
+import { TrendChartComponent, TrendPoint } from '@shared/components/trend-chart.component';
+
+import { SuperAdminReportsTabsComponent } from '../reports-tabs/super-admin-reports-tabs.component';
 
 const PILL_COLOUR_VAR: Record<string, string> = {
   default: 'var(--app-status-default-fg)',
@@ -42,9 +43,9 @@ const PILL_COLOUR_VAR: Record<string, string> = {
     MatIconModule,
     MatInputModule,
     HorizontalBarListComponent,
-    PageHeaderComponent,
     StatCardComponent,
     StatusPillComponent,
+    SuperAdminReportsTabsComponent,
     TableCellDirective,
     TableComponent,
     TrendChartComponent,

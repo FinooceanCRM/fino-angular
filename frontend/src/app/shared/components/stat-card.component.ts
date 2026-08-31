@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 
-export type StatCardAccent = 'primary' | 'accent' | 'warn' | 'default';
+export type StatCardAccent = 'primary' | 'secondary' | 'accent' | 'warn' | 'success' | 'default';
 
 /**
  * Single KPI tile (icon-in-a-tinted-circle + value + label + optional

@@ -14,6 +14,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ConnectorProfile } from '@core/models/connector.model';
 import { ConnectorService } from '@core/services/connector.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { ProfileHeaderComponent } from '@shared/components/profile-header.component';
 
 @Component({
   selector: 'app-connector-profile',
@@ -27,11 +28,13 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     MatInputModule,
     MatProgressBarModule,
     PageHeaderComponent,
+    ProfileHeaderComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header
-      title="Connector profile"
+      icon="person"
+      title="My Profile"
       subtitle="View and update your connector details"
     />
 
@@ -42,6 +45,8 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
     <mat-card class="card">
       <mat-card-content>
         <form [formGroup]="form" (ngSubmit)="save()">
+          <app-profile-header [name]="displayName()" [subtitle]="displaySubtitle()" />
+
           <h3 class="section-title">Personal Information</h3>
           <div class="grid">
             <mat-form-field appearance="outline">
@@ -143,6 +148,7 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
               mat-flat-button
               color="primary"
               type="submit"
+              class="tide-cta-pill"
               [disabled]="form.invalid || saving()"
             >
               <mat-icon>save</mat-icon>
@@ -173,7 +179,12 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
       .grid {
         display: grid;
         gap: 0.75rem 1rem;
-        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      @media (max-width: 640px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
       }
       .actions {
         display: flex;
@@ -196,6 +207,8 @@ export class ConnectorProfileComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly message = signal<string | null>(null);
   protected readonly email = signal('');
+  protected readonly displayName = signal('');
+  protected readonly displaySubtitle = signal('');
 
   private profile: ConnectorProfile | null = null;
 
@@ -258,6 +271,10 @@ export class ConnectorProfileComponent implements OnInit {
   private apply(profile: ConnectorProfile): void {
     this.profile = profile;
     this.email.set(profile.user?.email ?? '');
+    this.displayName.set(profile.user?.name ?? '');
+    const roleLabel = profile.user?.role_label ?? 'Connector';
+    const meta = profile.company_name || '';
+    this.displaySubtitle.set(meta ? `${roleLabel} · ${meta}` : roleLabel);
     this.form.patchValue({
       name: profile.user?.name ?? '',
       phone: profile.user?.phone ?? '',

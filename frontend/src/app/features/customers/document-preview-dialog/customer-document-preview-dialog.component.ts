@@ -28,10 +28,12 @@ const STATUS_LABEL: Record<CustomerDocument['status'], string> = { pending: 'Pen
 const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'accent', verified: 'success', rejected: 'warn' };
 
 /**
- * Document preview — real file storage since Phase 3 (unlike the earlier
- * mock), so this offers an actual Download alongside the metadata summary.
- * Still no in-browser rendering, mirroring the same pattern already used by
- * Super Admin's Lead Details document preview.
+ * Document preview — real file storage since Phase 3, so this offers an
+ * actual Download alongside the metadata summary. There's no in-browser
+ * rendering (mirroring the same pattern already used by Super Admin's Lead
+ * Details document preview) — note the mockup's "no file storage" caption
+ * describes an earlier mock-only version of this screen and doesn't apply
+ * here, so it isn't reproduced; the real Download action is kept instead.
  */
 @Component({
   selector: 'app-customer-document-preview-dialog',
@@ -44,17 +46,25 @@ const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'ac
       </div>
 
       <dl class="meta">
-        <dt>Type</dt>
-        <dd>{{ typeLabel }}</dd>
-        <dt>Status</dt>
-        <dd><app-status-pill [label]="statusLabel" [colour]="statusColour" /></dd>
-        <dt>Size</dt>
-        <dd>{{ data.document.size_bytes / 1024 | number: '1.0-0' }} KB</dd>
-        <dt>Uploaded</dt>
-        <dd>{{ data.document.created_at | date: 'medium' }}</dd>
+        <div class="meta__cell">
+          <dt>Type</dt>
+          <dd>{{ typeLabel }}</dd>
+        </div>
+        <div class="meta__cell">
+          <dt>Status</dt>
+          <dd><app-status-pill [label]="statusLabel" [colour]="statusColour" /></dd>
+        </div>
+        <div class="meta__cell">
+          <dt>Size</dt>
+          <dd>{{ data.document.size_bytes / 1024 | number: '1.0-0' }} KB</dd>
+        </div>
+        <div class="meta__cell">
+          <dt>Uploaded</dt>
+          <dd>{{ data.document.created_at | date: 'medium' }}</dd>
+        </div>
       </dl>
 
-      <button modal-actions mat-flat-button color="primary" type="button" (click)="download()">
+      <button modal-actions mat-flat-button color="primary" type="button" class="tide-cta-pill" (click)="download()">
         <mat-icon>download</mat-icon>
         Download
       </button>
@@ -66,35 +76,39 @@ const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'ac
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
-        padding: 2rem 1rem;
-        border-radius: var(--app-radius-md);
-        background: var(--mat-sys-surface-container-high);
+        padding: 2.5rem 1rem;
         margin-bottom: 1.25rem;
       }
       .preview__icon {
-        font-size: 2.5rem;
-        width: 2.5rem;
-        height: 2.5rem;
-        color: var(--mat-sys-primary);
+        font-size: 3rem;
+        width: 3rem;
+        height: 3rem;
+        color: var(--tide-color-text-primary);
       }
       .meta {
         margin: 0;
         display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0.35rem 1rem;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem 1.5rem;
+      }
+      .meta__cell {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
       }
       .meta dt {
         font-size: 0.72rem;
         text-transform: uppercase;
         letter-spacing: 0.04em;
         color: var(--app-status-default-fg);
-        align-self: center;
       }
       .meta dd {
         margin: 0;
-        font-size: 0.88rem;
-        font-weight: 500;
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: var(--tide-color-text-primary);
       }
     `,
   ],

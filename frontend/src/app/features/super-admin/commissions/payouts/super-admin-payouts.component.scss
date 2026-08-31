@@ -30,3 +30,56 @@
   flex: 1 1 240px;
   min-width: 200px;
 }
+
+.payout-page__payee-cell {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+// Connector vs affiliate get a distinct avatar tint so the role reads at a
+// glance, matching the mockup's per-role avatar colouring.
+.payout-page__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--app-status-success-bg);
+  color: var(--app-status-success-fg);
+  font-size: 0.75rem;
+  font-weight: 700;
+
+  &--affiliate {
+    background: var(--app-status-warn-bg);
+    color: var(--app-status-warn-fg);
+  }
+}
+
+.payout-page__payee-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  strong {
+    font-weight: 600;
+    color: var(--mat-sys-on-surface);
+  }
+
+  small {
+    font-size: 0.78rem;
+    color: var(--app-status-default-fg);
+  }
+}
+
+// Payout amount is a financial figure — keep digits aligned, never crowded.
+.payout-page__amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.payout-page__process-btn {
+  white-space: nowrap;
+}

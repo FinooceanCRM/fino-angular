@@ -1,4 +1,8 @@
-<app-page-header title="Audit Logs" subtitle="Every recorded platform action." />
+<app-page-header
+  title="Audit Logs"
+  subtitle="Every sensitive action, tracked for compliance"
+  icon="fact_check"
+/>
 
 <mat-card class="audit-log__toolbar">
   <mat-card-content>
@@ -62,12 +66,15 @@
       itemLabel="entries"
       (pageChange)="onPage($event)"
     >
-      <ng-template appTableCell="timestamp" let-row>{{ row.timestamp | date: 'medium' }}</ng-template>
+      <ng-template appTableCell="timestamp" let-row>{{ row.timestamp | date: 'd MMM y, h:mm a' }}</ng-template>
 
       <ng-template appTableCell="actor" let-row>
         <div class="audit-log__actor">
-          <strong>{{ row.actor_name }}</strong>
-          <span>{{ row.actor_role }}</span>
+          <span class="audit-log__avatar">{{ initials(row.actor_name) }}</span>
+          <span class="audit-log__actor-text">
+            <strong>{{ row.actor_name }}</strong>
+            <span>{{ row.actor_role }}</span>
+          </span>
         </div>
       </ng-template>
 
@@ -87,9 +94,7 @@
       </ng-template>
 
       <ng-template #rowActions let-row>
-        <a mat-icon-button [routerLink]="['/super-admin/audit-logs', row.id]" aria-label="View audit log details">
-          <mat-icon>visibility</mat-icon>
-        </a>
+        <button mat-button color="primary" type="button" (click)="viewDetail(row)">View</button>
       </ng-template>
     </app-table>
   </mat-card-content>

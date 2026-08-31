@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, ViewChild, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import {
   AbstractControl,
@@ -289,6 +289,24 @@ export class LeadFormComponent implements OnInit {
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
+  /** True once the user has tried to submit an invalid form — gates the validation summary so it isn't shown before they've tried. */
+  readonly submitAttempted = signal(false);
+
+  @ViewChild(MatStepper) private stepper?: MatStepper;
+
+  /** Maps each step's form group to its step index/label, so an invalid submit can point at exactly what's missing. */
+  private readonly stepGroups = [
+    { label: 'Applicant details', index: 0, group: () => this.form.controls.applicant },
+    { label: 'Loan details', index: 1, group: () => this.form.controls.loan },
+    { label: 'Address details', index: 2, group: () => this.form.controls.address },
+    { label: 'Loan type details', index: 3, group: () => this.form.controls.loanTypeDetails },
+    { label: 'Attach Documents', index: 4, group: () => this.form.controls.documents },
+  ];
+
+  /** Labels of every step that currently has at least one invalid field, for the validation summary banner. */
+  invalidStepLabels(): string[] {
+    return this.stepGroups.filter((step) => step.group().invalid).map((step) => step.label);
+  }
 
   readonly documentSlots = DOCUMENT_SLOTS;
   readonly documentStatus = signal<Record<DocumentSlotKey, DocumentSlotStatus>>(initialDocumentStatusMap());
@@ -926,9 +944,15 @@ export class LeadFormComponent implements OnInit {
   submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      this.submitAttempted.set(true);
+      const firstInvalid = this.stepGroups.find((step) => step.group().invalid);
+      if (firstInvalid && this.stepper) {
+        this.stepper.selectedIndex = firstInvalid.index;
+      }
       return;
     }
 
+    this.submitAttempted.set(false);
     this.saving.set(true);
     this.error.set(null);
 

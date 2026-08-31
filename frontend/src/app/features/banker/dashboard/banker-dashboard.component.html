@@ -1,5 +1,3 @@
-<app-page-header title="Banker dashboard" subtitle="Leads matched against your bank's criteria" />
-
 @if (loading()) {
   <mat-progress-bar mode="indeterminate" />
 }
@@ -11,51 +9,30 @@
 }
 
 @if (data(); as dashboard) {
-  <div class="banker-dashboard">
-    <mat-card class="banker-dashboard__welcome">
-      <mat-card-header>
-        <mat-icon mat-card-avatar>waving_hand</mat-icon>
-        <mat-card-title>{{ dashboard.welcome.headline }}</mat-card-title>
-        <mat-card-subtitle>{{ dashboard.welcome.message }}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-actions class="banker-dashboard__actions">
-        <a mat-stroked-button routerLink="/banker/leads">
-          <mat-icon>assignment</mat-icon>
-          Matched leads
-        </a>
-        <a mat-stroked-button routerLink="/banker/leads/priority">
-          <mat-icon>how_to_reg</mat-icon>
-          Priority leads
-        </a>
-        <a mat-stroked-button routerLink="/banker/criteria">
-          <mat-icon>account_balance</mat-icon>
-          Bank criteria
-        </a>
-        <a mat-stroked-button routerLink="/banker/documents">
-          <mat-icon>description</mat-icon>
-          Documents
-        </a>
-        <a mat-stroked-button routerLink="/banker/reports">
-          <mat-icon>bar_chart</mat-icon>
-          Reports
-        </a>
-        <a mat-stroked-button routerLink="/banker/notifications">
-          <mat-icon>notifications</mat-icon>
-          Notifications
-        </a>
-        <a mat-stroked-button routerLink="/banker/profile">
-          <mat-icon>badge</mat-icon>
-          Profile
-        </a>
-      </mat-card-actions>
-    </mat-card>
+  <app-dashboard-hero
+    eyebrowIcon="account_balance"
+    eyebrowLabel="BANKER DASHBOARD"
+    [headline]="dashboard.welcome.headline"
+    [subtitle]="dashboard.welcome.message"
+    [stats]="[
+      { value: dashboard.stats.matched_leads, label: 'Matched leads' },
+      { value: dashboard.stats.active_criteria_sets, label: 'Active criteria sets' },
+    ]"
+  />
 
+  <div class="banker-dashboard">
     <div class="banker-dashboard__stats">
       <app-stat-card
-        icon="groups"
+        icon="hub"
         [value]="dashboard.stats.matched_leads"
         label="Matched leads"
         accent="primary"
+      />
+      <app-stat-card
+        icon="assignment_ind"
+        [value]="dashboard.stats.assigned_leads"
+        label="Assigned to me"
+        accent="secondary"
       />
       <app-stat-card
         icon="pending_actions"
@@ -64,20 +41,52 @@
         accent="accent"
       />
       <app-stat-card
-        icon="tune"
-        [value]="dashboard.stats.active_criteria_sets"
-        label="Active criteria sets"
-      />
-      <app-stat-card
         icon="task_alt"
         [value]="dashboard.stats.disbursed_leads"
         label="Disbursed"
+        accent="success"
       />
     </div>
 
-    <app-lead-link-card />
+    <mat-card class="banker-dashboard__actions-card">
+      <mat-card-header>
+        <mat-card-title>Quick actions</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="banker-dashboard__actions">
+        <a class="banker-dashboard__action" routerLink="/banker/leads">
+          <mat-icon>assignment</mat-icon>
+          <span>Matched leads</span>
+        </a>
+        <a class="banker-dashboard__action" routerLink="/banker/leads/priority">
+          <mat-icon>how_to_reg</mat-icon>
+          <span>Priority leads</span>
+        </a>
+        <a class="banker-dashboard__action" routerLink="/banker/criteria">
+          <mat-icon>account_balance</mat-icon>
+          <span>Bank criteria</span>
+        </a>
+        <a class="banker-dashboard__action" routerLink="/banker/documents">
+          <mat-icon>description</mat-icon>
+          <span>Documents</span>
+        </a>
+        <a class="banker-dashboard__action" routerLink="/banker/reports">
+          <mat-icon>bar_chart</mat-icon>
+          <span>Reports</span>
+        </a>
+        <a class="banker-dashboard__action" routerLink="/banker/notifications">
+          <mat-icon>notifications</mat-icon>
+          <span>Notifications</span>
+        </a>
+        <a class="banker-dashboard__action" routerLink="/banker/profile">
+          <mat-icon>badge</mat-icon>
+          <span>Profile</span>
+        </a>
+      </mat-card-content>
+    </mat-card>
 
-    <app-notifications-panel class="banker-dashboard__notifications" />
+    <app-lead-link-card class="banker-dashboard__span" />
+
+    <app-notifications-panel class="banker-dashboard__span" />
 
     <mat-card>
       <mat-card-header>

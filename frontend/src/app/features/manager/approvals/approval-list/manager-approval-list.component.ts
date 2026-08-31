@@ -70,7 +70,7 @@ export class ManagerApprovalListComponent {
   protected readonly columns: TableColumn<Approval>[] = [
     { key: 'name', label: 'Name' },
     { key: 'loan_type', label: 'Loan type' },
-    { key: 'loan_amount', label: 'Loan amount' },
+    { key: 'loan_amount', label: 'Loan amount', align: 'right' },
     { key: 'city', label: 'City' },
     { key: 'banker', label: 'Banker' },
     { key: 'status', label: 'Status' },

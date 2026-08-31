@@ -138,7 +138,7 @@ class SearchService extends BaseService
                 'subtitle' => $lead->reference.' · '.LoanType::from($lead->loan_type)->label(),
                 'meta' => $lead->statusEnum()->label(),
                 'icon' => 'assignment',
-                'route' => ['/super-admin/leads', (string) $lead->id],
+                'route' => ['/leads', (string) $lead->id],
                 'query_params' => null,
             ];
         })->all();
@@ -178,8 +178,8 @@ class SearchService extends BaseService
                 'subtitle' => $user->email,
                 'meta' => $user->is_active ? $roleLabel : $roleLabel.' · Inactive',
                 'icon' => self::USER_ICON[$roleValue] ?? 'person',
-                'route' => ['/super-admin/users', $segment],
-                'query_params' => ['search' => $user->email],
+                'route' => ['/users', (string) $user->id],
+                'query_params' => null,
             ];
         }
 

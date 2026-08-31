@@ -26,6 +26,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AccessRequest } from '@core/models/access-request.model';
 import { LeadDocument, DocumentTypeOption } from '@core/models/document.model';
 import { FollowUpType, LeadFollowUp } from '@core/models/follow-up.model';
+import { PdAddress, PdExistingLoan, PdFamilyMember, PdPartnerDirector } from '@core/models/pd.model';
+import { PD_SUMMARY_SECTIONS } from '@core/models/pd-summary.util';
 import {
   BALANCE_TRANSFER_TYPE_OPTIONS,
   CAR_TYPE_OPTIONS,
@@ -61,6 +63,7 @@ import { EntityHeaderComponent } from '@shared/components/entity-header.componen
 import { ReasonDialogComponent } from '@shared/components/reason-dialog.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TimelineComponent } from '@shared/components/timeline.component';
+import { VoyageProgressComponent, VoyageStage } from '@shared/components/voyage-progress.component';
 
 @Component({
   selector: 'app-lead-detail',
@@ -83,6 +86,7 @@ import { TimelineComponent } from '@shared/components/timeline.component';
     RouterLink,
     StatusPillComponent,
     TimelineComponent,
+    VoyageProgressComponent,
   ],
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.scss',
@@ -146,6 +150,62 @@ export class LeadDetailComponent implements OnInit {
     () => this.detail()?.lead.loan_type === 'loan_against_property',
   );
 
+  /** Full PD summary — only the sections/fields actually filled in, grouped to match the PD form's own sections. */
+  protected readonly pdSummarySections = computed(() => {
+    const details = this.detail()?.lead.pd_details;
+    if (!details) return [];
+    return PD_SUMMARY_SECTIONS.map((section) => ({
+      title: section.title,
+      rows: section.fields
+        .map((field) => ({ label: field.label, value: details[field.key] as string | number | null }))
+        .filter((row): row is { label: string; value: string | number } => row.value !== null && row.value !== ''),
+    })).filter((section) => section.rows.length > 0);
+  });
+
+  /** The 7 PD address groups, collapsed to one line each and skipped when entirely empty. */
+  protected readonly pdAddresses = computed(() => {
+    const details = this.detail()?.lead.pd_details;
+    if (!details) return [];
+    const groups: { title: string; address: PdAddress }[] = [
+      { title: 'Current Residential Address', address: details.Current_Residential_Address },
+      { title: 'Permanent Address', address: details.Permanent_Address },
+      { title: 'Current Employer/Company Address', address: details.Current_Employer_Company_Address },
+      { title: 'Employer Address', address: details.Employer_Address },
+      { title: 'Office Address', address: details.Office_Address },
+      { title: 'Business/Employment Address', address: details.Business__Employement_Address },
+      { title: 'Property Address (as per site)', address: details.Property_Address__as_per_site_ },
+    ];
+    return groups
+      .map((group) => ({ title: group.title, line: this.formatPdAddress(group.address) }))
+      .filter((group): group is { title: string; line: string } => group.line !== null);
+  });
+
+  protected readonly pdExistingLoans = computed<PdExistingLoan[]>(
+    () => this.detail()?.lead.pd_details?.existing_loans ?? [],
+  );
+  protected readonly pdFamilyMembers = computed<PdFamilyMember[]>(
+    () => this.detail()?.lead.pd_details?.family_members ?? [],
+  );
+  protected readonly pdPartnerDirectors = computed<PdPartnerDirector[]>(
+    () => this.detail()?.lead.pd_details?.partner_directors ?? [],
+  );
+
+  protected readonly hasPdDetails = computed(
+    () =>
+      this.pdSummarySections().length > 0 ||
+      this.pdAddresses().length > 0 ||
+      this.pdExistingLoans().length > 0 ||
+      this.pdFamilyMembers().length > 0 ||
+      this.pdPartnerDirectors().length > 0,
+  );
+
+  private formatPdAddress(address: PdAddress): string | null {
+    const parts = [address.address_line_1, address.address_line_2, address.city, address.state, address.zip, address.country].filter(
+      (part): part is string => !!part,
+    );
+    return parts.length > 0 ? parts.join(', ') : null;
+  }
+
   protected readonly isBanker = computed(() => this.auth.hasRole('banker'));
   protected readonly canDecideAccessRequests = computed(() =>
     this.auth.hasRole('super_admin', 'manager', 'relationship_manager'),
@@ -200,6 +260,52 @@ export class LeadDetailComponent implements OnInit {
       time: entry.created_at ? formatDate(entry.created_at, 'medium', this.locale) : null,
     })),
   );
+
+  /**
+   * The voyage's happy-path stops, read entirely from the real, backend-driven
+   * status catalogue (`statuses()`, fetched from `leads.metadata()`) — never
+   * hardcoded stage strings. The catalogue mirrors the `LeadStatus` PHP enum
+   * in declared order (new, assigned, in_progress, documents_pending,
+   * under_review, approved, rejected, disbursed, closed); indices 6
+   * (rejected) and 8 (closed) are branch/terminal outcomes rather than
+   * forward-moving voyage stops, so they're left out of this happy-path strip
+   * — a rejected/closed lead's true status is still shown correctly by the
+   * status pill in app-entity-header above.
+   */
+  protected readonly voyageStages = computed<VoyageStage[]>(() => {
+    const list = this.statuses();
+    if (list.length <= 7) {
+      return [];
+    }
+    return [0, 1, 2, 3, 4, 5, 7].map((index) => ({
+      key: list[index].value,
+      label: list[index].label,
+    }));
+  });
+
+  /**
+   * A rejected/closed lead's `status` isn't one of `voyageStages()`'s keys,
+   * so the component's own "everything up to the current stage" fallback
+   * would find no match and render the whole strip as upcoming/hollow —
+   * looking as if nothing had happened yet. For that branch/terminal case,
+   * derive which happy-path stops this lead actually passed through from its
+   * real `status_history` instead, so the wave still reflects genuine
+   * progress. For a lead still on the happy path, this stays `undefined` so
+   * the component's simpler "up to current index" default (which already
+   * matches the catalogue's real ordering) is used instead.
+   */
+  protected readonly voyageReachedKeys = computed<string[] | undefined>(() => {
+    const stages = this.voyageStages();
+    const status = this.detail()?.lead.status;
+    if (!status || stages.some((stage) => stage.key === status)) {
+      return undefined;
+    }
+
+    const visibleKeys = new Set(stages.map((stage) => stage.key));
+    return (this.detail()?.status_history ?? [])
+      .map((entry) => entry.to_status)
+      .filter((toStatus) => visibleKeys.has(toStatus));
+  });
 
   selectedFile: File | null = null;
 

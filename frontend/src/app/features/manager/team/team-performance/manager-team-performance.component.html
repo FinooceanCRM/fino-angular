@@ -9,37 +9,24 @@
 
   <mat-card class="team-performance__table-card">
     <mat-card-header>
-      <mat-card-title>Ranked by leads handled</mat-card-title>
+      <mat-card-title>Team performance</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <div class="app-scroll-x">
-        <table class="team-performance__table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Name</th>
-              <th>Leads handled</th>
-              <th>Approved</th>
-              <th>Disbursed</th>
-              <th>Conversion</th>
-              <th>Avg. turnaround</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (row of ranked(); track row.id; let i = $index) {
-              <tr>
-                <td>{{ i + 1 }}</td>
-                <td>{{ row.name }}</td>
-                <td>{{ row.leadsHandled }}</td>
-                <td>{{ row.approved }}</td>
-                <td>{{ row.disbursed }}</td>
-                <td>{{ row.conversionRatePct }}%</td>
-                <td>{{ row.avgTurnaroundDays }} days</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+      <app-table [columns]="columns()" [rows]="ranked()" itemLabel="team members">
+        <ng-template appTableCell="employee" let-row>
+          <div class="team-performance__employee">
+            <span class="team-performance__avatar">{{ initials(row.name) }}</span>
+            <span class="team-performance__employee-text">
+              <span class="team-performance__name">{{ row.name }}</span>
+              <span class="team-performance__role">{{ roleLabel() }}</span>
+            </span>
+          </div>
+        </ng-template>
+
+        <ng-template appTableCell="status" let-row>
+          <app-status-pill [label]="status(row).label" [colour]="status(row).colour" />
+        </ng-template>
+      </app-table>
     </mat-card-content>
   </mat-card>
 }

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 
@@ -13,36 +14,56 @@ export interface CustomerFormDialogData {
   customer?: Customer;
 }
 
-/** Add or edit a customer. Editing pre-fills every field from the existing record. */
+/**
+ * Add or edit a customer. Editing pre-fills every field from the existing
+ * record. The mockup also shows PAN number and Status fields, but neither
+ * exists on `CustomerDraft` (the real update payload) — `status` is
+ * read-only on `Customer` and PAN isn't captured at all here, so both are
+ * left out rather than added as fields that would silently do nothing on
+ * submit.
+ */
 @Component({
   selector: 'app-customer-form-dialog',
   standalone: true,
-  imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule, ModalComponent],
+  imports: [
+    FormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatIconModule,
+    MatInputModule,
+    MatSelectModule,
+    ModalComponent,
+  ],
   template: `
     <app-modal [title]="data.customer ? 'Edit customer' : 'Add customer'" [showActions]="true">
-      <mat-form-field appearance="outline" class="field">
-        <mat-label>Full name</mat-label>
-        <input matInput [ngModel]="name()" (ngModelChange)="name.set($event)" placeholder="Customer name" />
-      </mat-form-field>
+      <div class="form-grid">
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Full name</mat-label>
+          <mat-icon matPrefix>person</mat-icon>
+          <input matInput [ngModel]="name()" (ngModelChange)="name.set($event)" placeholder="Enter customer name" />
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="field">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" placeholder="name@example.com" />
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Email</mat-label>
+          <mat-icon matPrefix>mail</mat-icon>
+          <input matInput type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" placeholder="customer@email.com" />
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="field">
-        <mat-label>Phone</mat-label>
-        <input matInput [ngModel]="phone()" (ngModelChange)="phone.set($event)" placeholder="+91" />
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Phone</mat-label>
+          <mat-icon matPrefix>call</mat-icon>
+          <input matInput [ngModel]="phone()" (ngModelChange)="phone.set($event)" placeholder="+91 98xxxxxxxx" />
+        </mat-form-field>
 
-      <mat-form-field appearance="outline" class="field">
-        <mat-label>Segment</mat-label>
-        <mat-select [ngModel]="segment()" (ngModelChange)="segment.set($event)">
-          <mat-option value="Retail">Retail</mat-option>
-          <mat-option value="SME">SME</mat-option>
-          <mat-option value="Corporate">Corporate</mat-option>
-        </mat-select>
-      </mat-form-field>
+        <mat-form-field appearance="outline" class="field">
+          <mat-label>Segment</mat-label>
+          <mat-select [ngModel]="segment()" (ngModelChange)="segment.set($event)">
+            <mat-option value="Retail">Retail</mat-option>
+            <mat-option value="SME">SME</mat-option>
+            <mat-option value="Corporate">Corporate</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
 
       <mat-form-field appearance="outline" class="field">
         <mat-label>Notes (optional)</mat-label>
@@ -50,16 +71,35 @@ export interface CustomerFormDialogData {
       </mat-form-field>
 
       <button modal-actions mat-button type="button" (click)="dialogRef.close()">Cancel</button>
-      <button modal-actions mat-flat-button color="primary" type="button" [disabled]="!canSubmit()" (click)="submit()">
+      <button
+        modal-actions
+        mat-flat-button
+        color="primary"
+        type="button"
+        class="tide-cta-pill"
+        [disabled]="!canSubmit()"
+        (click)="submit()"
+      >
+        <mat-icon>check</mat-icon>
         {{ data.customer ? 'Save changes' : 'Save customer' }}
       </button>
     </app-modal>
   `,
   styles: [
     `
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 1rem;
+      }
       .field {
         display: block;
         width: 100%;
+      }
+      @media (max-width: 520px) {
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
       }
     `,
   ],

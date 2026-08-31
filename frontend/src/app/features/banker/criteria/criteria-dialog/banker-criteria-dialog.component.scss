@@ -11,7 +11,8 @@
 .criteria-dialog__section-title {
   margin: 0 0 var(--app-space-2, 8px);
   font-size: 0.95rem;
-  color: var(--app-status-default-fg);
+  font-weight: 700;
+  color: var(--tide-color-text-primary, var(--mat-sys-on-surface));
 }
 
 .criteria-dialog__section-header {
@@ -28,9 +29,13 @@
 
 .criteria-dialog__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: 0 var(--app-space-4, 16px);
-  width: min(560px, 100%);
+  width: min(620px, 100%);
+
+  @media (max-width: 560px) {
+    grid-template-columns: 1fr;
+  }
 }
 
 .criteria-dialog__span-2 {

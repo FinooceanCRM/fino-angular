@@ -2,18 +2,10 @@
   display: grid;
   gap: var(--app-space-4);
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  margin-top: var(--app-space-4);
 }
 
-.banker-dashboard__welcome,
-.banker-dashboard__notifications {
+.banker-dashboard__span {
   grid-column: 1 / -1;
-}
-
-.banker-dashboard__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--app-space-2);
 }
 
 .banker-dashboard__stats {
@@ -21,6 +13,49 @@
   display: grid;
   gap: var(--app-space-4);
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.banker-dashboard__actions-card {
+  grid-column: 1 / -1;
+}
+
+.banker-dashboard__actions {
+  display: grid;
+  gap: var(--app-space-3);
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+.banker-dashboard__action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--app-space-2);
+  padding: var(--app-space-4);
+  border-radius: var(--app-radius-md);
+  border: 1px solid var(--tide-color-border-subtle);
+  background: var(--tide-color-surface);
+  color: var(--tide-color-text-primary);
+  text-decoration: none;
+  transition:
+    box-shadow var(--app-duration-base, 0.2s) var(--app-ease, ease),
+    transform var(--app-duration-base, 0.2s) var(--app-ease, ease),
+    border-color var(--app-duration-base, 0.2s) var(--app-ease, ease);
+
+  mat-icon {
+    color: var(--tide-color-secondary);
+  }
+
+  span {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  &:hover,
+  &:focus-visible {
+    box-shadow: var(--app-shadow-md);
+    border-color: var(--tide-color-secondary);
+    transform: translateY(-2px);
+  }
 }
 
 .banker-dashboard__status {
@@ -39,4 +74,10 @@
 
 .banker-dashboard__error {
   margin-top: var(--app-space-4);
+}
+
+@media (max-width: 720px) {
+  .banker-dashboard__actions {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  }
 }

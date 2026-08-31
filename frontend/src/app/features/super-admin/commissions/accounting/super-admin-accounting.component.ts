@@ -123,9 +123,9 @@ export class SuperAdminAccountingComponent {
     { key: 'date', label: 'Date' },
     { key: 'type', label: 'Type' },
     { key: 'description', label: 'Description' },
-    { key: 'debit', label: 'Debit' },
-    { key: 'credit', label: 'Credit' },
-    { key: 'balance', label: 'Balance' },
+    { key: 'debit', label: 'Debit', align: 'right' },
+    { key: 'credit', label: 'Credit', align: 'right' },
+    { key: 'balance', label: 'Balance', align: 'right' },
   ];
 
   protected export(): void {

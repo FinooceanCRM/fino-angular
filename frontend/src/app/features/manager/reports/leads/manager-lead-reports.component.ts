@@ -16,8 +16,8 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
 import { BarDatum } from '@features/super-admin/data/models/report.model';
 import { exportToCsv } from '@features/super-admin/data/csv-export.util';
 import { bucketByWeek, defaultFrom, defaultTo, inRange } from '@features/super-admin/data/report-date-range.util';
-import { HorizontalBarListComponent } from '@features/super-admin/reports/charts/horizontal-bar-list.component';
-import { TrendChartComponent, TrendPoint } from '@features/super-admin/reports/charts/trend-chart.component';
+import { HorizontalBarListComponent } from '@shared/components/horizontal-bar-list.component';
+import { TrendChartComponent, TrendPoint } from '@shared/components/trend-chart.component';
 
 import { Lead, LEAD_STATUS_CATALOGUE, LOAN_TYPE_CATALOGUE } from '../../data/models/lead-catalogue.model';
 import { ManagerLeadsDataProvider } from '../../data/providers/manager-leads.provider';

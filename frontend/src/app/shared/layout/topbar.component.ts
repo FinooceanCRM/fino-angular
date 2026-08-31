@@ -1,25 +1,24 @@
-import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, HostListener, inject, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { AuthService } from '@core/services/auth.service';
 import { environment } from '@env/environment';
 
-import { SuperAdminSearchTriggerComponent } from '@features/super-admin/search/search-trigger/super-admin-search-trigger.component';
+import { SuperAdminSearchOverlayComponent } from '@features/super-admin/search/search-overlay/super-admin-search-overlay.component';
 
 import { NotificationIconComponent } from './notification-icon.component';
 import { UserMenuComponent } from './user-menu.component';
 
-/** Top navigation bar: brand, sidebar toggle, lead search, notifications, account menu. */
+/** Top navigation bar: brand, sidebar toggle, global search, notifications, account menu. */
 @Component({
   selector: 'app-topbar',
   standalone: true,
   imports: [
-    FormsModule,
     MatToolbarModule,
     MatButtonModule,
     MatIconModule,
@@ -27,7 +26,6 @@ import { UserMenuComponent } from './user-menu.component';
     RouterLink,
     RouterLinkActive,
     NotificationIconComponent,
-    SuperAdminSearchTriggerComponent,
     UserMenuComponent,
   ],
   templateUrl: './topbar.component.html',
@@ -38,18 +36,29 @@ export class TopbarComponent {
   protected readonly auth = inject(AuthService);
   protected readonly appName = environment.appName;
 
-  private readonly router = inject(Router);
+  private readonly dialog = inject(MatDialog);
 
   readonly menuToggle = output<void>();
 
-  protected searchTerm = '';
+  @HostListener('document:keydown', ['$event'])
+  protected onGlobalKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+      event.preventDefault();
+      this.openSearch();
+    }
+  }
 
-  protected search(): void {
-    const term = this.searchTerm.trim();
-    if (!term) {
+  protected openSearch(): void {
+    if (this.dialog.openDialogs.length > 0) {
       return;
     }
 
-    void this.router.navigate(['/leads'], { queryParams: { search: term } });
+    this.dialog.open(SuperAdminSearchOverlayComponent, {
+      width: '640px',
+      maxWidth: '92vw',
+      position: { top: '96px' },
+      panelClass: 'search-overlay-panel',
+      autoFocus: false,
+    });
   }
 }

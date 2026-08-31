@@ -15,6 +15,7 @@ import { NormalizedApiError } from '@core/interceptors/error.interceptor';
 import { ManagerProfile } from '@core/models/manager.model';
 import { AuthService } from '@core/services/auth.service';
 import { ManagerService } from '@core/services/manager.service';
+import { ProfileHeaderComponent } from '@shared/components/profile-header.component';
 
 /** Profile — User profile (real `managers/profile`), Settings (real `auth/preferences`) and Password management (real `auth/password`). */
 @Component({
@@ -30,6 +31,7 @@ import { ManagerService } from '@core/services/manager.service';
     MatSlideToggleModule,
     MatTabsModule,
     PageHeaderComponent,
+    ProfileHeaderComponent,
   ],
   templateUrl: './manager-profile.component.html',
   styleUrl: './manager-profile.component.scss',
@@ -45,6 +47,8 @@ export class ManagerProfileComponent {
 
   protected readonly email = signal('');
   protected readonly managerCode = signal('');
+  protected readonly displayName = signal('');
+  protected readonly displaySubtitle = signal('');
 
   // ---------- User profile ----------
   protected readonly profileForm = this.fb.nonNullable.group({
@@ -99,6 +103,10 @@ export class ManagerProfileComponent {
     this.profile.set(profile);
     this.email.set(profile.user.email);
     this.managerCode.set(profile.manager_code ?? '—');
+    this.displayName.set(profile.user.name ?? '');
+    const roleLabel = profile.user.role_label ?? 'Manager';
+    const meta = profile.branch ? `${profile.branch} Branch` : profile.region || '';
+    this.displaySubtitle.set(meta ? `${roleLabel} · ${meta}` : roleLabel);
     this.resetProfile();
   }
 

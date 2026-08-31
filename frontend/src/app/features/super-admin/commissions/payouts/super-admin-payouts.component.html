@@ -1,5 +1,5 @@
 <div class="commission-page__header">
-  <app-page-header title="Payouts" subtitle="The payout queue and payment history for connectors and affiliates." />
+  <app-page-header icon="account_balance_wallet" title="Payouts" subtitle="The payout queue and payment history for connectors and affiliates." />
   <button mat-stroked-button type="button" (click)="export()">
     <mat-icon>download</mat-icon>
     Export CSV
@@ -9,8 +9,8 @@
 <div class="commission-page__summary">
   <app-stat-card icon="receipt_long" [value]="summary().totalCount" label="Total payouts" accent="primary" />
   <app-stat-card icon="hourglass_top" [value]="'₹' + (summary().pendingAmount | number: '1.0-0')" label="Pending amount" accent="accent" />
-  <app-stat-card icon="task_alt" [value]="'₹' + (summary().paidThisMonth | number: '1.0-0')" label="Paid — last 30 days" />
-  <app-stat-card icon="error_outline" [value]="summary().failedCount" label="Failed" />
+  <app-stat-card icon="task_alt" [value]="'₹' + (summary().paidThisMonth | number: '1.0-0')" label="Paid — last 30 days" accent="success" />
+  <app-stat-card icon="error_outline" [value]="summary().failedCount" label="Failed" accent="warn" />
 </div>
 
 <mat-card class="commission-page__toolbar">
@@ -34,7 +34,22 @@
 <mat-card class="commission-page__table-card">
   <mat-card-content>
     <app-table [columns]="columns" [rows]="filteredRows()" emptyMessage="No payouts match the current filters.">
-      <ng-template appTableCell="amount" let-row> ₹{{ row.amount | number: '1.0-0' }} </ng-template>
+      <ng-template appTableCell="payee_name" let-row>
+        <div class="payout-page__payee-cell">
+          <span
+            class="payout-page__avatar"
+            [class.payout-page__avatar--affiliate]="row.payee_type === 'affiliate'"
+          >{{ initials(row.payee_name) }}</span>
+          <span class="payout-page__payee-text">
+            <strong>{{ row.payee_name }}</strong>
+            <small>{{ payeeTypeLabel(row.payee_type) }}</small>
+          </span>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="amount" let-row>
+        <span class="payout-page__amount">₹{{ row.amount | number: '1.0-0' }}</span>
+      </ng-template>
 
       <ng-template appTableCell="status" let-row>
         <app-status-pill [label]="row.status" [colour]="colourFor(row.status)" />
@@ -45,16 +60,46 @@
       </ng-template>
 
       <ng-template #rowActions let-row>
-        @if (row.status === 'pending') {
-          <button mat-stroked-button type="button" (click)="approve(row)">Approve</button>
-        }
-        @if (row.status === 'processing') {
-          <button mat-stroked-button type="button" (click)="markPaid(row)">Mark as paid</button>
-        }
         @if (row.status === 'pending' || row.status === 'processing') {
-          <button mat-stroked-button type="button" color="warn" (click)="reject(row)">Reject</button>
+          <button
+            mat-stroked-button
+            color="primary"
+            type="button"
+            class="payout-page__process-btn"
+            [matMenuTriggerFor]="processMenu"
+            [matMenuTriggerData]="{ row: row }"
+          >
+            Process
+          </button>
         }
       </ng-template>
     </app-table>
   </mat-card-content>
 </mat-card>
+
+<!--
+  Mockup shows one "Process" pill per row; the real page has three distinct
+  actions (approve / mark paid / reject). Rather than collapsing them into
+  one ambiguous button, "Process" opens a menu offering whichever of the
+  real actions apply to that row's status — no capability is dropped.
+-->
+<mat-menu #processMenu="matMenu">
+  <ng-template matMenuContent let-row="row">
+    @if (row.status === 'pending') {
+      <button mat-menu-item type="button" (click)="approve(row)">
+        <mat-icon>check_circle</mat-icon>
+        <span>Approve</span>
+      </button>
+    }
+    @if (row.status === 'processing') {
+      <button mat-menu-item type="button" (click)="markPaid(row)">
+        <mat-icon>task_alt</mat-icon>
+        <span>Mark as paid</span>
+      </button>
+    }
+    <button mat-menu-item type="button" (click)="reject(row)">
+      <mat-icon>cancel</mat-icon>
+      <span>Reject</span>
+    </button>
+  </ng-template>
+</mat-menu>

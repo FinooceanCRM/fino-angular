@@ -74,7 +74,7 @@ export interface FilterFieldConfig {
           <mat-icon>filter_alt_off</mat-icon>
           Clear
         </button>
-        <button mat-flat-button color="primary" type="submit">
+        <button mat-flat-button color="primary" type="submit" class="tide-cta-pill">
           <mat-icon>filter_alt</mat-icon>
           Apply
         </button>
