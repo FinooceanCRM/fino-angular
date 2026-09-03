@@ -98,6 +98,32 @@
   align-items: center;
 }
 
+.lead-detail__assignment-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.lead-detail__assignment-remarks {
+  grid-column: 1 / -1;
+  width: 100%;
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+}
+
+@media (max-width: 600px) {
+  .lead-detail__assignment-form {
+    grid-template-columns: 1fr;
+  }
+
+  .lead-detail__assignment-remarks {
+    grid-column: auto;
+  }
+}
+
 .lead-detail__match-actions {
   display: flex;
   flex-wrap: wrap;

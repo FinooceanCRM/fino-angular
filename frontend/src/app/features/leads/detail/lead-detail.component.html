@@ -428,18 +428,26 @@
           @if (canAssign() && assignees().length > 0) {
             <mat-card class="lead-detail__form-card">
               <h3 class="lead-detail__section-title">Assign lead</h3>
-              <form class="lead-detail__inline-form" [formGroup]="assignForm" (ngSubmit)="assign()">
+              <form class="lead-detail__inline-form lead-detail__assignment-form" [formGroup]="assignForm" (ngSubmit)="assign()">
                 <mat-form-field appearance="outline">
-                  <mat-label>Assign to</mat-label>
-                  <mat-select formControlName="assignee_id">
-                    @for (user of assignees(); track user.id) {
-                      <mat-option [value]="user.id">{{ user.name }} ({{ user.role }})</mat-option>
+                  <mat-label>Employee type</mat-label>
+                  <mat-select [value]="selectedAssigneeRole()" (selectionChange)="selectAssigneeRole($event.value)">
+                    @for (role of assignableRoles(); track role.value) {
+                      <mat-option [value]="role.value">{{ role.label }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>
                 <mat-form-field appearance="outline">
+                  <mat-label>Assign to</mat-label>
+                  <mat-select formControlName="assignee_id" [disabled]="!selectedAssigneeRole()">
+                    @for (user of filteredAssignees(); track user.id) {
+                      <mat-option [value]="user.id">{{ user.name }}</mat-option>
+                    }
+                  </mat-select>
+                </mat-form-field>
+                <mat-form-field appearance="outline" class="lead-detail__assignment-remarks">
                   <mat-label>Remarks</mat-label>
-                  <input matInput formControlName="remarks" />
+                  <textarea matInput rows="5" formControlName="remarks"></textarea>
                 </mat-form-field>
                 <button mat-flat-button color="primary" type="submit">Assign lead</button>
               </form>
@@ -458,7 +466,7 @@
       </div>
     </mat-tab>
 
-    @if (!isConnector()) {
+    @if (canViewBankMatches) {
     <mat-tab label="Bank matches">
       <div class="lead-detail__tab-body">
         <div class="lead-detail__match-actions">

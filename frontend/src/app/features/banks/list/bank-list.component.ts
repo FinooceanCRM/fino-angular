@@ -134,16 +134,16 @@ export class BankListComponent implements OnInit {
   });
 
   canManage(): boolean {
-    return this.auth.hasRole('super_admin', 'banker');
+    return this.auth.hasRole('super_admin', 'manager');
   }
 
   isMine(row: BankCriteria): boolean {
     return this.auth.hasRole('banker') && row.banker_id === this.auth.user()?.id;
   }
 
-  /** Super Admin can toggle any row; a Banker can only toggle their own. */
+  /** Super Admin and Managers can toggle bank products. */
   canToggle(row: BankCriteria): boolean {
-    return this.auth.hasRole('super_admin') || this.isMine(row);
+    return this.auth.hasRole('super_admin', 'manager');
   }
 
   ngOnInit(): void {

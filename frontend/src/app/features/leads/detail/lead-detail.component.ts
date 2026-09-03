@@ -108,6 +108,7 @@ export class LeadDetailComponent implements OnInit {
   readonly detail = signal<LeadDetail | null>(null);
   readonly statuses = signal<CatalogueOption[]>([]);
   readonly assignees = signal<UserSummary[]>([]);
+  readonly selectedAssigneeRole = signal('');
   readonly documents = signal<LeadDocument[]>([]);
   readonly documentTypes = signal<DocumentTypeOption[]>([]);
   readonly accessRequests = signal<AccessRequest[]>([]);
@@ -233,6 +234,7 @@ export class LeadDetailComponent implements OnInit {
   });
   /** Mirrors LoanLeadPolicy::assign() server-side — only Super Admin/Manager/RM may reassign a lead; an Employee never may. */
   protected readonly canAssign = computed(() => this.detail()?.lead.can_assign ?? false);
+  protected readonly canViewBankMatches = this.auth.hasRole('super_admin', 'manager');
   /**
    * Mirrors LoanLeadPolicy::changeStatus() server-side. True for the usual
    * hierarchy roles and for a full-access Banker; for an Employee it's true
@@ -482,6 +484,22 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
+  protected readonly assignableRoles = computed(() =>
+    [...new Set(this.assignees().map((user) => user.role))].map((role) => ({
+      value: role,
+      label: role.replace(/_/g, ' ').replace(/\b\w/g, (letter) => letter.toUpperCase()),
+    })),
+  );
+
+  protected readonly filteredAssignees = computed(() =>
+    this.assignees().filter((user) => user.role === this.selectedAssigneeRole()),
+  );
+
+  protected selectAssigneeRole(role: string): void {
+    this.selectedAssigneeRole.set(role);
+    this.assignForm.controls.assignee_id.setValue(0);
+  }
+
   protected scoreColour(score: number): string {
     if (score >= 80) {
       return 'success';
@@ -495,7 +513,7 @@ export class LeadDetailComponent implements OnInit {
   onTabChange(index: number): void {
     this.selectedTab.set(index);
 
-    if (index === this.bankMatchesTab && !this.matchesAutoRun) {
+    if (this.canViewBankMatches && index === this.bankMatchesTab && !this.matchesAutoRun) {
       this.matchesAutoRun = true;
       this.runMatching();
     }

@@ -16,6 +16,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterLink } from '@angular/router';
 
 import { AssignableUser, UserSummary } from '@core/models/lead.model';
+import { AuthService } from '@core/services/auth.service';
 import { LeadService } from '@core/services/lead.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
@@ -104,6 +105,7 @@ export class ManagerLeadStatusTableComponent {
   readonly allowReassign = input(true);
 
   private readonly fb = inject(FormBuilder);
+  private readonly auth = inject(AuthService);
   private readonly leads = inject(LeadService);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -136,12 +138,15 @@ export class ManagerLeadStatusTableComponent {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly assignableStaff = signal<AssignableUser[]>([]);
+  protected readonly canViewSource = computed(() =>
+    this.auth.hasRole('super_admin', 'manager', 'relationship_manager'),
+  );
 
   protected readonly columns = computed<TableColumn<Lead>[]>(() => [
     ...(this.allowReassign() ? [{ key: 'select', label: '' }] : []),
     { key: 'reference', label: 'Reference' },
     { key: 'applicant_name', label: 'Applicant' },
-    { key: 'source', label: 'Source' },
+    ...(this.canViewSource() ? [{ key: 'source', label: 'Source' }] : []),
     { key: 'loan', label: 'Loan' },
     { key: 'city', label: 'City', formatter: (row) => row.city ?? '—' },
     { key: 'assignee', label: 'Assigned to' },

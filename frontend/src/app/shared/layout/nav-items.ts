@@ -60,12 +60,7 @@ export function roleNavItems(auth: AuthService): NavItem[] {
     return [
       { label: 'RM dashboard', link: '/relationship-manager/dashboard', icon: 'dashboard' },
       { label: 'Employees', link: '/relationship-manager/employees', icon: 'groups' },
-      { label: 'Connectors', link: '/relationship-manager/connectors', icon: 'hub' },
       { label: 'My Submitted Leads', link: '/relationship-manager/leads/my-submitted', icon: 'link' },
-      // Activities — Calls/Meetings/Tasks/Reminders tabs (Phase 4), scoped
-      // to this RM's team; a filtered view over the same Tasks API as the
-      // shared Tasks module below, not a separate feature.
-      { label: 'Follow-ups', link: '/relationship-manager/follow-ups', icon: 'event_repeat' },
       // KYC Verification (Phase 5, Part B) — real Document feature, scoped
       // to this RM's own leads.
       { label: 'KYC verification', link: '/relationship-manager/kyc', icon: 'fact_check' },
@@ -137,10 +132,7 @@ export function roleNavItems(auth: AuthService): NavItem[] {
 /** Loan management workspace (Phase 9), shared by every authenticated role. */
 export const WORKSPACE_NAV_ITEMS: NavItem[] = [
   { label: 'Leads', link: '/leads', icon: 'assignment' },
-  // Customer Management (Phase 3) — shared by every authenticated role,
-  // same as Leads/Banks/Documents/Reports/Notifications below.
-  { label: 'Customers', link: '/customers', icon: 'groups' },
-  // Tasks (Phase 4) — shared by every authenticated role, same as Customers.
+  // Tasks (Phase 4) — shared by every authenticated role.
   { label: 'Tasks', link: '/tasks', icon: 'checklist' },
   { label: 'Banks', link: '/banks', icon: 'account_balance' },
   { label: 'Documents', link: '/documents', icon: 'description' },

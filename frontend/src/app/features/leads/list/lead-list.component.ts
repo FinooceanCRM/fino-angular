@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -79,7 +79,16 @@ export class LeadListComponent implements OnInit {
   /** Telecallers work leads assigned to them; they don't create new ones. */
   readonly canCreateLead = !this.auth.hasRole('telecaller');
 
-  readonly columns = ['reference', 'applicant', 'source', 'loan', 'assignee', 'status', 'created', 'actions'];
+  readonly canViewSource = this.auth.hasRole('super_admin', 'manager', 'relationship_manager');
+  readonly tableColumns = computed(() => [
+    { key: 'reference', label: 'Reference' },
+    { key: 'applicant', label: 'Applicant' },
+    ...(this.canViewSource ? [{ key: 'source', label: 'Source' }] : []),
+    { key: 'loan', label: 'Loan' },
+    { key: 'assignee', label: 'Assigned to' },
+    { key: 'status', label: 'Status' },
+    { key: 'created', label: 'Created' },
+  ]);
 
   readonly rows = signal<Lead[]>([]);
   readonly meta = signal<PaginationMeta>({

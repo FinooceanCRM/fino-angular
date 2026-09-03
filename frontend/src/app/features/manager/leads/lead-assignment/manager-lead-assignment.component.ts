@@ -55,9 +55,21 @@ export class ManagerLeadAssignmentComponent {
   protected readonly history = signal<LeadAssignmentHistoryEntry[]>([]);
   protected readonly assignableStaffRaw = signal<AssignableUser[]>([]);
   protected readonly loading = signal(false);
+  protected readonly selectedRole = signal('');
 
   protected readonly assignableStaff = computed(() =>
     this.assignableStaffRaw().map((person) => ({ ...person, role_label: ROLE_LABEL[person.role] ?? person.role })),
+  );
+
+  protected readonly assignableRoles = computed(() =>
+    [...new Set(this.assignableStaffRaw().map((person) => person.role))].map((role) => ({
+      value: role,
+      label: ROLE_LABEL[role] ?? role,
+    })),
+  );
+
+  protected readonly filteredAssignees = computed(() =>
+    this.assignableStaff().filter((person) => person.role === this.selectedRole()),
   );
 
   protected readonly currentAssignee = computed(() => {
@@ -111,5 +123,10 @@ export class ManagerLeadAssignmentComponent {
         this.snackBar.open('Could not reassign this lead.', 'Dismiss', { duration: 4000 });
       },
     });
+  }
+
+  protected selectRole(role: string): void {
+    this.selectedRole.set(role);
+    this.form.controls.assigneeId.setValue(0);
   }
 }

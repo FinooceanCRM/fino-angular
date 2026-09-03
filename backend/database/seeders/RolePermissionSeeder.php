@@ -92,6 +92,7 @@ class RolePermissionSeeder extends Seeder
                 // gets 'manage_except_delete' (view/create/edit only).
                 'customers' => 'manage_except_delete',
                 'tasks' => 'manage_except_delete',
+                'banking' => 'view',
                 'dashboard' => 'view',
                 'notifications' => 'view',
             ],
@@ -106,10 +107,11 @@ class RolePermissionSeeder extends Seeder
                 'leads' => ['view', 'create'],
                 'customers' => 'manage_except_delete',
                 'tasks' => 'manage_except_delete',
+                'banking' => 'view',
                 'notifications' => 'view',
             ],
             UserRole::Banker->value => [
-                'banking' => 'manage',
+                'banking' => 'view',
                 'dashboard' => 'view',
                 'leads' => 'view',
                 'customers' => 'manage_except_delete',

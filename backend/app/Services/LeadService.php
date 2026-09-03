@@ -148,7 +148,7 @@ class LeadService extends BaseService
 
             $cascade = $this->cascadeAssignmentAttributes($assignee);
             if ($cascade === []) {
-                throw new DomainException('Leads can only be assigned to managers, relationship managers, employees or bankers.', 422);
+                throw new DomainException('Leads can only be assigned to managers, relationship managers, employees, bankers or connectors.', 422);
             }
             $attributes = array_merge($attributes, $cascade);
 
@@ -375,7 +375,7 @@ class LeadService extends BaseService
                     UserRole::Manager->value,
                     UserRole::RelationshipManager->value,
                     UserRole::Employee->value,
-                ])->orWhereIn('role', [UserRole::Banker->value, UserRole::Telecaller->value]);
+                ])->orWhereIn('role', [UserRole::Banker->value, UserRole::Telecaller->value, UserRole::Connector->value]);
             }),
             UserRole::Manager, UserRole::RelationshipManager => $query->where(function ($q) use ($actor): void {
                 $q->where(function ($sub) use ($actor): void {
@@ -386,7 +386,7 @@ class LeadService extends BaseService
                         $sub->where('relationship_manager_id', $actor->id)
                             ->where('role', UserRole::Employee->value);
                     }
-                })->orWhereIn('role', [UserRole::Banker->value, UserRole::Telecaller->value]);
+                })->orWhereIn('role', [UserRole::Banker->value, UserRole::Telecaller->value, UserRole::Connector->value]);
             }),
             default => $query->whereRaw('1 = 0'),
         };
@@ -431,6 +431,9 @@ class LeadService extends BaseService
             UserRole::Telecaller => [
                 'assigned_telecaller_id' => $user->id,
             ],
+            UserRole::Connector => [
+                'connector_id' => $user->id,
+            ],
             default => [],
         };
     }
@@ -442,7 +445,7 @@ class LeadService extends BaseService
         // for either — any actor who can already assign leads (Super Admin,
         // Manager, RM; enforced by LoanLeadPolicy::assign) may route a lead
         // to any active banker or telecaller.
-        if (in_array($assignee->roleEnum(), [UserRole::Banker, UserRole::Telecaller], true)) {
+        if (in_array($assignee->roleEnum(), [UserRole::Banker, UserRole::Telecaller, UserRole::Connector], true)) {
             $allowed = in_array($actor->roleEnum(), [
                 UserRole::SuperAdmin,
                 UserRole::Manager,

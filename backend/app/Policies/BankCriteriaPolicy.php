@@ -6,7 +6,7 @@ use App\Enums\UserRole;
 use App\Models\BankCriteria;
 use App\Models\User;
 
-/** Bank criteria are readable by the hierarchy, writable by Super Admin only. */
+/** Bank criteria are readable by active users and writable by Super Admin or Manager. */
 class BankCriteriaPolicy
 {
     public function viewAny(User $actor): bool
@@ -19,21 +19,19 @@ class BankCriteriaPolicy
         return $actor->is_active;
     }
 
-    /** Super Admin manages every bank's criteria; a Banker manages their own. */
+    /** Super Admin and Managers can create bank criteria. */
     public function create(User $actor): bool
     {
-        return in_array($actor->roleEnum(), [UserRole::SuperAdmin, UserRole::Banker], true);
+        return in_array($actor->roleEnum(), [UserRole::SuperAdmin, UserRole::Manager], true);
     }
 
     public function update(User $actor, BankCriteria $criteria): bool
     {
-        return $actor->roleEnum() === UserRole::SuperAdmin
-            || ($actor->roleEnum() === UserRole::Banker && $criteria->banker_id === $actor->id);
+        return in_array($actor->roleEnum(), [UserRole::SuperAdmin, UserRole::Manager], true);
     }
 
     public function delete(User $actor, BankCriteria $criteria): bool
     {
-        return $actor->roleEnum() === UserRole::SuperAdmin
-            || ($actor->roleEnum() === UserRole::Banker && $criteria->banker_id === $actor->id);
+        return in_array($actor->roleEnum(), [UserRole::SuperAdmin, UserRole::Manager], true);
     }
 }

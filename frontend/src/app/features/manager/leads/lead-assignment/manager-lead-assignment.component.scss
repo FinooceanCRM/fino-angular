@@ -9,6 +9,32 @@
   width: 100%;
 }
 
+.lead-assignment__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--app-space-3);
+  align-items: start;
+}
+
+.lead-assignment__remarks-field {
+  grid-column: 1 / -1;
+
+  textarea {
+    min-height: 120px;
+    resize: vertical;
+  }
+}
+
+@media (max-width: 600px) {
+  .lead-assignment__form {
+    grid-template-columns: 1fr;
+  }
+
+  .lead-assignment__remarks-field {
+    grid-column: auto;
+  }
+}
+
 .lead-assignment__history {
   list-style: none;
   margin: 0;

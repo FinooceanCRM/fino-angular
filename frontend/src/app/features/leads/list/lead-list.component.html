@@ -54,15 +54,7 @@
 <mat-card class="lead-list__table-card">
   <mat-card-content>
     <app-table
-      [columns]="[
-        { key: 'reference', label: 'Reference' },
-        { key: 'applicant', label: 'Applicant' },
-        { key: 'source', label: 'Source' },
-        { key: 'loan', label: 'Loan' },
-        { key: 'assignee', label: 'Assigned to' },
-        { key: 'status', label: 'Status' },
-        { key: 'created', label: 'Created' }
-      ]"
+      [columns]="tableColumns()"
       [rows]="rows()"
       [loading]="loading()"
       emptyMessage="No leads match the current filters."
@@ -82,9 +74,11 @@
         </div>
       </ng-template>
 
-      <ng-template appTableCell="source" let-row>
-        <span [matTooltip]="sourceTooltip(row)" matTooltipClass="app-tooltip--multiline">{{ sourceLabel(row) }}</span>
-      </ng-template>
+      @if (canViewSource) {
+        <ng-template appTableCell="source" let-row>
+          <span [matTooltip]="sourceTooltip(row)" matTooltipClass="app-tooltip--multiline">{{ sourceLabel(row) }}</span>
+        </ng-template>
+      }
 
       <ng-template appTableCell="loan" let-row>
         {{ row.loan_type }} · {{ row.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}

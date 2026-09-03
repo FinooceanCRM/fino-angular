@@ -11,6 +11,7 @@ enum Permission: string
     case CreateUsers = 'users.create';
     case UpdateUsers = 'users.update';
     case DeleteUsers = 'users.delete';
+    case ViewBanking = 'banking.view';
 
     /**
      * @return array<int, string>
@@ -33,7 +34,9 @@ enum Permission: string
                 self::ViewUsers,
                 self::CreateUsers,
                 self::UpdateUsers,
+                self::ViewBanking,
             ],
+            UserRole::Employee, UserRole::Banker, UserRole::Connector => [self::ViewBanking],
             default => [],
         };
     }
