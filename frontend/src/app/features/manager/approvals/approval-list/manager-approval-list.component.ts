@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -53,7 +53,7 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
   styleUrl: './manager-approval-list.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ManagerApprovalListComponent {
+export class ManagerApprovalListComponent implements OnInit {
   readonly type = input.required<ApprovalType>();
 
   private readonly approvalsApi = inject(ApprovalService);
@@ -76,7 +76,7 @@ export class ManagerApprovalListComponent {
     { key: 'status', label: 'Status' },
   ];
 
-  constructor() {
+  ngOnInit(): void {
     this.load();
   }
 
