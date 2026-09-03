@@ -1,0 +1,114 @@
+.criteria-details__subtitle {
+  margin: -8px 0 var(--app-space-4, 16px);
+  color: var(--app-status-default-fg);
+  font-size: 0.875rem;
+}
+
+.criteria-details__section {
+  margin-bottom: var(--app-space-4, 16px);
+  padding-bottom: var(--app-space-3, 12px);
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.criteria-details__section h3 {
+  margin: 0 0 var(--app-space-2, 8px);
+  color: var(--tide-color-text-primary, #17324d);
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.criteria-details__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--app-space-3, 12px) var(--app-space-5, 20px);
+  margin: 0;
+}
+
+.criteria-details__grid > div {
+  min-width: 0;
+}
+
+.criteria-details__grid dt {
+  color: var(--tide-color-action, #e9582c);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.criteria-details__grid dd {
+  margin: 3px 0 0;
+  color: var(--tide-color-text-primary, #17324d);
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.criteria-details__wide {
+  grid-column: 1 / -1;
+}
+
+.criteria-details__rules {
+  display: grid;
+  gap: var(--app-space-2, 8px);
+}
+
+.criteria-details__rule {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--app-space-3, 12px);
+  padding: var(--app-space-2, 8px) 0;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+}
+
+.criteria-details__rule span {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.criteria-details__empty {
+  margin: 0;
+  color: var(--app-status-default-fg);
+}
+
+.criteria-details__footer {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3, 12px);
+  color: var(--app-status-default-fg);
+  font-size: 0.8rem;
+}
+
+.criteria-details__status {
+  color: var(--app-status-success-fg, #176b45);
+  font-weight: 700;
+}
+
+.criteria-details__status--inactive {
+  color: var(--app-status-default-fg);
+}
+
+@media (max-width: 560px) {
+  .criteria-details__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .criteria-details__wide {
+    grid-column: auto;
+  }
+
+  .criteria-details__rule {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .criteria-details__rule span {
+    text-align: left;
+  }
+}
+
+@media (min-width: 561px) and (max-width: 760px) {
+  .criteria-details__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

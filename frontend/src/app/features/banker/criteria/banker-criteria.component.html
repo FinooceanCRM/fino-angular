@@ -60,6 +60,9 @@
       </ng-template>
 
       <ng-template #rowActions let-row>
+        <button mat-icon-button type="button" matTooltip="View full criteria" aria-label="View full criteria" (click)="viewCriteria(row)">
+          <mat-icon>visibility</mat-icon>
+        </button>
         <button mat-icon-button type="button" matTooltip="Edit" aria-label="Edit" (click)="editCriteria(row)">
           <mat-icon>edit</mat-icon>
         </button>

@@ -24,6 +24,10 @@ import { BankService } from '@core/services/bank.service';
 import { LeadService } from '@core/services/lead.service';
 
 import { BankerCriteriaDialogComponent, BankerCriteriaDialogData } from './criteria-dialog/banker-criteria-dialog.component';
+import {
+  BankerCriteriaDetailsDialogComponent,
+  BankerCriteriaDetailsDialogData,
+} from './criteria-details-dialog/banker-criteria-details-dialog.component';
 
 /**
  * Bank Criteria, Banker-scoped — real `BankService`, not mock data. The
@@ -155,6 +159,19 @@ export class BankerCriteriaComponent implements OnInit {
 
   protected editCriteria(row: BankCriteria): void {
     this.openDialog(row);
+  }
+
+  protected viewCriteria(row: BankCriteria): void {
+    this.dialog.open(BankerCriteriaDetailsDialogComponent, {
+      width: '900px',
+      maxWidth: 'calc(100vw - 32px)',
+      panelClass: 'criteria-details-dialog-panel',
+      data: {
+        criteria: row,
+        loanTypes: this.loanTypes(),
+        employmentTypes: this.employmentTypes(),
+      } satisfies BankerCriteriaDetailsDialogData,
+    });
   }
 
   protected toggle(row: BankCriteria): void {

@@ -1,0 +1,62 @@
+<app-modal title="Lending criteria details" [showActions]="true">
+  <p class="criteria-details__subtitle">
+    {{ criteriaRows[0].bank_name }} · {{ criteriaRows.length }} product{{ criteriaRows.length === 1 ? '' : 's' }}
+  </p>
+
+  @for (criteriaRow of criteriaRows; track criteriaRow.id) {
+  <section class="criteria-details__section" aria-labelledby="criteria-basic-title">
+    <h3 id="criteria-basic-title">Basic criteria</h3>
+    <dl class="criteria-details__grid">
+      <div><dt>Bank</dt><dd>{{ criteriaRow.bank_name }}</dd></div>
+      <div><dt>Product</dt><dd>{{ criteriaRow.product_name }}</dd></div>
+      <div><dt>Loan type</dt><dd>{{ loanTypeLabel(criteriaRow.loan_type) }}</dd></div>
+      <div><dt>Employment type</dt><dd>{{ employmentTypeLabel(criteriaRow.employment_type) }}</dd></div>
+      <div><dt>Loan amount</dt><dd>{{ criteriaRow.min_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }} – {{ criteriaRow.max_loan_amount ? (criteriaRow.max_loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0') : 'No cap' }}</dd></div>
+      <div><dt>Minimum monthly income</dt><dd>{{ criteriaRow.min_monthly_income | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+      <div><dt>Minimum credit score</dt><dd>{{ criteriaRow.min_credit_score ?? 'Any' }}</dd></div>
+      <div><dt>Interest rate</dt><dd>{{ criteriaRow.interest_rate !== null ? criteriaRow.interest_rate + '%' : 'Not specified' }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="criteria-details__section" aria-labelledby="criteria-advanced-title">
+    <h3 id="criteria-advanced-title">Advanced criteria</h3>
+    <dl class="criteria-details__grid">
+      <div><dt>Age range</dt><dd>{{ criteriaRow.min_age ?? 'No minimum' }} – {{ criteriaRow.max_age ?? 'No maximum' }}</dd></div>
+      <div><dt>Maximum tenure</dt><dd>{{ criteriaRow.max_tenure_months !== null ? criteriaRow.max_tenure_months + ' months' : 'Not specified' }}</dd></div>
+      <div><dt>Processing fee</dt><dd>{{ criteriaRow.processing_fee || 'Not specified' }}</dd></div>
+      <div><dt>FOIR / DBR</dt><dd>{{ criteriaRow.foir_dbr !== null ? criteriaRow.foir_dbr + '%' : 'Not specified' }}</dd></div>
+      <div><dt>Business vintage</dt><dd>{{ criteriaRow.business_vintage_years !== null ? criteriaRow.business_vintage_years + ' years' : 'Not specified' }}</dd></div>
+      <div><dt>Eligible locations</dt><dd>{{ criteriaRow.eligible_locations || 'All locations' }}</dd></div>
+      <div><dt>Negative profile rules</dt><dd>{{ criteriaRow.negative_profile_rules || 'None specified' }}</dd></div>
+      <div class="criteria-details__wide"><dt>Special conditions</dt><dd>{{ criteriaRow.special_conditions || 'None specified' }}</dd></div>
+    </dl>
+  </section>
+
+  <section class="criteria-details__section" aria-labelledby="criteria-rules-title">
+    <h3 id="criteria-rules-title">Eligibility rules</h3>
+    @if (criteriaRow.eligibility_rules.length > 0) {
+      <div class="criteria-details__rules">
+        @for (rule of criteriaRow.eligibility_rules; track $index) {
+          <div class="criteria-details__rule">
+            <strong>{{ rule.label || rule.field }}</strong>
+            <span>{{ rule.operator }} {{ ruleValue(rule) }}</span>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="criteria-details__empty">No additional eligibility rules.</p>
+    }
+  </section>
+
+  <div class="criteria-details__footer">
+    <span class="criteria-details__status" [class.criteria-details__status--inactive]="!criteriaRow.is_active">
+      {{ criteriaRow.is_active ? 'Active' : 'Inactive' }}
+    </span>
+    @if (criteriaRow.updated_at) {
+      <span>Updated {{ criteriaRow.updated_at | date: 'mediumDate' }}</span>
+    }
+  </div>
+  }
+
+  <button modal-actions mat-flat-button color="primary" type="button" (click)="dialogRef.close()">Close</button>
+</app-modal>

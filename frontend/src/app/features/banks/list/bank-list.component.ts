@@ -24,6 +24,10 @@ import {
   BankerCriteriaDialogComponent,
   BankerCriteriaDialogData,
 } from '../../banker/criteria/criteria-dialog/banker-criteria-dialog.component';
+import {
+  BankerCriteriaDetailsDialogComponent,
+  BankerCriteriaDetailsDialogData,
+} from '../../banker/criteria/criteria-details-dialog/banker-criteria-details-dialog.component';
 
 export interface BankGroup {
   bankName: string;
@@ -183,6 +187,19 @@ export class BankListComponent implements OnInit {
 
   editProduct(row: BankCriteria): void {
     this.openDialog(row);
+  }
+
+  viewCriteria(group: BankGroup): void {
+    this.dialog.open(BankerCriteriaDetailsDialogComponent, {
+      width: '900px',
+      maxWidth: 'calc(100vw - 32px)',
+      panelClass: 'criteria-details-dialog-panel',
+      data: {
+        criteria: group.products,
+        loanTypes: this.loanTypes(),
+        employmentTypes: this.employmentTypes(),
+      } satisfies BankerCriteriaDetailsDialogData,
+    });
   }
 
   toggle(row: BankCriteria): void {
