@@ -141,7 +141,11 @@
     </mat-card-content>
   </mat-card>
 
-  <mat-tab-group [selectedIndex]="selectedTab()" (selectedIndexChange)="onTabChange($event)">
+  <mat-tab-group
+    class="lead-detail__tabs"
+    [selectedIndex]="selectedTab()"
+    (selectedIndexChange)="onTabChange($event)"
+  >
     <mat-tab label="Overview">
       <div class="lead-detail__tab-body">
         <mat-card class="lead-detail__form-card">

@@ -1,4 +1,4 @@
-import { CurrencyPipe, DatePipe, JsonPipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -17,7 +17,7 @@ export interface BankerCriteriaDetailsDialogData {
 @Component({
   selector: 'app-banker-criteria-details-dialog',
   standalone: true,
-  imports: [CurrencyPipe, DatePipe, JsonPipe, MatButtonModule, MatIconModule, ModalComponent],
+  imports: [CurrencyPipe, DatePipe, MatButtonModule, MatIconModule, ModalComponent],
   templateUrl: './banker-criteria-details-dialog.component.html',
   styleUrl: './banker-criteria-details-dialog.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

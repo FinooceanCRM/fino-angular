@@ -70,6 +70,21 @@
   gap: var(--app-space-3);
 }
 
+.lead-detail__tabs {
+  --mat-tab-header-active-indicator-height: 0;
+
+  ::ng-deep .mat-mdc-tab.mdc-tab--active {
+    background: var(--tide-color-primary);
+    color: #fff;
+    border-radius: var(--app-radius-sm);
+    font-weight: 700;
+
+    .mdc-tab__text-label {
+      color: inherit;
+    }
+  }
+}
+
 .lead-detail__form-card {
   padding: var(--app-space-5);
   border-radius: var(--app-radius-lg);
