@@ -59,12 +59,7 @@ export function roleNavItems(auth: AuthService): NavItem[] {
   if (auth.hasRole('relationship_manager')) {
     return [
       { label: 'RM dashboard', link: '/relationship-manager/dashboard', icon: 'dashboard' },
-      // Points at the fuller tabbed "My Team" page (Hierarchy/Performance/
-      // Activities/Employees/Connectors) rather than the older standalone
-      // employees table, which stays routed (just unlinked) at
-      // `/relationship-manager/employees` so nothing that already links to
-      // it directly breaks.
-      { label: 'Employees', link: '/relationship-manager/team', icon: 'groups' },
+      { label: 'Employees', link: '/relationship-manager/employees', icon: 'groups' },
       { label: 'Connectors', link: '/relationship-manager/connectors', icon: 'hub' },
       { label: 'My Submitted Leads', link: '/relationship-manager/leads/my-submitted', icon: 'link' },
       // Activities — Calls/Meetings/Tasks/Reminders tabs (Phase 4), scoped
