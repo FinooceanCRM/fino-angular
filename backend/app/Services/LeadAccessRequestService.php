@@ -25,7 +25,7 @@ use Illuminate\Support\Collection;
  * {@see LeadAccessRequest::grantsFullAccess()} — regardless of origin.
  * Origin itself (which of the two started the request) is recorded once,
  * at creation, and is what the Banker workspace's bucket split (Priority
- * vs Assigned Leads) actually keys off — see
+ * vs Assigned Leads) uses after approval — see
  * {@see EloquentLoanLeadRepository::applyBankerBucket()}.
  */
 class LeadAccessRequestService extends BaseService
@@ -55,8 +55,8 @@ class LeadAccessRequestService extends BaseService
         }
 
         // Already assigned wins over matched when both are true — a lead a
-        // Manager handed to this banker directly is a Priority Lead no
-        // matter what it also happens to score against their criteria.
+        // Manager handed to this banker directly moves to Priority Leads
+        // only after this request is approved.
         $origin = $alreadyAssignedToMe ? AccessRequestOrigin::Priority : AccessRequestOrigin::Matched;
 
         $duplicate = LeadAccessRequest::query()
@@ -156,7 +156,13 @@ class LeadAccessRequestService extends BaseService
         $visibleLeadIds = $this->leads->visibleQuery($actor)->pluck('id');
 
         return LeadAccessRequest::query()
-            ->with(['loanLead', 'banker:id,name,email,role', 'decidedBy:id,name'])
+            ->with([
+                'loanLead.connector:id,name',
+                'loanLead.creator:id,name',
+                'banker:id,name,email,role,phone',
+                'banker.bankerProfile',
+                'decidedBy:id,name,role',
+            ])
             ->where('status', $status)
             ->where(function ($q) use ($actor, $visibleLeadIds): void {
                 $q->whereIn('loan_lead_id', $visibleLeadIds)
@@ -175,7 +181,7 @@ class LeadAccessRequestService extends BaseService
     public function forLead(LoanLead $lead)
     {
         return LeadAccessRequest::query()
-            ->with(['banker:id,name,email,role', 'decidedBy:id,name'])
+            ->with(['banker:id,name,email,role,phone', 'banker.bankerProfile', 'decidedBy:id,name,role'])
             ->where('loan_lead_id', $lead->id)
             ->orderByDesc('created_at')
             ->get();

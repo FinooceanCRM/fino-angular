@@ -1,11 +1,27 @@
-<mat-drawer-container class="access-request-list__container" [hasBackdrop]="true">
-  <app-details-drawer
+<app-details-drawer
     [title]="selected()?.banker?.name ?? 'Review'"
     [opened]="selected() !== undefined"
     [showActions]="selected()?.status === 'pending'"
     (openedChange)="!$event && closeReview()"
   >
     @if (selected(); as row) {
+      @if (row.lead; as lead) {
+        <section class="access-request-list__lead-details" aria-labelledby="super-admin-lead-details-title">
+          <div class="access-request-list__lead-details-heading">
+            <span class="access-request-list__eyebrow">Lead details</span>
+            <h3 id="super-admin-lead-details-title">{{ lead.applicant_name }}</h3>
+          </div>
+          <dl class="access-request-list__details-grid">
+            <div><dt>Reference</dt><dd>{{ lead.reference }}</dd></div>
+            <div><dt>Loan type</dt><dd>{{ labelise(lead.loan_type) }}</dd></div>
+            <div><dt>Amount</dt><dd>{{ lead.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</dd></div>
+            <div><dt>Location</dt><dd>{{ lead.city || 'Not provided' }}</dd></div>
+            <div><dt>Source name</dt><dd>{{ lead.source_name || 'Not recorded' }}</dd></div>
+            <div><dt>Lead status</dt><dd>{{ labelise(lead.status) }}</dd></div>
+          </dl>
+        </section>
+      }
+
       <p class="access-request-list__drawer-subtitle">{{ row.remarks || 'No remarks from the banker.' }}</p>
 
       @if (leadReference(row); as ref) {
@@ -38,7 +54,7 @@
     }
   </app-details-drawer>
 
-  <mat-drawer-content>
+  <div drawer-content>
     <mat-card class="access-request-list__toolbar">
       <mat-card-content class="access-request-list__toolbar-row">
         <mat-form-field appearance="outline" class="access-request-list__status">
@@ -86,7 +102,18 @@
           </ng-template>
 
           <ng-template appTableCell="banker" let-row>
-            {{ row.banker?.name ?? 'Unknown' }}
+            <button
+              class="access-request-list__requester-button"
+              type="button"
+              [attr.aria-label]="'View details for ' + (row.banker?.name ?? 'unknown banker')"
+              (click)="$event.stopPropagation(); viewBanker(row)"
+            >
+              <span class="access-request-list__avatar">{{ initials(row.banker?.name) }}</span>
+              <span class="access-request-list__requester-text">
+                <span class="access-request-list__title">{{ row.banker?.name ?? 'Unknown' }}</span>
+                <span class="access-request-list__subtitle">{{ roleLabel(row.banker?.role) }}</span>
+              </span>
+            </button>
           </ng-template>
 
           <ng-template appTableCell="status" let-row>
@@ -116,5 +143,4 @@
         </app-table>
       </mat-card-content>
     </mat-card>
-  </mat-drawer-content>
-</mat-drawer-container>
+  </div>

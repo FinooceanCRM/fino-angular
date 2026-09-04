@@ -79,11 +79,9 @@ class LeadAccessRequest extends Model
     }
 
     /**
-     * Whether this banker reached the lead via their own approved
-     * "Send Request" from Matched Leads — the one thing that actually
-     * graduates a lead out of Priority Leads and into Assigned Leads (a
-     * Manager assigning it directly, even with a later approved "Request
-     * Full Details", is not enough — see {@see AccessRequestOrigin}).
+     * Whether this banker has an approved request originating from Matched
+     * Leads. The origin remains useful for distinguishing request flows even
+     * though both approved flows grant full access.
      */
     public static function approvedFromMatched(int $loanLeadId, int $bankerId): bool
     {

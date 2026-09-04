@@ -1,56 +1,75 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSidenavModule } from '@angular/material/sidenav';
 
 /**
- * Slide-out details panel — an alternative to navigating to a detail page
- * or opening a centered modal, for "peek at this record without losing
- * your place in the list" flows. `<ng-content>` is the body; project
- * buttons into `[drawer-actions]` for a footer action row.
- *
- * Usage: wrap the page content in `<mat-drawer-container>` yourself and
- * place `<app-details-drawer>` as the `<mat-drawer>` sibling, or nest a
- * page's existing content as the drawer's sibling — this component only
- * owns the drawer panel itself, not the container, so it composes with
- * whatever layout the host page already has.
+ * Slide-out details panel for "peek at this record without losing your place
+ * in the list" flows. Page content is projected into `[drawer-content]` and
+ * buttons into `[drawer-actions]`; the panel itself is a fixed overlay so it
+ * never changes the page layout when closed.
  */
 @Component({
   selector: 'app-details-drawer',
   standalone: true,
-  imports: [MatButtonModule, MatIconModule, MatSidenavModule],
+  imports: [MatButtonModule, MatIconModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <mat-drawer
-      class="details-drawer"
-      mode="over"
-      position="end"
-      [opened]="opened()"
-      (openedChange)="openedChange.emit($event)"
-    >
-      <div class="details-drawer__header">
-        <h2 class="details-drawer__title">{{ title() }}</h2>
-        <button mat-icon-button type="button" aria-label="Close" (click)="close()">
-          <mat-icon>close</mat-icon>
-        </button>
-      </div>
+    <div class="details-drawer__content">
+      <ng-content select="[drawer-content]" />
+    </div>
 
-      <div class="details-drawer__body">
-        <ng-content />
-      </div>
-
-      @if (showActions()) {
-        <div class="details-drawer__actions">
-          <ng-content select="[drawer-actions]" />
+    @if (opened()) {
+      <div class="details-drawer__backdrop" aria-hidden="true" (click)="close()"></div>
+      <aside
+        class="details-drawer"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="title()"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="details-drawer__header">
+          <h2 class="details-drawer__title">{{ title() }}</h2>
+          <button mat-icon-button type="button" aria-label="Close" (click)="close()">
+            <mat-icon>close</mat-icon>
+          </button>
         </div>
-      }
-    </mat-drawer>
+
+        <div class="details-drawer__body">
+          <ng-content />
+        </div>
+
+        @if (showActions()) {
+          <div class="details-drawer__actions">
+            <ng-content select="[drawer-actions]" />
+          </div>
+        }
+      </aside>
+    }
   `,
   styles: [
     `
+      :host {
+        display: block;
+        width: 100%;
+      }
+      .details-drawer__content {
+        display: block;
+      }
+      .details-drawer__backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        background: rgb(15 31 48 / 32%);
+      }
       .details-drawer {
+        position: fixed;
+        inset: 0 0 0 auto;
+        z-index: 1001;
         width: min(420px, 92vw);
+        box-sizing: border-box;
         padding: var(--app-space-5) var(--app-space-4);
+        background: var(--mat-sys-surface);
+        box-shadow: -12px 0 32px rgb(15 31 48 / 18%);
         display: flex;
         flex-direction: column;
       }

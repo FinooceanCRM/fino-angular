@@ -271,11 +271,10 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
      * regardless of how a lead got assigned, so "Priority" vs "Assigned" is
      * NOT a function of current approval state (full access can be granted
      * either way — see {@see LeadAccessRequest::grantsFullAccess()}) but of
-     * *origin*, fixed once at request time: a lead only ever graduates into
-     * Assigned Leads if the banker reached it themselves via an approved
-     * "Send Request" from Matched Leads. A lead a Manager assigned directly
-     * stays a Priority Lead for good, even after its own "Request Full
-     * Details" is approved — see {@see LeadAccessRequest::approvedFromMatched()}.
+    * *origin*, fixed once at request time: a lead a Manager assigned directly
+    * starts in Assigned Leads and moves into Priority Leads after the
+    * banker's "Request Full Details" is approved. Matched leads remain in
+    * Assigned Leads after an approved "Send Request".
      */
     private function applyBankerBucket(Builder $query, User $actor, string $bucket): void
     {
@@ -290,17 +289,17 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
                 }),
             'priority' => $query
                 ->where('assigned_banker_id', $actor->id)
-                ->whereDoesntHave('accessRequests', function (Builder $rq) use ($actor): void {
-                    $rq->where('banker_id', $actor->id)
-                        ->where('status', AccessRequestStatus::Approved->value)
-                        ->where('origin', AccessRequestOrigin::Matched->value);
-                }),
-            'assigned' => $query
-                ->where('assigned_banker_id', $actor->id)
                 ->whereHas('accessRequests', function (Builder $rq) use ($actor): void {
                     $rq->where('banker_id', $actor->id)
                         ->where('status', AccessRequestStatus::Approved->value)
-                        ->where('origin', AccessRequestOrigin::Matched->value);
+                        ->where('origin', AccessRequestOrigin::Priority->value);
+                }),
+            'assigned' => $query
+                ->where('assigned_banker_id', $actor->id)
+                ->whereDoesntHave('accessRequests', function (Builder $rq) use ($actor): void {
+                    $rq->where('banker_id', $actor->id)
+                        ->where('status', AccessRequestStatus::Approved->value)
+                        ->where('origin', AccessRequestOrigin::Priority->value);
                 }),
             'submitted' => $query->where('created_by', $actor->id),
             default => null,

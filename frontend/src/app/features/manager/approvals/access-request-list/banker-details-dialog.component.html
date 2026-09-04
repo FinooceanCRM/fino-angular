@@ -1,0 +1,48 @@
+<app-modal [title]="'Banker details'" [showActions]="true">
+  <div class="banker-details-dialog">
+    <div class="banker-details-dialog__header">
+      <span class="banker-details-dialog__avatar">{{ initials() }}</span>
+      <div>
+        <h3>{{ data.banker.name }}</h3>
+        <p>{{ roleLabel() }}</p>
+      </div>
+    </div>
+
+    <dl class="banker-details-dialog__grid">
+      <div>
+        <dt>Email</dt>
+        <dd><a [href]="'mailto:' + data.banker.email">{{ data.banker.email }}</a></dd>
+      </div>
+      <div>
+        <dt>Phone</dt>
+        <dd>{{ data.banker.phone || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Alternate number</dt>
+        <dd>{{ data.banker.alternate_phone || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Banker name</dt>
+        <dd>{{ data.banker.name }}</dd>
+      </div>
+      <div>
+        <dt>Bank name</dt>
+        <dd>{{ data.banker.bank_name || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Branch name</dt>
+        <dd>{{ data.banker.branch || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Designation</dt>
+        <dd>{{ data.banker.designation || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Employee code</dt>
+        <dd>{{ data.banker.employee_code || 'Not provided' }}</dd>
+      </div>
+    </dl>
+  </div>
+
+  <button modal-actions mat-flat-button color="primary" type="button" (click)="dialogRef.close()">Close</button>
+</app-modal>

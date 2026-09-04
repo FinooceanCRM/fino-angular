@@ -1,5 +1,4 @@
-<mat-drawer-container class="approval-list__container" [hasBackdrop]="true">
-  <app-details-drawer
+<app-details-drawer
     [title]="selected()?.title ?? 'Review'"
     [opened]="selected() !== undefined"
     [showActions]="selected()?.status === 'pending'"
@@ -68,7 +67,7 @@
     }
   </app-details-drawer>
 
-  <mat-drawer-content>
+  <div drawer-content>
     <mat-card class="approval-list__toolbar">
       <mat-card-content class="approval-list__toolbar-row">
         <mat-form-field appearance="outline" class="approval-list__status">
@@ -158,5 +157,4 @@
         </app-table>
       </mat-card-content>
     </mat-card>
-  </mat-drawer-content>
-</mat-drawer-container>
+  </div>

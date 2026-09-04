@@ -89,6 +89,44 @@ class LeadWorkflowTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_direct_banker_assignment_moves_to_priority_only_after_details_are_approved(): void
+    {
+        $manager = User::factory()->create(['role' => UserRole::Manager->value]);
+        $banker = User::factory()->create(['role' => UserRole::Banker->value]);
+        $lead = LoanLead::factory()->create([
+            'status' => LeadStatus::New->value,
+            'assigned_manager_id' => $manager->id,
+        ]);
+
+        $this->actingAs($manager, 'sanctum')
+            ->postJson("/api/v1/leads/{$lead->id}/assign", ['assignee_id' => $banker->id])
+            ->assertOk();
+
+        $assigned = $this->actingAs($banker, 'sanctum')
+            ->getJson('/api/v1/leads?banker_bucket=assigned')
+            ->assertOk();
+        $this->assertSame([$lead->id], array_column($assigned->json('data'), 'id'));
+
+        $request = $this->actingAs($banker, 'sanctum')
+            ->postJson("/api/v1/leads/{$lead->id}/access-requests")
+            ->assertCreated()
+            ->json('data.id');
+
+        $this->actingAs($manager, 'sanctum')
+            ->postJson("/api/v1/access-requests/{$request}/approve")
+            ->assertOk();
+
+        $this->actingAs($banker, 'sanctum')
+            ->getJson('/api/v1/leads?banker_bucket=assigned')
+            ->assertOk()
+            ->assertJsonPath('meta.total', 0);
+
+        $priority = $this->actingAs($banker, 'sanctum')
+            ->getJson('/api/v1/leads?banker_bucket=priority')
+            ->assertOk();
+        $this->assertSame([$lead->id], array_column($priority->json('data'), 'id'));
+    }
+
     public function test_status_change_is_recorded_in_history(): void
     {
         ['rm' => $rm] = $this->hierarchy();

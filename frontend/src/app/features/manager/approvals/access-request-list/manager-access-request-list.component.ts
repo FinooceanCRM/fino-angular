@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { CurrencyPipe, DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,6 +21,11 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
+import {
+  BankerDetailsDialogComponent,
+  BankerDetailsDialogData,
+} from './banker-details-dialog.component';
+
 /**
  * Bankers requesting access to a lead — the real "Banker requests access →
  * Manager approves" step, backed by `LeadAccessRequestController` via
@@ -31,6 +36,7 @@ import { TableColumn, TableComponent } from '@shared/components/table.component'
   selector: 'app-manager-access-request-list',
   standalone: true,
   imports: [
+    CurrencyPipe,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -102,6 +108,10 @@ export class ManagerAccessRequestListComponent {
     return row.lead ? row.lead.reference : null;
   }
 
+  protected labelise(value: string): string {
+    return value.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
+  }
+
   /** Title-cases the backend role string (e.g. "banker" -> "Banker") for the requester subtext. */
   protected roleLabel(role: string | undefined): string {
     return role ? role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Unknown';
@@ -118,6 +128,18 @@ export class ManagerAccessRequestListComponent {
 
   protected review(row: AccessRequest): void {
     this.selected.set(row);
+  }
+
+  protected viewBanker(row: AccessRequest): void {
+    if (!row.banker) {
+      return;
+    }
+
+    this.dialog.open<BankerDetailsDialogComponent, BankerDetailsDialogData>(BankerDetailsDialogComponent, {
+      data: { banker: row.banker },
+      width: 'min(520px, calc(100vw - 32px))',
+      maxWidth: 'calc(100vw - 32px)',
+    });
   }
 
   protected closeReview(): void {

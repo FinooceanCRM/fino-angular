@@ -91,7 +91,13 @@ class LeadAccessRequestController extends BaseApiController
         );
 
         return $this->respondSuccess(
-            (new LeadAccessRequestResource($updated->load(['banker:id,name,email,role', 'decidedBy:id,name'])))->resolve($request),
+            (new LeadAccessRequestResource($updated->load([
+                'loanLead.connector:id,name',
+                'loanLead.creator:id,name',
+                'banker:id,name,email,role,phone',
+                'banker.bankerProfile',
+                'decidedBy:id,name,role',
+            ])))->resolve($request),
             'Access request approved.',
         );
     }
@@ -109,7 +115,13 @@ class LeadAccessRequestController extends BaseApiController
         );
 
         return $this->respondSuccess(
-            (new LeadAccessRequestResource($updated->load(['banker:id,name,email,role', 'decidedBy:id,name'])))->resolve($request),
+            (new LeadAccessRequestResource($updated->load([
+                'loanLead.connector:id,name',
+                'loanLead.creator:id,name',
+                'banker:id,name,email,role,phone',
+                'banker.bankerProfile',
+                'decidedBy:id,name,role',
+            ])))->resolve($request),
             'Access request rejected.',
         );
     }

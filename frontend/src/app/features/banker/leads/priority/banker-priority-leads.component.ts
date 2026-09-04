@@ -26,11 +26,8 @@ import {
 
 /**
  * Priority Leads (spec §2) — leads a Manager assigned to this banker
- * directly, without the banker requesting them first (`banker_bucket:
- * 'priority'` — assigned but no approved LeadAccessRequest yet). Contact
- * details are masked and Update is disabled server-side and here in lock
- * step, until "Request Full Details" (from the View dialog) is approved —
- * at which point the lead graduates into Assigned Leads on its own.
+ * directly whose "Request Full Details" request has been approved
+ * (`banker_bucket: 'priority'`).
  */
 @Component({
   selector: 'app-banker-priority-leads',

@@ -39,6 +39,7 @@ class LeadAccessRequestResource extends JsonResource
                 'loan_amount' => (float) $lead->loan_amount,
                 'city' => $lead->city,
                 'status' => $lead->statusEnum()->value,
+                'source_name' => $lead->connector?->name ?? $lead->creator?->name,
             ] : null,
             'banker' => $this->userSummary($this->whenLoaded('banker')),
             'decided_by' => $this->userSummary($this->whenLoaded('decidedBy')),
@@ -56,10 +57,19 @@ class LeadAccessRequestResource extends JsonResource
             return null;
         }
 
+        $profile = $user->relationLoaded('bankerProfile') ? $user->bankerProfile : null;
+
         return [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
+            'phone' => $user->phone,
+            'alternate_phone' => $profile?->alternate_phone,
+            'bank_name' => $profile?->bank_name,
+            'branch' => $profile?->branch,
+            'designation' => $profile?->designation,
+            'employee_code' => $profile?->employee_code,
+            'role' => $user->roleEnum()->value,
         ];
     }
 }

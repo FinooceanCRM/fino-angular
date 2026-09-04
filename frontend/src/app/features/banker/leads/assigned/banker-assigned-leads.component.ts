@@ -25,11 +25,10 @@ import {
 } from '../view-dialog/banker-lead-view-dialog.component';
 
 /**
- * Assigned Leads (spec §3) — leads the banker has full access to, whether
- * they got there via a Matched Lead's approved "Send Request" or a Priority
- * Lead's approved "Request Full Details" (`banker_bucket: 'assigned'` —
- * assigned to this banker AND an approved LeadAccessRequest exists). Both
- * View and Update are always enabled here.
+ * Assigned Leads (spec §3) — leads assigned to this banker before an
+ * approved direct-assignment detail request moves them to Priority Leads,
+ * including leads reached through an approved Matched Lead request
+ * (`banker_bucket: 'assigned'`).
  */
 @Component({
   selector: 'app-banker-assigned-leads',

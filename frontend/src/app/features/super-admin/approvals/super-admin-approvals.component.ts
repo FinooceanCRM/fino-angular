@@ -21,6 +21,11 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
 
+import {
+  BankerDetailsDialogComponent,
+  BankerDetailsDialogData,
+} from '../../manager/approvals/access-request-list/banker-details-dialog.component';
+
 /**
  * Bankers requesting full contact details on a lead — Super Admin's review
  * of the same `LeadAccessRequestController` workflow the Manager's "Access
@@ -107,6 +112,31 @@ export class SuperAdminApprovalsComponent {
 
   protected loanTypeLabel(value: string): string {
     return value.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  protected labelise(value: string): string {
+    return value.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
+  }
+
+  protected initials(name: string | undefined): string {
+    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    return parts.length === 0 ? '?' : (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
+  }
+
+  protected roleLabel(role: string | undefined): string {
+    return role ? this.labelise(role) : 'Unknown';
+  }
+
+  protected viewBanker(row: AccessRequest): void {
+    if (!row.banker) {
+      return;
+    }
+
+    this.dialog.open<BankerDetailsDialogComponent, BankerDetailsDialogData>(BankerDetailsDialogComponent, {
+      data: { banker: row.banker },
+      width: 'min(520px, calc(100vw - 32px))',
+      maxWidth: 'calc(100vw - 32px)',
+    });
   }
 
   protected review(row: AccessRequest): void {

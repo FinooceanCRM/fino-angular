@@ -105,6 +105,11 @@ class User extends Authenticatable
         return $this->hasMany(BankCriteria::class, 'banker_id');
     }
 
+    public function bankerProfile(): HasOne
+    {
+        return $this->hasOne(Banker::class);
+    }
+
     public function documents(): HasMany
     {
         return $this->hasMany(Document::class, 'uploaded_by');

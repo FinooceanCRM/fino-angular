@@ -8,6 +8,7 @@ export interface AccessRequestLeadSummary {
   loan_amount: number;
   city: string | null;
   status: string;
+  source_name: string | null;
 }
 
 export type AccessRequestStatusFilter = 'pending' | 'approved' | 'rejected';

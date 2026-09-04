@@ -7,6 +7,11 @@ export interface UserSummary {
   email: string;
   phone?: string | null;
   role: string;
+  alternate_phone?: string | null;
+  bank_name?: string | null;
+  branch?: string | null;
+  designation?: string | null;
+  employee_code?: string | null;
 }
 
 /** A candidate returned by `GET leads/assignable-users` — a UserSummary plus the hierarchy links needed to filter the reassignment pool (e.g. "only this RM's employees"). */

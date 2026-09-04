@@ -143,10 +143,11 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
 /**
  * Adds "Users" to the shared workspace items for roles with users.view; drops
  * "Leads" for Bankers, who already have "My Leads" in their own section; and
- * drops "Documents" for Connectors and Affiliates, who both lose document
- * access on a lead the moment it's submitted (see lead-detail.component.ts
- * `isConnector`) — Affiliates get the same treatment as their closest
- * analog, Connector, having their own dedicated "Referrals" list instead.
+ * drops "Documents" and "Reports" for Connectors and Affiliates, who both
+ * lose document access on a lead the moment it's submitted (see
+ * lead-detail.component.ts `isConnector`) and do not use the reporting
+ * workspace — Affiliates get the same treatment as their closest analog,
+ * Connector, having their own dedicated "Referrals" list instead.
  */
 export function workspaceNavItems(auth: AuthService): NavItem[] {
   let items = WORKSPACE_NAV_ITEMS;
@@ -156,7 +157,7 @@ export function workspaceNavItems(auth: AuthService): NavItem[] {
   }
 
   if (auth.hasRole('connector') || auth.hasRole('affiliate')) {
-    items = items.filter((item) => item.link !== '/documents');
+    items = items.filter((item) => item.link !== '/documents' && item.link !== '/reports');
   }
 
   if (!auth.can('users.view')) {
