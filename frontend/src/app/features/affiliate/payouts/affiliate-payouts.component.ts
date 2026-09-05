@@ -5,9 +5,9 @@ import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { PageEvent } from '@angular/material/paginator';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
+import { NormalizedApiError } from '@core/interceptors/error.interceptor';
 import { AffiliatePayout } from '@core/models/affiliate.model';
 import { AffiliateService } from '@core/services/affiliate.service';
 import { PaginationMeta } from '@core/models/lead.model';
@@ -15,6 +15,15 @@ import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 import { TableCellDirective } from '@shared/components/table-cell.directive';
 import { TableColumn, TableComponent } from '@shared/components/table.component';
+
+/**
+ * Shown after a payout request is accepted — sets expectations up front
+ * instead of leaving the affiliate to guess how long a "pending" payout
+ * sits before money actually moves. The 45-working-day figure is the
+ * platform's standard payout SLA; update here if that policy changes.
+ */
+const PAYOUT_REQUEST_SUCCESS_MESSAGE =
+  'Your payout request has been submitted for approval. Once approved, payouts are typically credited within 45 working days.';
 
 const OPEN_PAYOUT_STATUSES = new Set(['pending', 'processing']);
 
@@ -45,9 +54,21 @@ const OPEN_PAYOUT_STATUSES = new Set(['pending', 'processing']);
   template: `
     <app-page-header title="My payouts" subtitle="Request and track payouts of your accrued commissions" />
 
+    @if (success(); as message) {
+      <mat-card class="notice notice--success">
+        <mat-card-content>
+          <mat-icon>task_alt</mat-icon>
+          <span>{{ message }}</span>
+        </mat-card-content>
+      </mat-card>
+    }
+
     @if (error(); as message) {
-      <mat-card class="notice">
-        <mat-card-content>{{ message }}</mat-card-content>
+      <mat-card class="notice notice--error">
+        <mat-card-content>
+          <mat-icon>error_outline</mat-icon>
+          <span>{{ message }}</span>
+        </mat-card-content>
       </mat-card>
     }
 
@@ -102,6 +123,17 @@ const OPEN_PAYOUT_STATUSES = new Set(['pending', 'processing']);
         margin-top: var(--app-space-4);
         border-radius: var(--app-radius-md);
       }
+      .notice mat-card-content {
+        display: flex;
+        align-items: center;
+        gap: var(--app-space-2);
+      }
+      .notice--success {
+        color: var(--app-status-success-fg);
+      }
+      .notice--error {
+        color: var(--app-status-warn-fg);
+      }
       .table-card__actions {
         display: flex;
         justify-content: flex-end;
@@ -112,7 +144,6 @@ const OPEN_PAYOUT_STATUSES = new Set(['pending', 'processing']);
 })
 export class AffiliatePayoutsComponent implements OnInit {
   private readonly affiliates = inject(AffiliateService);
-  private readonly snackBar = inject(MatSnackBar);
 
   protected readonly columns: TableColumn<AffiliatePayout>[] = [
     { key: 'reference', label: 'Reference' },
@@ -127,6 +158,7 @@ export class AffiliatePayoutsComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly requesting = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly success = signal<string | null>(null);
   protected readonly pendingPayout = signal(0);
 
   private readonly hasOpenPayout = computed(() =>
@@ -170,6 +202,7 @@ export class AffiliatePayoutsComponent implements OnInit {
   }
 
   protected onPage(event: PageEvent): void {
+    this.success.set(null);
     this.meta.update((current) => ({ ...current, per_page: event.pageSize }));
     this.load(event.pageIndex);
   }
@@ -177,17 +210,21 @@ export class AffiliatePayoutsComponent implements OnInit {
   protected requestPayout(): void {
     this.requesting.set(true);
     this.error.set(null);
+    this.success.set(null);
 
     this.affiliates.requestPayout().subscribe({
       next: () => {
         this.requesting.set(false);
-        this.snackBar.open('Payout requested.', 'Dismiss', { duration: 4000 });
+        this.success.set(PAYOUT_REQUEST_SUCCESS_MESSAGE);
         this.load(0);
         this.loadBalance();
       },
-      error: () => {
+      error: (err: NormalizedApiError) => {
         this.requesting.set(false);
-        this.error.set('Could not request a payout. Please try again.');
+        // Surfaces the real reason (e.g. "Set a payout method on your
+        // profile before requesting a payout.") instead of a generic
+        // message that hides why the request was rejected.
+        this.error.set(err.message || 'Could not request a payout. Please try again.');
       },
     });
   }

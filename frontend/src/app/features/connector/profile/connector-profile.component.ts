@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatSelectModule } from '@angular/material/select';
 
 import { ConnectorProfile } from '@core/models/connector.model';
 import { ConnectorService } from '@core/services/connector.service';
@@ -27,6 +28,7 @@ import { ProfileHeaderComponent } from '@shared/components/profile-header.compon
     MatIconModule,
     MatInputModule,
     MatProgressBarModule,
+    MatSelectModule,
     PageHeaderComponent,
     ProfileHeaderComponent,
   ],
@@ -131,6 +133,33 @@ import { ProfileHeaderComponent } from '@shared/components/profile-header.compon
             </mat-form-field>
           </div>
 
+          <h3 class="section-title">Payout Details</h3>
+          <div class="grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Payout method</mat-label>
+              <mat-select formControlName="payout_method">
+                <mat-option value="bank_transfer">Bank transfer</mat-option>
+                <mat-option value="upi">UPI</mat-option>
+              </mat-select>
+              <mat-hint>Required before you can request a payout.</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Account holder name</mat-label>
+              <input matInput formControlName="payout_account_name" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Account number / UPI ID</mat-label>
+              <input matInput formControlName="payout_account_number" />
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>IFSC / UPI handle</mat-label>
+              <input matInput formControlName="payout_ifsc_or_upi" />
+            </mat-form-field>
+          </div>
+
           @if (message(); as text) {
             <p class="message">{{ text }}</p>
           }
@@ -225,6 +254,10 @@ export class ConnectorProfileComponent implements OnInit {
     pincode: ['', [Validators.pattern(/^$|^[0-9]{4,10}$/)]],
     pan_number: ['', [Validators.pattern(/^$|^[A-Za-z0-9]{10}$/)]],
     gst_number: [''],
+    payout_method: [''],
+    payout_account_name: [''],
+    payout_account_number: [''],
+    payout_ifsc_or_upi: [''],
   });
 
   ngOnInit(): void {
@@ -288,6 +321,10 @@ export class ConnectorProfileComponent implements OnInit {
       pincode: profile.pincode ?? '',
       pan_number: profile.pan_number ?? '',
       gst_number: profile.gst_number ?? '',
+      payout_method: profile.payout_method ?? '',
+      payout_account_name: profile.payout_account_name ?? '',
+      payout_account_number: profile.payout_account_number ?? '',
+      payout_ifsc_or_upi: profile.payout_ifsc_or_upi ?? '',
     });
     this.form.markAsPristine();
   }

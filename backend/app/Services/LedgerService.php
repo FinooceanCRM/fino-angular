@@ -100,4 +100,22 @@ class LedgerService extends BaseService
             'path' => Paginator::resolveCurrentPath(),
         ]);
     }
+
+    /**
+     * The "commission payable" running balance as of right now — the same
+     * chronological walk as {@see self::paginate()}, but only the final
+     * total is kept. Backs the Accounts Dashboard KPI card.
+     */
+    public function currentBalance(): float
+    {
+        $balance = 0.0;
+
+        foreach ($this->ledger->allChronological() as $entry) {
+            if ($entry->typeEnum()?->affectsBalance() ?? true) {
+                $balance += (float) ($entry->credit ?? 0) - (float) ($entry->debit ?? 0);
+            }
+        }
+
+        return round($balance, 2);
+    }
 }

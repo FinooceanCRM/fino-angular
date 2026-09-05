@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Accountant;
 use App\Models\Affiliate;
 use App\Models\AffiliatePayout;
 use App\Models\Approval;
@@ -27,6 +28,7 @@ use App\Models\Task;
 use App\Models\Telecaller;
 use App\Models\TelecallerFollowUp;
 use App\Models\User;
+use App\Policies\AccountantPolicy;
 use App\Policies\AffiliatePayoutPolicy;
 use App\Policies\AffiliatePolicy;
 use App\Policies\ApprovalPolicy;
@@ -95,5 +97,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(LedgerEntry::class, LedgerPolicy::class);
         Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(Approval::class, ApprovalPolicy::class);
+        Gate::policy(Accountant::class, AccountantPolicy::class);
     }
 }

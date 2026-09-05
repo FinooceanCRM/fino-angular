@@ -51,6 +51,10 @@ class LoanLeadPolicy
             // form (never authenticated), so there is no "my own new lead"
             // edit window the way there is for Connector.
             UserRole::Affiliate => false,
+            // Accounts has full read visibility (see
+            // EloquentLoanLeadRepository::visibleQuery) for reconciliation,
+            // but never edits a lead's own fields.
+            UserRole::Accounts => false,
         };
     }
 

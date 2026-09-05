@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AccountsController;
 use App\Http\Controllers\Api\V1\AffiliateController;
 use App\Http\Controllers\Api\V1\ApprovalController;
 use App\Http\Controllers\Api\V1\AuditLogController;
@@ -127,12 +128,18 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('dashboard', [SuperAdminController::class, 'dashboard'])->name('dashboard');
             });
 
-        // Super Admin affiliate management + payout decisions (Phase 6).
-        // The `payouts` routes are registered before the `{affiliate}`
-        // wildcard, and that wildcard is numeric-constrained, so "payouts"
-        // can never be swallowed by it regardless of order.
+        // Super Admin affiliate payouts + the read-only affiliate list
+        // (Phase 6) — also opened up to the Accounts role (see
+        // AffiliatePayoutPolicy): the Commission pages show each
+        // affiliate's accrued/paid totals via this same `index`, and
+        // deciding payouts is exactly what that role exists for. Only
+        // `update` (editing an affiliate's commission_rate/status) stays
+        // Super Admin only, split into its own group below.
+        // Registered before the `{affiliate}` wildcard group so "payouts"
+        // is never swallowed by it regardless of order (the wildcard is
+        // numeric-constrained too, so this is belt-and-braces).
         Route::prefix('super-admin/affiliates')->name('super-admin.affiliates.')
-            ->middleware('role:super_admin')
+            ->middleware('role:super_admin,accounts')
             ->group(function (): void {
                 Route::get('payouts', [SuperAdminAffiliateController::class, 'payouts'])->name('payouts.index');
                 Route::post('payouts/{payout}/approve', [SuperAdminAffiliateController::class, 'approvePayout'])
@@ -145,16 +152,20 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('/', [SuperAdminAffiliateController::class, 'index'])->name('index');
                 Route::get('{affiliate}', [SuperAdminAffiliateController::class, 'show'])
                     ->whereNumber('affiliate')->name('show');
+            });
+
+        Route::prefix('super-admin/affiliates')->name('super-admin.affiliates.')
+            ->middleware('role:super_admin')
+            ->group(function (): void {
                 Route::put('{affiliate}', [SuperAdminAffiliateController::class, 'update'])
                     ->whereNumber('affiliate')->name('update');
             });
 
-        // Super Admin connector management + payout decisions. Same
-        // ordering discipline as super-admin/affiliates above: `payouts`
-        // routes registered before the numeric-constrained `{connector}`
-        // wildcard.
+        // Super Admin connector payouts + the read-only connector list —
+        // same split as affiliates above: shared with Accounts, only
+        // `update` stays Super Admin only.
         Route::prefix('super-admin/connectors')->name('super-admin.connectors.')
-            ->middleware('role:super_admin')
+            ->middleware('role:super_admin,accounts')
             ->group(function (): void {
                 Route::get('payouts', [SuperAdminConnectorController::class, 'payouts'])->name('payouts.index');
                 Route::post('payouts/{payout}/approve', [SuperAdminConnectorController::class, 'approvePayout'])
@@ -167,18 +178,38 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('/', [SuperAdminConnectorController::class, 'index'])->name('index');
                 Route::get('{connector}', [SuperAdminConnectorController::class, 'show'])
                     ->whereNumber('connector')->name('show');
+            });
+
+        Route::prefix('super-admin/connectors')->name('super-admin.connectors.')
+            ->middleware('role:super_admin')
+            ->group(function (): void {
                 Route::put('{connector}', [SuperAdminConnectorController::class, 'update'])
                     ->whereNumber('connector')->name('update');
             });
 
         // Accounting ledger (Phase 2) — read-only, the real backend behind
-        // the frontend's former mock SEED_LEDGER. Same role+permission
-        // gating shape as super-admin/affiliates and super-admin/connectors.
+        // the frontend's former mock SEED_LEDGER. Opened up to the Accounts
+        // role alongside Super Admin (see LedgerPolicy).
         Route::prefix('super-admin/ledger')->name('super-admin.ledger.')
-            ->middleware('role:super_admin')
+            ->middleware('role:super_admin,accounts')
             ->group(function (): void {
                 Route::get('/', [LedgerController::class, 'index'])
                     ->middleware('permission:commissions.view')->name('index');
+            });
+
+        // Accounts module — finance/accounts staff (see AccountsService).
+        // Independent of the reporting hierarchy, like Connector/Banker.
+        // The dashboard aggregates across every payee; the payout/
+        // commission/ledger queues themselves are the same
+        // super-admin/affiliates, super-admin/connectors and
+        // super-admin/ledger endpoints above, just also role-gated to
+        // 'accounts' — no business logic is duplicated here.
+        Route::prefix('accounts')->name('accounts.')
+            ->middleware('role:accounts')
+            ->group(function (): void {
+                Route::get('dashboard', [AccountsController::class, 'dashboard'])->name('dashboard');
+                Route::get('profile', [AccountsController::class, 'profile'])->name('profile.show');
+                Route::put('profile', [AccountsController::class, 'updateProfile'])->name('profile.update');
             });
 
         // Banker module. Independent of the reporting hierarchy, like Connector.

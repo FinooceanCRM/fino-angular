@@ -26,6 +26,7 @@ class RolePermissionSeeder extends Seeder
             UserRole::Banker->value => 6,
             UserRole::Telecaller->value => 7,
             UserRole::Affiliate->value => 8,
+            UserRole::Accounts->value => 9,
         ];
 
         foreach (UserRole::cases() as $role) {
@@ -134,6 +135,19 @@ class RolePermissionSeeder extends Seeder
                 'commissions' => 'view',
                 'customers' => 'manage_except_delete',
                 'tasks' => 'manage_except_delete',
+                'notifications' => 'view',
+            ],
+            // Accounts: the finance/reconciliation role — full commissions
+            // access (view + the create/edit actions that back approve/
+            // mark-paid/reject) plus read-only visibility into leads
+            // (disbursement amounts), banking and reports. Never touches
+            // users/customers/tasks.
+            UserRole::Accounts->value => [
+                'dashboard' => 'view',
+                'commissions' => 'manage',
+                'leads' => 'view',
+                'banking' => 'view',
+                'reports' => 'view',
                 'notifications' => 'view',
             ],
         ];

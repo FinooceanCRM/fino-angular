@@ -19,6 +19,7 @@ export const ROLE_PERMISSIONS: Record<UserRole, AppPermission[]> = {
   // never created through the internal Users screen, so this stays empty
   // like every other independent role.
   affiliate: [],
+  accounts: [],
 };
 
 export function permissionsForRole(role: UserRole | null): AppPermission[] {
@@ -33,7 +34,15 @@ export function permissionsForRole(role: UserRole | null): AppPermission[] {
  * affiliates profile row (referral code, payout details, etc.).
  */
 export const ASSIGNABLE_ROLES: Record<UserRole, UserRole[]> = {
-  super_admin: ['manager', 'relationship_manager', 'employee', 'connector', 'banker', 'telecaller'],
+  super_admin: [
+    'manager',
+    'relationship_manager',
+    'employee',
+    'connector',
+    'banker',
+    'telecaller',
+    'accounts',
+  ],
   manager: ['relationship_manager', 'employee'],
   relationship_manager: ['employee'],
   employee: [],
@@ -41,4 +50,5 @@ export const ASSIGNABLE_ROLES: Record<UserRole, UserRole[]> = {
   connector: [],
   telecaller: [],
   affiliate: [],
+  accounts: [],
 };

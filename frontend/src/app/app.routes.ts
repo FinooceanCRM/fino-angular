@@ -105,6 +105,13 @@ export const routes: Routes = [
           ),
       },
       {
+        // Accounts module. Finance/reconciliation staff — disbursements,
+        // commissions, payouts and the accounting ledger across every payee.
+        path: 'accounts',
+        loadChildren: () =>
+          import('@features/accounts/accounts.routes').then((m) => m.accountsRoutes),
+      },
+      {
         // Banker module. Matched-leads dashboard.
         path: 'banker',
         loadChildren: () =>

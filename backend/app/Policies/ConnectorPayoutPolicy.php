@@ -7,9 +7,9 @@ use App\Models\ConnectorPayout;
 use App\Models\User;
 
 /**
- * A connector may request and view their own payouts; only a Super Admin
- * may see the platform-wide queue or decide (approve/mark paid/reject) one.
- * Same shape as AffiliatePayoutPolicy.
+ * A connector may request and view their own payouts; a Super Admin or an
+ * Accounts user may see the platform-wide queue or decide (approve/mark
+ * paid/reject) one. Same shape as AffiliatePayoutPolicy.
  */
 class ConnectorPayoutPolicy
 {
@@ -25,16 +25,16 @@ class ConnectorPayoutPolicy
 
     public function viewAny(User $actor): bool
     {
-        return $actor->hasRole(UserRole::SuperAdmin);
+        return $actor->hasRole(UserRole::SuperAdmin, UserRole::Accounts);
     }
 
     public function view(User $actor, ConnectorPayout $payout): bool
     {
-        return $actor->id === $payout->connector_id || $actor->hasRole(UserRole::SuperAdmin);
+        return $actor->id === $payout->connector_id || $actor->hasRole(UserRole::SuperAdmin, UserRole::Accounts);
     }
 
     public function decide(User $actor, ConnectorPayout $payout): bool
     {
-        return $actor->hasRole(UserRole::SuperAdmin);
+        return $actor->hasRole(UserRole::SuperAdmin, UserRole::Accounts);
     }
 }

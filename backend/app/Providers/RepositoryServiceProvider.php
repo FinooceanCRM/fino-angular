@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Repositories\Contracts\AccountantRepositoryInterface;
 use App\Repositories\Contracts\AffiliateRepositoryInterface;
 use App\Repositories\Contracts\ApprovalRepositoryInterface;
 use App\Repositories\Contracts\AuditLogRepositoryInterface;
@@ -18,6 +19,7 @@ use App\Repositories\Contracts\SettingsRepositoryInterface;
 use App\Repositories\Contracts\TaskRepositoryInterface;
 use App\Repositories\Contracts\TelecallerRepositoryInterface;
 use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\EloquentAccountantRepository;
 use App\Repositories\EloquentAffiliateRepository;
 use App\Repositories\EloquentApprovalRepository;
 use App\Repositories\EloquentAuditLogRepository;
@@ -61,6 +63,7 @@ class RepositoryServiceProvider extends ServiceProvider
         LedgerRepositoryInterface::class => EloquentLedgerRepository::class,
         TaskRepositoryInterface::class => EloquentTaskRepository::class,
         ApprovalRepositoryInterface::class => EloquentApprovalRepository::class,
+        AccountantRepositoryInterface::class => EloquentAccountantRepository::class,
     ];
 
     public function register(): void

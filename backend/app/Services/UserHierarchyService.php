@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Builder;
  * RelationshipManager-> Employees assigned to them
  * Employee           -> nobody
  * Connector          -> nobody (outside the reporting hierarchy)
+ * Accounts           -> nobody (outside the reporting hierarchy)
  */
 class UserHierarchyService
 {
@@ -32,6 +33,7 @@ class UserHierarchyService
                 UserRole::Connector,
                 UserRole::Banker,
                 UserRole::Telecaller,
+                UserRole::Accounts,
             ],
             UserRole::Manager => [UserRole::RelationshipManager, UserRole::Employee],
             UserRole::RelationshipManager => [UserRole::Employee],

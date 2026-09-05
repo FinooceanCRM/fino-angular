@@ -1,0 +1,39 @@
+.disb__toolbar,
+.disb__table-card {
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-sm);
+  margin-top: var(--app-space-4);
+  margin-bottom: var(--app-space-4);
+}
+
+.disb__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-3);
+  align-items: center;
+
+  button[type='submit'] {
+    border-radius: var(--app-radius-pill);
+  }
+}
+
+.disb__ref {
+  font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  font-size: 0.8rem;
+}
+
+.disb__loan {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.85rem;
+
+  span {
+    color: var(--app-status-default-fg);
+    font-size: 0.78rem;
+  }
+}
+
+.disb__notice {
+  margin-bottom: var(--app-space-4);
+}

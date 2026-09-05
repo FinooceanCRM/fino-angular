@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             ConnectorSeeder::class,
             AffiliateSeeder::class,
             BankerSeeder::class,
+            AccountantSeeder::class,
             EmployeeSeeder::class,
             RelationshipManagerSeeder::class,
             ManagerSeeder::class,

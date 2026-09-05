@@ -15,6 +15,7 @@ export function profileLink(auth: AuthService): string | null {
   if (auth.hasRole('employee')) return '/employee/profile';
   if (auth.hasRole('relationship_manager')) return '/relationship-manager/profile';
   if (auth.hasRole('manager')) return '/manager/profile';
+  if (auth.hasRole('accounts')) return '/accounts/profile';
   return null;
 }
 
@@ -93,12 +94,33 @@ export function roleNavItems(auth: AuthService): NavItem[] {
       // approval — same real, API-backed workflow as the Manager's
       // "Access approvals" tab (see manager.routes.ts `approvals`).
       { label: 'Approvals', link: '/super-admin/approvals', icon: 'fact_check' },
+      // Real backend feature (connector/affiliate commission, payouts,
+      // accounting ledger) — routed since Phase 8 but never added to this
+      // nav before, so it was only reachable by typing the URL directly.
+      { label: 'Commissions', link: '/super-admin/commissions', icon: 'account_balance_wallet' },
       // Real backend feature since Phase 0 (see AuditLogController /
       // AuditLogService) — the platform-wide audit trail.
       { label: 'Audit Logs', link: '/super-admin/audit-logs', icon: 'history' },
       // Real backend feature since Phase 1 (see SettingsController /
       // SettingsService) — the singleton platform settings document.
       { label: 'Settings', link: '/super-admin/settings', icon: 'settings' },
+    ];
+  }
+
+  if (auth.hasRole('accounts')) {
+    return [
+      { label: 'Accounts dashboard', link: '/accounts/dashboard', icon: 'dashboard' },
+      { label: 'Disbursements', link: '/accounts/disbursements', icon: 'payments' },
+      { label: 'Connector Commission', link: '/accounts/connector-commission', icon: 'hub' },
+      { label: 'Affiliate Commission', link: '/accounts/affiliate-commission', icon: 'campaign' },
+      { label: 'Payouts', link: '/accounts/payouts', icon: 'account_balance_wallet' },
+      { label: 'Ledger', link: '/accounts/ledger', icon: 'receipt_long' },
+      // Distinct label from the shared "Reports" workspace item below
+      // (general leads/user/performance reports) — this is the
+      // commission-specific report (accrual/payout trend, connector vs
+      // affiliate split), sourced from the same ledger this dashboard reads.
+      { label: 'Commission Reports', link: '/accounts/reports', icon: 'bar_chart' },
+      ...profileItem,
     ];
   }
 
@@ -147,7 +169,12 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
  * lose document access on a lead the moment it's submitted (see
  * lead-detail.component.ts `isConnector`) and do not use the reporting
  * workspace — Affiliates get the same treatment as their closest analog,
- * Connector, having their own dedicated "Referrals" list instead.
+ * Connector, having their own dedicated "Referrals" list instead; and drops
+ * "Tasks", "Banks" and "Documents" for Accounts, whose RolePermissionSeeder
+ * grant covers only dashboard/commissions/leads/banking(view)/reports/
+ * notifications — "Leads" and "Reports" stay since Accounts genuinely has
+ * leads.view (the Disbursements register is a filtered view over the same
+ * permission) and reports.view.
  */
 export function workspaceNavItems(auth: AuthService): NavItem[] {
   let items = WORKSPACE_NAV_ITEMS;
@@ -158,6 +185,12 @@ export function workspaceNavItems(auth: AuthService): NavItem[] {
 
   if (auth.hasRole('connector') || auth.hasRole('affiliate')) {
     items = items.filter((item) => item.link !== '/documents' && item.link !== '/reports');
+  }
+
+  if (auth.hasRole('accounts')) {
+    items = items.filter(
+      (item) => item.link !== '/tasks' && item.link !== '/banks' && item.link !== '/documents',
+    );
   }
 
   if (!auth.can('users.view')) {

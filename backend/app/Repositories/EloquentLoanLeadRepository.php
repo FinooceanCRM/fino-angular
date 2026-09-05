@@ -37,6 +37,8 @@ use Illuminate\Database\Eloquent\Builder;
  *                 every lead explicitly assigned to them by Super
  *                 Admin/Manager/RM for PD calling, plus every lead they
  *                 personally submitted ("My Submitted Leads")
+ * Accounts     -> every lead, read-only (reconciling disbursed amounts
+ *                 against the ledger/commissions)
  */
 class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
 {
@@ -56,7 +58,11 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
         ]);
 
         return match ($actor->roleEnum()) {
-            UserRole::SuperAdmin => $query,
+            // Accounts needs full visibility too — reconciling disbursed
+            // amounts against the ledger/commissions means seeing every
+            // disbursed lead platform-wide, same as Super Admin. Accounts
+            // never gets a write path onto a lead (see LoanLeadPolicy).
+            UserRole::SuperAdmin, UserRole::Accounts => $query,
             UserRole::Manager => $query->where(function (Builder $q) use ($actor): void {
                 $rmIds = $this->hierarchy->relationshipManagerIds($actor);
                 $employeeIds = User::query()

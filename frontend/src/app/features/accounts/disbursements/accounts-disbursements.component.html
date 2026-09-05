@@ -1,0 +1,81 @@
+<app-page-header
+  title="Disbursements"
+  subtitle="Every disbursed loan — the amount every commission and ledger entry traces back to."
+  icon="payments"
+/>
+
+<mat-card class="disb__toolbar">
+  <mat-card-content>
+    <form class="disb__filters" [formGroup]="filters" (ngSubmit)="load(0)">
+      <mat-form-field appearance="outline">
+        <mat-label>Search</mat-label>
+        <input matInput formControlName="search" placeholder="Reference or applicant name" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>Loan type</mat-label>
+        <mat-select formControlName="loan_type">
+          <mat-option value="">All loan types</mat-option>
+          @for (option of loanTypes(); track option.value) {
+            <mat-option [value]="option.value">{{ option.label }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>From</mat-label>
+        <input matInput type="date" formControlName="created_from" />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline">
+        <mat-label>To</mat-label>
+        <input matInput type="date" formControlName="created_to" />
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" type="submit">Apply</button>
+    </form>
+  </mat-card-content>
+</mat-card>
+
+@if (error(); as message) {
+  <mat-card class="disb__notice">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
+
+<mat-card class="disb__table-card">
+  <mat-card-content>
+    <app-table
+      [columns]="columns"
+      [rows]="rows()"
+      [loading]="loading()"
+      emptyMessage="No disbursed leads match the current filters."
+      [length]="total()"
+      [pageSize]="pageSize()"
+      [pageIndex]="pageIndex()"
+      itemLabel="disbursements"
+      (pageChange)="onPage($event)"
+    >
+      <ng-template appTableCell="reference" let-row>
+        <span class="disb__ref">{{ row.reference }}</span>
+      </ng-template>
+
+      <ng-template appTableCell="applicant" let-row>{{ row.applicant_name }}</ng-template>
+
+      <ng-template appTableCell="loan" let-row>
+        <div class="disb__loan">
+          <strong>{{ row.loan_type }}</strong>
+          <span>{{ row.department_label }}</span>
+        </div>
+      </ng-template>
+
+      <ng-template appTableCell="amount" let-row>
+        {{ row.loan_amount | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}
+      </ng-template>
+
+      <ng-template appTableCell="connector" let-row>{{ payeeName(row) }}</ng-template>
+
+      <ng-template appTableCell="disbursed_on" let-row>{{ row.updated_at | date: 'd MMM y' }}</ng-template>
+    </app-table>
+  </mat-card-content>
+</mat-card>

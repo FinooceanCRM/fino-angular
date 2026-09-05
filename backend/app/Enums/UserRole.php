@@ -6,7 +6,8 @@ namespace App\Enums;
  * Application roles.
  *
  * Hierarchy: super_admin -> manager -> relationship_manager -> employee.
- * Connector, Banker, Telecaller and Affiliate are standalone roles outside the hierarchy.
+ * Connector, Banker, Telecaller, Affiliate and Accounts are standalone roles
+ * outside the hierarchy.
  */
 enum UserRole: string
 {
@@ -18,6 +19,13 @@ enum UserRole: string
     case Banker = 'banker';
     case Telecaller = 'telecaller';
     case Affiliate = 'affiliate';
+    /**
+     * Finance/accounts staff. Created by Super Admin (like Banker/
+     * Telecaller — no self-service signup), standalone outside the
+     * reporting hierarchy. Reads across every payee's commissions,
+     * payouts and the accounting ledger; never edits a loan lead.
+     */
+    case Accounts = 'accounts';
 
     public function label(): string
     {
@@ -30,6 +38,7 @@ enum UserRole: string
             self::Banker => 'Banker',
             self::Telecaller => 'Telecaller',
             self::Affiliate => 'Affiliate',
+            self::Accounts => 'Accounts',
         };
     }
 
@@ -49,6 +58,7 @@ enum UserRole: string
             self::Banker => [],
             self::Telecaller => [],
             self::Affiliate => [],
+            self::Accounts => [],
         };
     }
 

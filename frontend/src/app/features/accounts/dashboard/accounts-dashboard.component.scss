@@ -1,0 +1,58 @@
+.acc-dash__notice {
+  margin-bottom: var(--app-space-4);
+}
+
+.acc-dash {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-5);
+}
+
+/* ---------- KPI row ---------- */
+.acc-dash__kpis {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+/* ---------- charts row ---------- */
+.acc-dash__charts {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  align-items: start;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.acc-dash__chart-card {
+  height: 100%;
+}
+
+/* ---------- tables row ---------- */
+.acc-dash__tables {
+  display: grid;
+  gap: var(--app-space-4);
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  align-items: start;
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.acc-dash__table-card mat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+}
+
+.acc-dash__quick-links mat-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}

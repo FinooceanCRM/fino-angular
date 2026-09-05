@@ -23,6 +23,7 @@ const ROLE_DESCRIPTION: Record<UserRole, string> = {
   banker: 'Publishes bank criteria, reviews matched leads, manages documents for assigned cases.',
   telecaller: 'Runs the pre-disbursement (PD) verification call queue for their department.',
   affiliate: 'Self-service referral partner; tracks referral leads and commission payouts.',
+  accounts: 'Finance/reconciliation staff; reviews disbursements, commission liability and the payout queue across every connector and affiliate.',
 };
 
 interface RoleRow {

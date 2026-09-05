@@ -6,7 +6,8 @@ export type UserRole =
   | 'banker'
   | 'connector'
   | 'telecaller'
-  | 'affiliate';
+  | 'affiliate'
+  | 'accounts';
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   super_admin: 'Super Admin',
@@ -17,6 +18,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   connector: 'Connector',
   telecaller: 'Telecaller',
   affiliate: 'Affiliate',
+  accounts: 'Accounts',
 };
 
 /** Reporting hierarchy. Connector is intentionally outside of it. */

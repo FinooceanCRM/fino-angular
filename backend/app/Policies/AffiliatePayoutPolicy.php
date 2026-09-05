@@ -7,9 +7,9 @@ use App\Models\AffiliatePayout;
 use App\Models\User;
 
 /**
- * An affiliate may request and view their own payouts; only a Super Admin
- * may see the platform-wide queue or decide (approve/mark paid/reject) one.
- * Same shape as LeadAccessRequestPolicy.
+ * An affiliate may request and view their own payouts; a Super Admin or an
+ * Accounts user may see the platform-wide queue or decide (approve/mark
+ * paid/reject) one. Same shape as LeadAccessRequestPolicy.
  */
 class AffiliatePayoutPolicy
 {
@@ -25,16 +25,16 @@ class AffiliatePayoutPolicy
 
     public function viewAny(User $actor): bool
     {
-        return $actor->hasRole(UserRole::SuperAdmin);
+        return $actor->hasRole(UserRole::SuperAdmin, UserRole::Accounts);
     }
 
     public function view(User $actor, AffiliatePayout $payout): bool
     {
-        return $actor->id === $payout->affiliate_id || $actor->hasRole(UserRole::SuperAdmin);
+        return $actor->id === $payout->affiliate_id || $actor->hasRole(UserRole::SuperAdmin, UserRole::Accounts);
     }
 
     public function decide(User $actor, AffiliatePayout $payout): bool
     {
-        return $actor->hasRole(UserRole::SuperAdmin);
+        return $actor->hasRole(UserRole::SuperAdmin, UserRole::Accounts);
     }
 }

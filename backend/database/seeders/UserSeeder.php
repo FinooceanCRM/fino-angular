@@ -100,6 +100,7 @@ class UserSeeder extends Seeder
         $this->make('Affiliate One', 'affiliate1@finoocean.test', UserRole::Affiliate);
         $this->make('Affiliate Two', 'affiliate2@finoocean.test', UserRole::Affiliate);
         $this->make('Affiliate Three', 'affiliate3@finoocean.test', UserRole::Affiliate);
+        $this->make('Accounts One', 'accounts1@finoocean.test', UserRole::Accounts);
     }
 
     /**

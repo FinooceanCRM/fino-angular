@@ -147,9 +147,9 @@ class UserService extends BaseService
         $attributes['role'] = $role->value;
         $attributes['employee_id'] = null;
 
-        // Connectors and Bankers are independent of the reporting hierarchy
-        // and of departments.
-        if ($role === UserRole::Connector || $role === UserRole::Banker) {
+        // Connectors, Bankers and Accounts staff are independent of the
+        // reporting hierarchy and of departments.
+        if ($role === UserRole::Connector || $role === UserRole::Banker || $role === UserRole::Accounts) {
             $attributes['manager_id'] = null;
             $attributes['relationship_manager_id'] = null;
             $attributes['employee_id'] = null;
