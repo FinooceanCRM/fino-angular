@@ -50,10 +50,22 @@ class BankerService extends BaseService
         $this->assertBanker($user);
 
         $profileAttributes = array_intersect_key($attributes, array_flip([
+            'first_name',
+            'last_name',
+            'country',
+            'pan_number',
             'bank_name',
             'branch',
+            'branch_address',
+            'branch_location',
+            'bank_city',
+            'bank_state',
             'designation',
             'employee_code',
+            'products',
+            'manager_name',
+            'manager_email',
+            'manager_phone',
             'alternate_phone',
             'address_line1',
             'address_line2',

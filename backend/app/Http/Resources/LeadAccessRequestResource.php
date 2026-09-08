@@ -58,18 +58,42 @@ class LeadAccessRequestResource extends JsonResource
         }
 
         $profile = $user->relationLoaded('bankerProfile') ? $user->bankerProfile : null;
+        $productLabels = config('bankers.products');
 
         return [
             'id' => $user->id,
             'name' => $user->name,
             'email' => $user->email,
             'phone' => $user->phone,
+            'role' => $user->roleEnum()->value,
+
+            'first_name' => $profile?->first_name,
+            'last_name' => $profile?->last_name,
             'alternate_phone' => $profile?->alternate_phone,
+            'country' => $profile?->country,
+            'pan_number' => $profile?->pan_number,
+            'city' => $profile?->city,
+            'state' => $profile?->state,
+            'pincode' => $profile?->pincode,
+
             'bank_name' => $profile?->bank_name,
             'branch' => $profile?->branch,
+            'branch_address' => $profile?->branch_address,
+            'branch_location' => $profile?->branch_location,
+            'bank_city' => $profile?->bank_city,
+            'bank_state' => $profile?->bank_state,
             'designation' => $profile?->designation,
             'employee_code' => $profile?->employee_code,
-            'role' => $user->roleEnum()->value,
+
+            'products' => $profile ? array_values($profile->products ?? []) : [],
+            'product_labels' => $profile ? array_values(array_map(
+                static fn (string $key): string => $productLabels[$key] ?? $key,
+                $profile->products ?? [],
+            )) : [],
+
+            'manager_name' => $profile?->manager_name,
+            'manager_email' => $profile?->manager_email,
+            'manager_phone' => $profile?->manager_phone,
         ];
     }
 }

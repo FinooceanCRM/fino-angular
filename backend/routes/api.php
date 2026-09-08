@@ -24,6 +24,7 @@ use App\Http\Controllers\Api\V1\ManagerController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PermissionController;
 use App\Http\Controllers\Api\V1\Public\AffiliateRegistrationController;
+use App\Http\Controllers\Api\V1\Public\BankerRegistrationController;
 use App\Http\Controllers\Api\V1\Public\ConnectorRegistrationController;
 use App\Http\Controllers\Api\V1\Public\PublicLeadController;
 use App\Http\Controllers\Api\V1\Public\VendorRegistrationController;
@@ -88,6 +89,20 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('verify-otp', [VendorRegistrationController::class, 'verifyOtp'])
             ->middleware('throttle:10,1')->name('verify-otp');
         Route::post('resend-otp', [VendorRegistrationController::class, 'resendOtp'])
+            ->middleware('throttle:3,1')->name('resend-otp');
+    });
+
+    // Self-service banker signup ("Join as Banker"). Public: no auth, no
+    // admin approval gate. Same phone-OTP gate as vendors above — the
+    // account stays inactive until the 6-digit code sent at signup is
+    // confirmed, then the banker logs in to the existing Banker workspace.
+    // See BankerRegistrationService.
+    Route::prefix('public/bankers')->name('public.bankers.')->group(function (): void {
+        Route::post('register', [BankerRegistrationController::class, 'store'])
+            ->middleware('throttle:5,1')->name('register');
+        Route::post('verify-otp', [BankerRegistrationController::class, 'verifyOtp'])
+            ->middleware('throttle:10,1')->name('verify-otp');
+        Route::post('resend-otp', [BankerRegistrationController::class, 'resendOtp'])
             ->middleware('throttle:3,1')->name('resend-otp');
     });
 

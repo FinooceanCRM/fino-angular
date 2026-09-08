@@ -26,6 +26,16 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>First name</mat-label>
+          <input matInput formControlName="first_name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Last name</mat-label>
+          <input matInput formControlName="last_name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
           <mat-label>Phone</mat-label>
           <input matInput formControlName="phone" />
         </mat-form-field>
@@ -33,6 +43,19 @@
         <mat-form-field appearance="outline">
           <mat-label>Alternate phone</mat-label>
           <input matInput formControlName="alternate_phone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Country</mat-label>
+          <input matInput formControlName="country" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>PAN number</mat-label>
+          <input matInput formControlName="pan_number" maxlength="10" />
+          @if (form.controls.pan_number.hasError('pattern')) {
+            <mat-error>PAN must be 10 alphanumeric characters.</mat-error>
+          }
         </mat-form-field>
       </div>
 
@@ -49,6 +72,26 @@
         </mat-form-field>
 
         <mat-form-field appearance="outline">
+          <mat-label>Branch address</mat-label>
+          <input matInput formControlName="branch_address" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Branch location</mat-label>
+          <input matInput formControlName="branch_location" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Bank city</mat-label>
+          <input matInput formControlName="bank_city" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Bank state</mat-label>
+          <input matInput formControlName="bank_state" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
           <mat-label>Designation</mat-label>
           <input matInput formControlName="designation" />
         </mat-form-field>
@@ -56,6 +99,34 @@
         <mat-form-field appearance="outline">
           <mat-label>Employee code</mat-label>
           <input matInput formControlName="employee_code" />
+        </mat-form-field>
+      </div>
+
+      <h3 class="banker-profile__section-title">Products</h3>
+      <div class="banker-profile__checks" [formGroup]="productsForm">
+        @for (product of products; track product.key) {
+          <mat-checkbox [formControlName]="product.key">{{ product.label }}</mat-checkbox>
+        }
+      </div>
+
+      <h3 class="banker-profile__section-title">Manager Details</h3>
+      <div class="banker-profile__grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Manager name</mat-label>
+          <input matInput formControlName="manager_name" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Manager email</mat-label>
+          <input matInput formControlName="manager_email" />
+          @if (form.controls.manager_email.hasError('email')) {
+            <mat-error>Enter a valid email address.</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Manager number</mat-label>
+          <input matInput formControlName="manager_phone" />
         </mat-form-field>
       </div>
 

@@ -27,6 +27,20 @@ export class BankerDetailsDialogComponent {
     return parts.length === 0 ? '?' : (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase();
   });
 
+  /** Prefers the first/last name captured at signup, falling back to the account name. */
+  protected fullName(): string {
+    const composed = [this.data.banker.first_name, this.data.banker.last_name]
+      .filter(Boolean)
+      .join(' ')
+      .trim();
+    return composed || this.data.banker.name;
+  }
+
+  protected productList(): string {
+    const labels = this.data.banker.product_labels ?? [];
+    return labels.length ? labels.join(', ') : 'Not provided';
+  }
+
   protected roleLabel(): string {
     return this.data.banker.role.replace(/_/g, ' ').replace(/\b\w/g, (character) => character.toUpperCase());
   }

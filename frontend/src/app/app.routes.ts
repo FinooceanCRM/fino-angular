@@ -38,6 +38,18 @@ export const routes: Routes = [
       ),
   },
   {
+    // Public "Join as Banker" signup — self-service registration for the
+    // `banker` role, phone-OTP gated. Same shell-bypass reasoning as the
+    // connector/vendor signups above; linked from the login page. A
+    // verified banker then signs in to the existing Banker workspace.
+    path: 'join-banker',
+    title: 'Join as a banker — FINOOCEAN',
+    loadComponent: () =>
+      import('@features/public/join-banker/public-join-banker.component').then(
+        (m) => m.PublicJoinBankerComponent,
+      ),
+  },
+  {
     path: 'join-connector/:code',
     title: 'Become a connector — FINOOCEAN',
     loadComponent: () =>

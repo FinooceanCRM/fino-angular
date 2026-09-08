@@ -7,11 +7,31 @@ export interface UserSummary {
   email: string;
   phone?: string | null;
   role: string;
+
+  first_name?: string | null;
+  last_name?: string | null;
   alternate_phone?: string | null;
+  country?: string | null;
+  pan_number?: string | null;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+
   bank_name?: string | null;
   branch?: string | null;
+  branch_address?: string | null;
+  branch_location?: string | null;
+  bank_city?: string | null;
+  bank_state?: string | null;
   designation?: string | null;
   employee_code?: string | null;
+
+  products?: string[];
+  product_labels?: string[];
+
+  manager_name?: string | null;
+  manager_email?: string | null;
+  manager_phone?: string | null;
 }
 
 /** A candidate returned by `GET leads/assignable-users` — a UserSummary plus the hierarchy links needed to filter the reassignment pool (e.g. "only this RM's employees"). */

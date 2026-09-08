@@ -9,6 +9,7 @@
     </div>
 
     <dl class="banker-details-dialog__grid">
+      <div class="banker-details-dialog__section">Contact</div>
       <div>
         <dt>Email</dt>
         <dd><a [href]="'mailto:' + data.banker.email">{{ data.banker.email }}</a></dd>
@@ -23,15 +24,49 @@
       </div>
       <div>
         <dt>Banker name</dt>
-        <dd>{{ data.banker.name }}</dd>
+        <dd>{{ fullName() }}</dd>
       </div>
+      <div>
+        <dt>PAN number</dt>
+        <dd>{{ data.banker.pan_number || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Country</dt>
+        <dd>{{ data.banker.country || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>City</dt>
+        <dd>{{ data.banker.city || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>State</dt>
+        <dd>{{ data.banker.state || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Pin code</dt>
+        <dd>{{ data.banker.pincode || 'Not provided' }}</dd>
+      </div>
+
+      <div class="banker-details-dialog__section">Bank details</div>
       <div>
         <dt>Bank name</dt>
         <dd>{{ data.banker.bank_name || 'Not provided' }}</dd>
       </div>
       <div>
-        <dt>Branch name</dt>
-        <dd>{{ data.banker.branch || 'Not provided' }}</dd>
+        <dt>Branch address</dt>
+        <dd>{{ data.banker.branch_address || data.banker.branch || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Branch location</dt>
+        <dd>{{ data.banker.branch_location || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Branch city</dt>
+        <dd>{{ data.banker.bank_city || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Branch state</dt>
+        <dd>{{ data.banker.bank_state || 'Not provided' }}</dd>
       </div>
       <div>
         <dt>Designation</dt>
@@ -40,6 +75,24 @@
       <div>
         <dt>Employee code</dt>
         <dd>{{ data.banker.employee_code || 'Not provided' }}</dd>
+      </div>
+      <div class="banker-details-dialog__wide">
+        <dt>Products</dt>
+        <dd>{{ productList() }}</dd>
+      </div>
+
+      <div class="banker-details-dialog__section">Manager details</div>
+      <div>
+        <dt>Manager name</dt>
+        <dd>{{ data.banker.manager_name || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Manager email</dt>
+        <dd>{{ data.banker.manager_email || 'Not provided' }}</dd>
+      </div>
+      <div>
+        <dt>Manager number</dt>
+        <dd>{{ data.banker.manager_phone || 'Not provided' }}</dd>
       </div>
     </dl>
   </div>

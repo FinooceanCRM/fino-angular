@@ -48,6 +48,22 @@
   min-width: 0;
 }
 
+.banker-details-dialog__section {
+  grid-column: 1 / -1;
+  margin: var(--app-space-2) 0 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--mat-sys-primary);
+}
+
+.banker-details-dialog__section:first-child {
+  margin-top: 0;
+}
+
+.banker-details-dialog__wide {
+  grid-column: 1 / -1;
+}
+
 .banker-details-dialog__grid dt {
   color: var(--app-status-default-fg);
   font-size: 0.82rem;
