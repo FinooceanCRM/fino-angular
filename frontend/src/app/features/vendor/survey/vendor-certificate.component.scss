@@ -1,0 +1,257 @@
+.vc-error {
+  color: var(--tide-color-error);
+}
+
+.vc-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+}
+
+.vc-scroll {
+  overflow-x: auto;
+}
+
+/* ---- The certificate itself: fixed light palette so the PDF is stable ---- */
+.certificate {
+  width: 820px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 36px 40px;
+  background: #ffffff;
+  color: #16233a;
+  border: 2px solid #0a3d7a;
+  border-radius: 6px;
+  font-family: var(--tide-font-body, system-ui, sans-serif);
+}
+
+.certificate__head {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #0a3d7a;
+}
+
+.certificate__emblem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #0a3d7a;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.certificate__emblem mat-icon {
+  font-size: 30px;
+  width: 30px;
+  height: 30px;
+}
+
+.certificate__titles {
+  flex: 1;
+  text-align: center;
+}
+
+.certificate__org {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #0a3d7a;
+}
+
+.certificate__title {
+  margin: 2px 0;
+  font-size: 1.35rem;
+  font-weight: 800;
+}
+
+.certificate__dept {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #5a6a82;
+}
+
+.certificate__idbox {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #0a3d7a;
+  border: 1px solid #0a3d7a;
+  border-radius: 4px;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+
+.certificate__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 16px 0;
+  flex-wrap: wrap;
+}
+
+.certificate__meta span {
+  display: block;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #5a6a82;
+}
+
+.certificate__meta strong {
+  font-size: 0.95rem;
+}
+
+.certificate__body {
+  display: grid;
+  grid-template-columns: 190px 1fr;
+  gap: 24px;
+}
+
+.certificate__photos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.certificate__photos figure {
+  margin: 0;
+  text-align: center;
+}
+
+.certificate__photos img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border: 1px solid #c7d2e2;
+  border-radius: 4px;
+  background: #eef2f8;
+}
+
+.certificate__qr canvas {
+  width: 120px;
+  height: 120px;
+}
+
+.certificate__photos figcaption {
+  margin-top: 4px;
+  font-size: 0.68rem;
+  color: #5a6a82;
+}
+
+.certificate__section {
+  margin: 4px 0 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #0a3d7a;
+  border-bottom: 1px solid #c7d2e2;
+  padding-bottom: 3px;
+}
+
+.certificate__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 20px;
+  margin: 0 0 14px;
+}
+
+.certificate__grid > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.certificate__grid-wide {
+  grid-column: 1 / -1;
+}
+
+.certificate__grid dt {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5a6a82;
+}
+
+.certificate__grid dd {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.certificate__products {
+  margin-top: 8px;
+}
+
+.certificate__product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.certificate__product-grid img {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border: 1px solid #c7d2e2;
+  border-radius: 4px;
+}
+
+.certificate__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 2px solid #0a3d7a;
+}
+
+.certificate__note {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #5a6a82;
+  max-width: 60ch;
+}
+
+.certificate__sign {
+  text-align: center;
+  min-width: 180px;
+}
+
+.certificate__sign-line {
+  display: block;
+  height: 1px;
+  background: #16233a;
+  margin-bottom: 4px;
+}
+
+.certificate__sign strong {
+  display: block;
+  font-size: 0.8rem;
+}
+
+.certificate__sign small {
+  font-size: 0.68rem;
+  color: #5a6a82;
+}
+
+@media (max-width: 700px) {
+  .certificate {
+    padding: 20px;
+  }
+  .certificate__body {
+    grid-template-columns: 1fr;
+  }
+  .certificate__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

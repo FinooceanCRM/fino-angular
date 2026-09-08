@@ -16,7 +16,7 @@
     [statusLabel]="data.lead.status_label"
     [statusColour]="data.lead.status_colour"
   >
-    @if (!isBanker() || hasFullAccess()) {
+    @if (!isReadOnlySubmitter() && (!isBanker() || hasFullAccess())) {
       <a mat-stroked-button [routerLink]="['/leads', data.lead.id, 'edit']">
         <mat-icon>edit</mat-icon>
         Edit
@@ -28,13 +28,13 @@
         Complete Full PD
       </a>
     }
-    @if (!isConnector() && canAssign()) {
+    @if (!isReadOnlySubmitter() && canAssign()) {
       <button mat-stroked-button type="button" (click)="selectedTab.set(workflowTab)">
         <mat-icon>person_add</mat-icon>
         Assign
       </button>
     }
-    @if (!isConnector() && (!isBanker() || hasFullAccess())) {
+    @if (!isReadOnlySubmitter() && (!isBanker() || hasFullAccess())) {
       <button
         mat-stroked-button
         color="warn"
@@ -353,7 +353,7 @@
           </mat-card>
         }
 
-        @if (!isConnector()) {
+        @if (!isReadOnlySubmitter()) {
           <mat-card class="lead-detail__form-card">
             <h3 class="lead-detail__section-title">Documents</h3>
             @if (isBanker() && !hasFullAccess()) {
@@ -386,7 +386,7 @@
 
     <mat-tab label="Workflow">
       <div class="lead-detail__tab-body">
-        @if (!isConnector()) {
+        @if (!isReadOnlySubmitter()) {
           @if (canChangeStatus()) {
             <mat-card class="lead-detail__form-card">
               <h3 class="lead-detail__section-title">Change status</h3>
@@ -559,7 +559,7 @@
     </mat-tab>
     }
 
-    @if (!isConnector()) {
+    @if (!isReadOnlySubmitter()) {
     <mat-tab label="Documents">
       <div class="lead-detail__tab-body">
         @if (!isBanker() || hasFullAccess()) {

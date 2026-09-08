@@ -57,6 +57,7 @@ class LoanLeadResource extends JsonResource
             'notes' => $this->notes,
             'details' => $details,
             'connector' => $this->userSummary($this->whenLoaded('connector')),
+            'vendor' => $this->userSummary($this->whenLoaded('vendor')),
             'assigned_employee' => $this->userSummary($this->whenLoaded('assignedEmployee')),
             'assigned_relationship_manager' => $this->userSummary($this->whenLoaded('assignedRelationshipManager')),
             'assigned_manager' => $this->userSummary($this->whenLoaded('assignedManager')),

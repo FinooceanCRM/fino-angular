@@ -254,6 +254,17 @@ export class LeadDetailComponent implements OnInit {
    */
   protected readonly isConnector = computed(() => this.auth.hasRole('connector'));
 
+  /**
+   * A Vendor's "Request a Loan" submission is strictly read-only for them
+   * once created (LoanLeadPolicy::update/assign/changeStatus all return
+   * false for the vendor role), so the same Overview-only narrowing the
+   * Connector gets applies — every workflow affordance is OR-gated on this.
+   */
+  protected readonly isVendor = computed(() => this.auth.hasRole('vendor'));
+
+  /** True for any independent submitter whose lead view is Overview-only. */
+  protected readonly isReadOnlySubmitter = computed(() => this.isConnector() || this.isVendor());
+
   protected readonly historyEntries = computed(() =>
     (this.detail()?.status_history ?? []).map((entry) => ({
       icon: 'swap_horiz',

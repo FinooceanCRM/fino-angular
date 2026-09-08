@@ -27,6 +27,7 @@ class RolePermissionSeeder extends Seeder
             UserRole::Telecaller->value => 7,
             UserRole::Affiliate->value => 8,
             UserRole::Accounts->value => 9,
+            UserRole::Vendor->value => 10,
         ];
 
         foreach (UserRole::cases() as $role) {
@@ -149,6 +150,17 @@ class RolePermissionSeeder extends Seeder
                 'banking' => 'view',
                 'reports' => 'view',
                 'notifications' => 'view',
+            ],
+            // Vendor: a self-service street-vendor account. Own dashboard +
+            // notifications, plus leads.view/create for the "Request a Loan"
+            // journey — same pair Connector gets, and for the same reason
+            // (they self-submit their own loan requests and list only their
+            // own via GET /leads). No leads.edit: a vendor's loan request is
+            // read-only once submitted (see LoanLeadPolicy::update).
+            UserRole::Vendor->value => [
+                'dashboard' => 'view',
+                'notifications' => 'view',
+                'leads' => ['view', 'create'],
             ],
         ];
 

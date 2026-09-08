@@ -49,6 +49,7 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
         $query = LoanLead::query()->with([
             'creator:id,name,email,role',
             'connector:id,name,email,role',
+            'vendor:id,name,email,role',
             'assignedEmployee:id,name,email,role',
             'assignedRelationshipManager:id,name,email,role',
             'assignedManager:id,name,email,role',
@@ -127,6 +128,12 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
                 })
                     ->orWhere('assigned_telecaller_id', $actor->id)
                     ->orWhere('created_by', $actor->id);
+            }),
+            // A vendor only ever sees loan requests they submitted
+            // themselves — matched on `vendor_id` (stamped by
+            // LeadService::create) or `created_by`, mirroring Connector.
+            UserRole::Vendor => $query->where(function (Builder $q) use ($actor): void {
+                $q->where('vendor_id', $actor->id)->orWhere('created_by', $actor->id);
             }),
         };
     }
@@ -277,10 +284,10 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
      * regardless of how a lead got assigned, so "Priority" vs "Assigned" is
      * NOT a function of current approval state (full access can be granted
      * either way — see {@see LeadAccessRequest::grantsFullAccess()}) but of
-    * *origin*, fixed once at request time: a lead a Manager assigned directly
-    * starts in Assigned Leads and moves into Priority Leads after the
-    * banker's "Request Full Details" is approved. Matched leads remain in
-    * Assigned Leads after an approved "Send Request".
+     * *origin*, fixed once at request time: a lead a Manager assigned directly
+     * starts in Assigned Leads and moves into Priority Leads after the
+     * banker's "Request Full Details" is approved. Matched leads remain in
+     * Assigned Leads after an approved "Send Request".
      */
     private function applyBankerBucket(Builder $query, User $actor, string $bucket): void
     {

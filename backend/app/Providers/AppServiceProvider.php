@@ -28,6 +28,8 @@ use App\Models\Task;
 use App\Models\Telecaller;
 use App\Models\TelecallerFollowUp;
 use App\Models\User;
+use App\Models\Vendor;
+use App\Models\VendorCertification;
 use App\Policies\AccountantPolicy;
 use App\Policies\AffiliatePayoutPolicy;
 use App\Policies\AffiliatePolicy;
@@ -47,13 +49,15 @@ use App\Policies\LeadFollowUpPolicy;
 use App\Policies\LedgerPolicy;
 use App\Policies\LoanLeadPolicy;
 use App\Policies\ManagerPolicy;
+use App\Policies\PermissionPolicy;
 use App\Policies\RelationshipManagerPolicy;
 use App\Policies\SettingsPolicy;
 use App\Policies\TaskPolicy;
 use App\Policies\TelecallerFollowUpPolicy;
 use App\Policies\TelecallerPolicy;
-use App\Policies\PermissionPolicy;
 use App\Policies\UserPolicy;
+use App\Policies\VendorCertificationPolicy;
+use App\Policies\VendorPolicy;
 use App\Services\CaptchaVerificationService;
 use App\Services\Contracts\CaptchaVerifierInterface;
 use Illuminate\Database\Eloquent\Model;
@@ -98,5 +102,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Task::class, TaskPolicy::class);
         Gate::policy(Approval::class, ApprovalPolicy::class);
         Gate::policy(Accountant::class, AccountantPolicy::class);
+        Gate::policy(Vendor::class, VendorPolicy::class);
+        Gate::policy(VendorCertification::class, VendorCertificationPolicy::class);
     }
 }

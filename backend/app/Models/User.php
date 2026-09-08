@@ -73,6 +73,12 @@ class User extends Authenticatable
         return $this->hasOne(Affiliate::class);
     }
 
+    /** Vendor profile row for a user with the `vendor` role. */
+    public function vendor(): HasOne
+    {
+        return $this->hasOne(Vendor::class);
+    }
+
     /** Direct reports where this user is the manager. */
     public function managedUsers(): HasMany
     {

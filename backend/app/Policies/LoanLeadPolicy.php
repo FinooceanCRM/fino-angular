@@ -55,6 +55,9 @@ class LoanLeadPolicy
             // EloquentLoanLeadRepository::visibleQuery) for reconciliation,
             // but never edits a lead's own fields.
             UserRole::Accounts => false,
+            // A vendor's loan request is read-only once submitted (product
+            // decision for Phase 4) — they track status but never edit it.
+            UserRole::Vendor => false,
         };
     }
 

@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\V1\CustomerInteractionController;
 use App\Http\Controllers\Api\V1\CustomerNoteController;
 use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\EmployeeController;
+use App\Http\Controllers\Api\V1\GeocodeController;
 use App\Http\Controllers\Api\V1\HealthController;
 use App\Http\Controllers\Api\V1\LeadAccessRequestController;
 use App\Http\Controllers\Api\V1\LeadController;
@@ -22,10 +23,10 @@ use App\Http\Controllers\Api\V1\LedgerController;
 use App\Http\Controllers\Api\V1\ManagerController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PermissionController;
-use App\Http\Controllers\Api\V1\TaskController;
 use App\Http\Controllers\Api\V1\Public\AffiliateRegistrationController;
 use App\Http\Controllers\Api\V1\Public\ConnectorRegistrationController;
 use App\Http\Controllers\Api\V1\Public\PublicLeadController;
+use App\Http\Controllers\Api\V1\Public\VendorRegistrationController;
 use App\Http\Controllers\Api\V1\RelationshipManagerController;
 use App\Http\Controllers\Api\V1\ReportController;
 use App\Http\Controllers\Api\V1\SearchController;
@@ -33,9 +34,12 @@ use App\Http\Controllers\Api\V1\SettingsController;
 use App\Http\Controllers\Api\V1\SuperAdminAffiliateController;
 use App\Http\Controllers\Api\V1\SuperAdminConnectorController;
 use App\Http\Controllers\Api\V1\SuperAdminController;
+use App\Http\Controllers\Api\V1\TaskController;
 use App\Http\Controllers\Api\V1\TelecallerController;
 use App\Http\Controllers\Api\V1\TelecallerFollowUpController;
 use App\Http\Controllers\Api\V1\UserController;
+use App\Http\Controllers\Api\V1\VendorCertificationController;
+use App\Http\Controllers\Api\V1\VendorController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -71,6 +75,19 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('verify-otp', [ConnectorRegistrationController::class, 'verifyOtp'])
             ->middleware('throttle:10,1')->name('verify-otp');
         Route::post('resend-otp', [ConnectorRegistrationController::class, 'resendOtp'])
+            ->middleware('throttle:3,1')->name('resend-otp');
+    });
+
+    // Self-service vendor signup ("Join as Vendor"). Public: no auth, no
+    // admin approval gate. Same phone-OTP gate as connectors above — the
+    // account stays inactive until the 6-digit code sent at signup is
+    // confirmed. See VendorRegistrationService.
+    Route::prefix('public/vendors')->name('public.vendors.')->group(function (): void {
+        Route::post('register', [VendorRegistrationController::class, 'store'])
+            ->middleware('throttle:5,1')->name('register');
+        Route::post('verify-otp', [VendorRegistrationController::class, 'verifyOtp'])
+            ->middleware('throttle:10,1')->name('verify-otp');
+        Route::post('resend-otp', [VendorRegistrationController::class, 'resendOtp'])
             ->middleware('throttle:3,1')->name('resend-otp');
     });
 
@@ -229,6 +246,44 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
                 Route::get('profile', [TelecallerController::class, 'profile'])->name('profile.show');
                 Route::put('profile', [TelecallerController::class, 'updateProfile'])->name('profile.update');
                 Route::get('follow-ups', [TelecallerFollowUpController::class, 'pending'])->name('follow-ups.index');
+            });
+
+        // Vendor module. Independent of the reporting hierarchy, like
+        // Connector/Banker. Phase 2 added the dashboard; Phase 3 adds the
+        // Vendor Certification wizard (draft → images → submit → certificate)
+        // and its geocoding proxy. Loan-request endpoints land in Phase 4.
+        Route::prefix('vendors')->name('vendors.')
+            ->middleware('role:vendor')
+            ->group(function (): void {
+                Route::get('dashboard', [VendorController::class, 'dashboard'])->name('dashboard');
+
+                // Map-step geocoding proxy (reverse / forward / suggest).
+                Route::get('geocode', GeocodeController::class)->name('geocode');
+
+                Route::prefix('certifications')->name('certifications.')->group(function (): void {
+                    Route::get('/', [VendorCertificationController::class, 'index'])->name('index');
+                    Route::get('metadata', [VendorCertificationController::class, 'metadata'])->name('metadata');
+
+                    // Single open draft.
+                    Route::get('draft', [VendorCertificationController::class, 'draft'])->name('draft.show');
+                    Route::put('draft', [VendorCertificationController::class, 'saveDraft'])->name('draft.update');
+
+                    // Step-4 images (staged on the draft).
+                    Route::post('images', [VendorCertificationController::class, 'uploadImage'])->name('images.store');
+                    Route::delete('images/{image}', [VendorCertificationController::class, 'deleteImage'])
+                        ->whereNumber('image')->name('images.destroy');
+
+                    // Submit the draft → completed certification.
+                    Route::post('/', [VendorCertificationController::class, 'submit'])->name('submit');
+
+                    // One owned certification + its certificate + its files.
+                    Route::get('{certification}', [VendorCertificationController::class, 'show'])
+                        ->whereNumber('certification')->name('show');
+                    Route::get('{certification}/certificate', [VendorCertificationController::class, 'certificate'])
+                        ->whereNumber('certification')->name('certificate');
+                    Route::get('{certification}/images/{image}', [VendorCertificationController::class, 'showImage'])
+                        ->whereNumber('certification')->whereNumber('image')->name('images.show');
+                });
             });
 
         // Employee module (Phase 6). Self-scoped; leaf of the reporting hierarchy.

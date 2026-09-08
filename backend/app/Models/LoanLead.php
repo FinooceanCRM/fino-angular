@@ -35,6 +35,7 @@ class LoanLead extends Model
         'updated_by',
         'connector_id',
         'affiliate_id',
+        'vendor_id',
         'assigned_employee_id',
         'assigned_relationship_manager_id',
         'assigned_manager_id',
@@ -87,6 +88,12 @@ class LoanLead extends Model
     public function affiliate(): BelongsTo
     {
         return $this->belongsTo(User::class, 'affiliate_id');
+    }
+
+    /** The vendor (a `users` row with the `vendor` role) who requested this loan. */
+    public function vendor(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'vendor_id');
     }
 
     public function assignedEmployee(): BelongsTo

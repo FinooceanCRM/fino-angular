@@ -30,11 +30,10 @@ class LeadService extends BaseService
         private readonly ConnectorCommissionService $connectorCommissions,
         private readonly AuditLogService $auditLog,
         private readonly LedgerService $ledger,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<string, mixed> $filters
+     * @param  array<string, mixed>  $filters
      */
     public function paginate(User $actor, array $filters, int $perPage = 15): LengthAwarePaginator
     {
@@ -66,7 +65,7 @@ class LeadService extends BaseService
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function create(User $actor, array $attributes): LoanLead
     {
@@ -79,6 +78,11 @@ class LeadService extends BaseService
 
             if ($actor->roleEnum() === UserRole::Connector) {
                 $attributes['connector_id'] = $actor->id;
+            } elseif ($actor->roleEnum() === UserRole::Vendor) {
+                // A vendor's "Request a Loan" submission — stamped to the
+                // authenticated vendor, no hierarchy cascade (same treatment
+                // as a connector-originated lead).
+                $attributes['vendor_id'] = $actor->id;
             } else {
                 $attributes = array_merge($attributes, $this->cascadeAssignmentAttributes($actor));
             }
@@ -116,7 +120,7 @@ class LeadService extends BaseService
     }
 
     /**
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     public function update(User $actor, LoanLead $lead, array $attributes): LoanLead
     {
@@ -224,8 +228,8 @@ class LeadService extends BaseService
 
         return $this->transaction(function () use ($actor, $lead, $current, $target, $remarks): LoanLead {
             $lead = $this->leads->update($lead, [
-        'status' => $target->value,
-    ]);
+                'status' => $target->value,
+            ]);
 
             $this->recordStatus($lead, $current->value, $target->value, $actor->id, $remarks);
 
@@ -319,7 +323,7 @@ class LeadService extends BaseService
      * Deliberately does not touch `status`, for the same reason documented
      * on `completePd()`.
      *
-     * @param array<string, mixed> $pdData
+     * @param  array<string, mixed>  $pdData
      */
     public function submitPd(User $actor, LoanLead $lead, array $pdData): LoanLead
     {

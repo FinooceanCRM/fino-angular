@@ -20,6 +20,10 @@ export const ROLE_PERMISSIONS: Record<UserRole, AppPermission[]> = {
   // like every other independent role.
   affiliate: [],
   accounts: [],
+  // Self-service street-vendor role. Its in-app actions (certification,
+  // loan request) are gated by the DB permission matrix + `role:vendor`
+  // API middleware, not by this coarse frontend map.
+  vendor: [],
 };
 
 export function permissionsForRole(role: UserRole | null): AppPermission[] {
@@ -51,4 +55,8 @@ export const ASSIGNABLE_ROLES: Record<UserRole, UserRole[]> = {
   telecaller: [],
   affiliate: [],
   accounts: [],
+  // Vendors self-register through the public "Join as Vendor" page and are
+  // never created from the internal Users screen, like every other
+  // independent role.
+  vendor: [],
 };

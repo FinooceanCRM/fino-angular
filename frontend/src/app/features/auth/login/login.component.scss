@@ -189,6 +189,12 @@
   margin-top: var(--app-space-4);
 }
 
+.login__vendor-cta {
+  width: 100%;
+  height: 44px;
+  margin-top: var(--app-space-2);
+}
+
 @media (max-width: 860px) {
   .login {
     grid-template-columns: 1fr;

@@ -6,8 +6,8 @@ namespace App\Enums;
  * Application roles.
  *
  * Hierarchy: super_admin -> manager -> relationship_manager -> employee.
- * Connector, Banker, Telecaller, Affiliate and Accounts are standalone roles
- * outside the hierarchy.
+ * Connector, Banker, Telecaller, Affiliate, Accounts and Vendor are
+ * standalone roles outside the hierarchy.
  */
 enum UserRole: string
 {
@@ -26,6 +26,14 @@ enum UserRole: string
      * payouts and the accounting ledger; never edits a loan lead.
      */
     case Accounts = 'accounts';
+    /**
+     * Street vendor / small-business owner. Self-registers through the
+     * public "Join as Vendor" page (phone-OTP gated, like Connector),
+     * standalone outside the reporting hierarchy. Gets its own in-app
+     * workspace; can create a Vendor Certification and submit loan
+     * requests, nothing else.
+     */
+    case Vendor = 'vendor';
 
     public function label(): string
     {
@@ -39,6 +47,7 @@ enum UserRole: string
             self::Telecaller => 'Telecaller',
             self::Affiliate => 'Affiliate',
             self::Accounts => 'Accounts',
+            self::Vendor => 'Vendor',
         };
     }
 
@@ -59,6 +68,7 @@ enum UserRole: string
             self::Telecaller => [],
             self::Affiliate => [],
             self::Accounts => [],
+            self::Vendor => [],
         };
     }
 

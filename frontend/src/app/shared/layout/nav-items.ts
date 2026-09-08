@@ -148,6 +148,22 @@ export function roleNavItems(auth: AuthService): NavItem[] {
     ];
   }
 
+  if (auth.hasRole('vendor')) {
+    // Standalone role with its own workspace. `/vendor/dashboard` MUST stay
+    // first: DashboardComponent forwards the post-login `/dashboard` hop to
+    // `roleNavItems(auth)[0].link`. The Certification and Loan-request
+    // entries point at placeholder pages until Phases 3 and 4 fill them in.
+    return [
+      { label: 'Vendor dashboard', link: '/vendor/dashboard', icon: 'dashboard' },
+      { label: 'Vendor Certification', link: '/vendor/certification', icon: 'workspace_premium' },
+      { label: 'Request a Loan', link: '/vendor/loan-request', icon: 'request_quote' },
+      // The existing Fino leads list, row-scoped by the API to this
+      // vendor's own loan requests (their "My Submitted Leads" equivalent).
+      { label: 'My Loan Requests', link: '/leads', icon: 'assignment' },
+      ...profileItem,
+    ];
+  }
+
   return [{ label: 'Dashboard', link: '/dashboard', icon: 'dashboard' }];
 }
 
@@ -177,6 +193,13 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
  * permission) and reports.view.
  */
 export function workspaceNavItems(auth: AuthService): NavItem[] {
+  // Vendors have no place in the shared loan workspace — their own
+  // dashboard is the only surface they get. (Phase 4 may add a
+  // read-only "My loan requests" entry here.)
+  if (auth.hasRole('vendor')) {
+    return [];
+  }
+
   let items = WORKSPACE_NAV_ITEMS;
 
   if (auth.hasRole('banker')) {

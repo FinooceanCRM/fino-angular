@@ -1,0 +1,111 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <mat-card class="vendor-dashboard__error" appearance="outlined">
+    <mat-card-content>{{ message }}</mat-card-content>
+  </mat-card>
+}
+
+@if (data(); as dashboard) {
+  <div class="vendor-dashboard">
+    <app-dashboard-hero
+      eyebrowIcon="storefront"
+      eyebrowLabel="Vendor dashboard"
+      [headline]="dashboard.welcome.headline"
+      [subtitle]="
+        dashboard.vendor.business_name
+          ? dashboard.vendor.business_name + ' · ' + (dashboard.vendor.status_label ?? '')
+          : dashboard.welcome.message
+      "
+      [stats]="[
+        { value: dashboard.stats.certifications_total, label: 'Certifications' },
+        { value: dashboard.stats.loan_requests_total, label: 'Loan requests' },
+      ]"
+    />
+
+    <div class="vendor-dashboard__actions">
+      @for (action of actions; track action.route) {
+        <mat-card
+          class="vendor-dashboard__action"
+          [class.vendor-dashboard__action--primary]="action.primary"
+          appearance="outlined"
+        >
+          <mat-card-content>
+            <span class="vendor-dashboard__action-icon">
+              <mat-icon>{{ action.icon }}</mat-icon>
+            </span>
+            <h2>{{ action.title }}</h2>
+            <p>{{ action.description }}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            @if (action.primary) {
+              <a mat-flat-button color="primary" class="tide-cta-pill" [routerLink]="action.route">
+                <mat-icon>{{ action.icon }}</mat-icon>
+                {{ action.cta }}
+              </a>
+            } @else {
+              <a mat-stroked-button [routerLink]="action.route">
+                <mat-icon>{{ action.icon }}</mat-icon>
+                {{ action.cta }}
+              </a>
+            }
+          </mat-card-actions>
+        </mat-card>
+      }
+    </div>
+
+    @if (certifications().length) {
+      <mat-card class="vendor-dashboard__list" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>My certifications</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="vendor-dashboard__certs">
+            @for (c of certifications(); track c.id) {
+              <li>
+                <div class="vendor-dashboard__cert-main">
+                  <strong>{{ c.certificate_number ?? 'Pending number' }}</strong>
+                  <span>{{ c.shop_name || '—' }} · submitted {{ c.submitted_at | date: 'dd MMM y' }}</span>
+                </div>
+                <app-status-pill [label]="c.status_label ?? c.status" [colour]="c.status_colour ?? 'default'" />
+                <a mat-stroked-button [routerLink]="['/vendor/certificate', c.id]">
+                  <mat-icon>download</mat-icon> Download
+                </a>
+              </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    }
+
+    @if (loanRequests().length) {
+      <mat-card class="vendor-dashboard__list" appearance="outlined">
+        <mat-card-header>
+          <mat-card-title>My loan requests</mat-card-title>
+          <mat-card-subtitle>Tracked through the standard Fino loan workflow</mat-card-subtitle>
+        </mat-card-header>
+        <mat-card-content>
+          <ul class="vendor-dashboard__certs">
+            @for (l of loanRequests(); track l.id) {
+              <li>
+                <div class="vendor-dashboard__cert-main">
+                  <strong>{{ l.reference }}</strong>
+                  <span>
+                    {{ l.applicant_name }} · ₹{{ l.loan_amount | number: '1.0-0' }} ·
+                    requested {{ l.created_at | date: 'dd MMM y' }}
+                  </span>
+                </div>
+                <app-status-pill [label]="l.status_label" [colour]="l.status_colour" />
+                <a mat-stroked-button [routerLink]="['/leads', l.id]">
+                  <mat-icon>open_in_new</mat-icon> View
+                </a>
+              </li>
+            }
+          </ul>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+}

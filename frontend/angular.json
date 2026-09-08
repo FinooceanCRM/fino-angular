@@ -26,9 +26,19 @@
               }
             ],
             "styles": [
+              "node_modules/leaflet/dist/leaflet.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": [
+              "jspdf",
+              "html2canvas",
+              "qrcode",
+              "raf",
+              "rgbcolor",
+              "canvg",
+              "core-js"
+            ]
           },
           "configurations": {
             "production": {

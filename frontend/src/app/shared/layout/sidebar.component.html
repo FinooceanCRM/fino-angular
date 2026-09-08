@@ -19,10 +19,12 @@
     </a>
   }
 
-  <mat-divider class="sidebar-nav__divider" />
+  @if (workspaceItems().length) {
+    <mat-divider class="sidebar-nav__divider" />
 
-  @if (!collapsed()) {
-    <span class="sidebar-nav__section">Loans</span>
+    @if (!collapsed()) {
+      <span class="sidebar-nav__section">Loans</span>
+    }
   }
 
   @for (item of workspaceItems(); track item.link) {

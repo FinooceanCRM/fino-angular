@@ -1,0 +1,531 @@
+<app-page-header
+  icon="workspace_premium"
+  title="Create Your Vendor Certification"
+  subtitle="Complete every step, then submit to generate your certificate."
+>
+  <div page-header-actions>
+    @if (saving()) {
+      <span class="vc-saving"><mat-icon>sync</mat-icon> Saving…</span>
+    } @else if (savedAt(); as at) {
+      <span class="vc-saving vc-saving--done">
+        <mat-icon>cloud_done</mat-icon> Draft saved {{ at | date: 'shortTime' }}
+      </span>
+    }
+    <button mat-stroked-button type="button" (click)="saveDraftClicked()" [disabled]="draftId() == null">
+      <mat-icon>save</mat-icon> Save draft
+    </button>
+  </div>
+</app-page-header>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <p class="vc-error" role="alert">{{ message }}</p>
+}
+
+@if (!loading()) {
+  <form [formGroup]="form">
+    <mat-stepper #stepper orientation="horizontal" [linear]="false" (selectionChange)="onStepChange($event.selectedIndex)">
+      <!-- ============================== STEP 1 · LOCATION PERMISSION ===== -->
+      <mat-step [completed]="form.controls.location_mode.value !== 'manual' || form.controls.gps_latitude.value != null">
+        <ng-template matStepLabel>Location</ng-template>
+        <div class="vc-permission">
+          <span class="vc-permission__icon"><mat-icon>my_location</mat-icon></span>
+          <h2>Enable location</h2>
+          <p>
+            We use your location only to fill your address and verify your shop location — it's stored
+            once with this certification, never tracked.
+          </p>
+          @if (geoDenied()) {
+            <p class="vc-permission__warn">
+              Location permission was blocked. You can continue and enter the address manually, or
+              enable location in your browser settings and retry.
+            </p>
+          }
+          <div class="vc-permission__actions">
+            <button mat-flat-button color="primary" class="tide-cta-pill" type="button" (click)="enableLocation()" [disabled]="locating()">
+              <mat-icon>location_on</mat-icon> {{ locating() ? 'Detecting…' : 'Enable location' }}
+            </button>
+            <button mat-stroked-button type="button" (click)="continueManually()">
+              <mat-icon>keyboard</mat-icon> Enter manually
+            </button>
+          </div>
+          <p class="vc-hint">You can still adjust the map pin in step 3.</p>
+        </div>
+      </mat-step>
+
+      <!-- ============================== STEP 2 · VENDOR DETAILS ========== -->
+      <mat-step [stepControl]="form" [completed]="reviewIncomplete().indexOf('Personal details') < 0 && reviewIncomplete().indexOf('Business details') < 0">
+        <ng-template matStepLabel>Vendor details</ng-template>
+
+        <h3 class="vc-section">Personal details</h3>
+        <div class="vc-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Full name</mat-label>
+            <input matInput formControlName="full_name" maxlength="150" autocomplete="off" />
+            @if (form.controls.full_name.touched && form.controls.full_name.invalid) {
+              <mat-error>Enter the vendor's full name (letters only).</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Father / husband name</mat-label>
+            <input matInput formControlName="guardian_name" maxlength="150" />
+            @if (form.controls.guardian_name.touched && form.controls.guardian_name.invalid) {
+              <mat-error>Enter the father / husband name.</mat-error>
+            }
+          </mat-form-field>
+
+          <div class="vc-field">
+            <span class="vc-field__label">Gender</span>
+            <mat-radio-group formControlName="gender" class="vc-radio">
+              @for (g of genders; track g) {
+                <mat-radio-button [value]="g">{{ g }}</mat-radio-button>
+              }
+            </mat-radio-group>
+          </div>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Date of birth</mat-label>
+            <input matInput [matDatepicker]="dobPicker" formControlName="dob" [max]="null" />
+            <mat-datepicker-toggle matIconSuffix [for]="dobPicker" />
+            <mat-datepicker #dobPicker />
+            @if (form.controls.dob.touched && form.controls.dob.invalid) {
+              <mat-error>Enter a valid date of birth.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Age</mat-label>
+            <input matInput type="number" formControlName="age" />
+            <mat-hint>Filled from the date of birth.</mat-hint>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Mobile number</mat-label>
+            <span matTextPrefix>+91&nbsp;</span>
+            <input matInput formControlName="mobile" inputmode="numeric" maxlength="10" />
+            @if (form.controls.mobile.touched && form.controls.mobile.invalid) {
+              <mat-error>Enter a valid 10-digit mobile number.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Alternate mobile</mat-label>
+            <span matTextPrefix>+91&nbsp;</span>
+            <input matInput formControlName="alt_mobile" inputmode="numeric" maxlength="10" />
+            @if (form.controls.alt_mobile.touched && form.controls.alt_mobile.invalid) {
+              <mat-error>Enter a valid 10-digit number.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Email address</mat-label>
+            <input matInput type="email" formControlName="email" maxlength="150" />
+            @if (form.controls.email.touched && form.controls.email.invalid) {
+              <mat-error>Enter a valid email address.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Aadhaar number</mat-label>
+            <input matInput formControlName="aadhaar_number" inputmode="numeric" maxlength="12" />
+            <mat-hint>Stored securely and masked in the certificate.</mat-hint>
+            @if (form.controls.aadhaar_number.touched && form.controls.aadhaar_number.invalid) {
+              <mat-error>Enter a valid 12-digit Aadhaar number.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Occupation</mat-label>
+            <mat-select formControlName="occupation">
+              <mat-option value="">Select occupation</mat-option>
+              @for (o of meta()?.catalogues?.occupation ?? []; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Education</mat-label>
+            <mat-select formControlName="education">
+              <mat-option value="">Select education</mat-option>
+              @for (o of meta()?.catalogues?.education ?? []; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Social category</mat-label>
+            <mat-select formControlName="social_category">
+              <mat-option value="">Select category</mat-option>
+              @for (o of meta()?.catalogues?.social_category ?? []; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.social_category.touched && form.controls.social_category.invalid) {
+              <mat-error>Select the social category.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Working category</mat-label>
+            <input matInput formControlName="category" maxlength="80" />
+          </mat-form-field>
+        </div>
+
+        <h3 class="vc-section">Shop details</h3>
+        <div class="vc-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Shop name</mat-label>
+            <input matInput formControlName="shop_name" maxlength="180" />
+            @if (form.controls.shop_name.touched && form.controls.shop_name.invalid) {
+              <mat-error>Enter the shop or business name.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Business type</mat-label>
+            <mat-select formControlName="business_type">
+              <mat-option value="">Select business type</mat-option>
+              @for (o of meta()?.catalogues?.business_type ?? []; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.business_type.touched && form.controls.business_type.invalid) {
+              <mat-error>Select the business type.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Vendor category</mat-label>
+            <mat-select formControlName="vendor_category">
+              <mat-option value="">Select vendor category</mat-option>
+              @for (o of meta()?.catalogues?.vendor_category ?? []; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.vendor_category.touched && form.controls.vendor_category.invalid) {
+              <mat-error>Select the vendor category.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Years in business</mat-label>
+            <input matInput type="number" formControlName="years_in_business" />
+            @if (form.controls.years_in_business.touched && form.controls.years_in_business.invalid) {
+              <mat-error>Enter a realistic number of years.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Ownership</mat-label>
+            <mat-select formControlName="ownership">
+              <mat-option value="">Select</mat-option>
+              @for (o of meta()?.catalogues?.ownership ?? []; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+            @if (form.controls.ownership.touched && form.controls.ownership.invalid) {
+              <mat-error>Select the ownership type.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Vending license number</mat-label>
+            <input matInput formControlName="license_number" maxlength="60" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>GST number</mat-label>
+            <input matInput formControlName="gst_number" maxlength="15" placeholder="27ABCDE1234F1Z5" />
+            @if (form.controls.gst_number.touched && form.controls.gst_number.invalid) {
+              <mat-error>Enter a valid 15-character GST number.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Employees</mat-label>
+            <input matInput type="number" formControlName="employees" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Daily income (₹)</mat-label>
+            <input matInput type="number" formControlName="daily_income" min="0" max="9999999.99" step="0.01" />
+            @if (form.controls.daily_income.touched && form.controls.daily_income.invalid) {
+              <mat-error>Enter an amount between ₹0 and ₹99,99,999.</mat-error>
+            }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Monthly income (₹)</mat-label>
+            <input matInput type="number" formControlName="monthly_income" min="0" max="99999999.99" step="0.01" />
+            <mat-hint>Auto-estimated from daily income.</mat-hint>
+            @if (form.controls.monthly_income.touched && form.controls.monthly_income.invalid) {
+              <mat-error>Enter an amount between ₹0 and ₹9,99,99,999.</mat-error>
+            }
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Opening time</mat-label>
+            <input matInput type="time" formControlName="business_open_time" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Closing time</mat-label>
+            <input matInput type="time" formControlName="business_close_time" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Weekly holiday</mat-label>
+            <mat-select formControlName="weekly_holiday">
+              @for (o of meta()?.catalogues?.weekly_holiday ?? []; track o) {
+                <mat-option [value]="o">{{ o }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Seasonal business</mat-label>
+            <mat-select formControlName="seasonal_business">
+              <mat-option value="No">No — all year</mat-option>
+              <mat-option value="Yes">Yes — seasonal</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <div class="vc-nav">
+          <button mat-stroked-button type="button" matStepperPrevious><mat-icon>arrow_back</mat-icon> Back</button>
+          <button mat-flat-button color="primary" type="button" matStepperNext>Continue <mat-icon>arrow_forward</mat-icon></button>
+        </div>
+      </mat-step>
+
+      <!-- ============================== STEP 3 · LOCATION & MAP ========== -->
+      <mat-step [completed]="reviewIncomplete().indexOf('Location & address') < 0">
+        <ng-template matStepLabel>Location &amp; map</ng-template>
+
+        <div class="vc-map-wrap">
+          <div class="vc-search">
+            <mat-form-field appearance="outline" class="vc-search__field">
+              <mat-icon matPrefix>search</mat-icon>
+              <mat-label>Search shop location</mat-label>
+              <input matInput #search (input)="onSearchInput(search.value)" autocomplete="off" />
+            </mat-form-field>
+            @if (searchResults().length) {
+              <ul class="vc-search__list">
+                @for (r of searchResults(); track r.label) {
+                  <li><button type="button" (click)="pickSearchResult(r)">{{ r.label }}</button></li>
+                }
+              </ul>
+            }
+          </div>
+
+          <app-leaflet-map
+            [lat]="form.controls.gps_latitude.value ?? (meta()?.map?.default_lat ?? 21.1458)"
+            [lng]="form.controls.gps_longitude.value ?? (meta()?.map?.default_lng ?? 79.0882)"
+            [zoom]="meta()?.map?.default_zoom ?? 15"
+            (pinMoved)="onPinMoved($event)"
+          />
+
+          <div class="vc-geo-live">
+            <span>Latitude <strong>{{ form.controls.gps_latitude.value ?? '—' }}</strong></span>
+            <span>Longitude <strong>{{ form.controls.gps_longitude.value ?? '—' }}</strong></span>
+            <span>Accuracy <strong>{{ accuracyLabel() }}</strong></span>
+            <span>Mode <strong>{{ form.controls.location_mode.value === 'gps' ? 'GPS' : 'Manual' }}</strong></span>
+          </div>
+          @if (form.controls.gps_latitude.invalid && form.controls.gps_latitude.touched) {
+            <p class="vc-error">Tap the map to pin the exact shop location.</p>
+          }
+          <p class="vc-hint"><mat-icon>touch_app</mat-icon> Tap the map or drag the pin — the address fields refresh automatically.</p>
+        </div>
+
+        <h3 class="vc-section">Address information</h3>
+        <div class="vc-grid">
+          <mat-form-field appearance="outline"><mat-label>House / shop no.</mat-label><input matInput formControlName="house_no" maxlength="60" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Building / complex</mat-label><input matInput formControlName="building" maxlength="150" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Street</mat-label><input matInput formControlName="street" maxlength="150" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Landmark</mat-label><input matInput formControlName="landmark" maxlength="200" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Area / locality</mat-label><input matInput formControlName="area" maxlength="150" /></mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Village / ward</mat-label><input matInput formControlName="village" maxlength="150" /></mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City / town</mat-label><input matInput formControlName="city" maxlength="120" />
+            @if (form.controls.city.touched && form.controls.city.invalid) { <mat-error>Enter the city / town.</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>District</mat-label><input matInput formControlName="district" maxlength="120" />
+            @if (form.controls.district.touched && form.controls.district.invalid) { <mat-error>Enter the district.</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label><input matInput formControlName="state" maxlength="120" />
+            @if (form.controls.state.touched && form.controls.state.invalid) { <mat-error>Enter the state.</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>PIN code</mat-label><input matInput formControlName="pin_code" inputmode="numeric" maxlength="6" />
+            @if (form.controls.pin_code.touched && form.controls.pin_code.invalid) { <mat-error>PIN code must be 6 digits.</mat-error> }
+          </mat-form-field>
+          <mat-form-field appearance="outline"><mat-label>Country</mat-label><input matInput formControlName="country" maxlength="80" /></mat-form-field>
+
+          <mat-form-field appearance="outline" class="vc-grid__full">
+            <mat-label>Complete address</mat-label>
+            <textarea
+              matInput
+              formControlName="address"
+              rows="3"
+              maxlength="500"
+              placeholder="House no, street, area, locality"
+            ></textarea>
+            <mat-hint>
+              <button type="button" class="vc-linkbtn" (click)="composeAddress()">
+                <mat-icon>auto_fix_high</mat-icon> Build from the fields above
+              </button>
+            </mat-hint>
+            @if (form.controls.address.touched && form.controls.address.invalid) {
+              <mat-error>Enter the complete shop address (at least 6 characters).</mat-error>
+            }
+          </mat-form-field>
+        </div>
+
+        <div class="vc-nav">
+          <button mat-stroked-button type="button" matStepperPrevious><mat-icon>arrow_back</mat-icon> Back</button>
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            matStepperNext
+            [disabled]="form.controls.gps_latitude.invalid || form.controls.address.invalid"
+          >
+            Continue <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- ============================== STEP 4 · IMAGES ================== -->
+      <mat-step [completed]="imagesComplete">
+        <ng-template matStepLabel>Images</ng-template>
+
+        @if (locationLocked) {
+          <p class="vc-warn"><mat-icon>info</mat-icon> Complete the location step before uploading photographs.</p>
+        }
+
+        <div class="vc-images">
+          @if (profile('vendor'); as p) {
+            <app-cert-image-upload
+              type="vendor"
+              [profile]="p"
+              [locationLocked]="locationLocked"
+              [existing]="imageFor('vendor')"
+              (uploaded)="onImageUploaded($event)"
+              (removed)="onImageRemoved($event)"
+            />
+          }
+          @if (profile('shop'); as p) {
+            <app-cert-image-upload
+              type="shop"
+              [profile]="p"
+              [locationLocked]="locationLocked"
+              [existing]="imageFor('shop')"
+              (uploaded)="onImageUploaded($event)"
+              (removed)="onImageRemoved($event)"
+            />
+          }
+        </div>
+
+        <h3 class="vc-section">Extra shop photos <small>(optional, up to 5)</small></h3>
+        <div class="vc-gallery">
+          @for (img of productImages(); track img.id) {
+            @if (profile('product'); as p) {
+              <app-cert-image-upload
+                type="product"
+                [profile]="p"
+                [compact]="true"
+                [locationLocked]="locationLocked"
+                [existing]="img"
+                (removed)="onImageRemoved($event)"
+              />
+            }
+          }
+          @if (productImages().length < 5 && profile('product'); as p) {
+            <app-cert-image-upload
+              type="product"
+              [profile]="p"
+              [compact]="true"
+              [locationLocked]="locationLocked"
+              (uploaded)="onImageUploaded($event)"
+            />
+          }
+        </div>
+
+        <div class="vc-nav">
+          <button mat-stroked-button type="button" matStepperPrevious><mat-icon>arrow_back</mat-icon> Back</button>
+          <button mat-flat-button color="primary" type="button" matStepperNext [disabled]="!imagesComplete">
+            Review <mat-icon>arrow_forward</mat-icon>
+          </button>
+        </div>
+      </mat-step>
+
+      <!-- ============================== STEP 5 · REVIEW ================== -->
+      <mat-step>
+        <ng-template matStepLabel>Review</ng-template>
+
+        @if (reviewIncomplete().length) {
+          <p class="vc-warn">
+            <mat-icon>warning</mat-icon>
+            Incomplete: {{ reviewIncomplete().join(', ') }}. Use the steps above to fix them.
+          </p>
+        }
+
+        <div class="vc-review">
+          <section>
+            <h3>Personal</h3>
+            <dl>
+              <div><dt>Full name</dt><dd>{{ form.controls.full_name.value || '—' }}</dd></div>
+              <div><dt>Father / husband</dt><dd>{{ form.controls.guardian_name.value || '—' }}</dd></div>
+              <div><dt>Gender</dt><dd>{{ form.controls.gender.value }}</dd></div>
+              <div><dt>Age</dt><dd>{{ form.controls.age.value ?? '—' }}</dd></div>
+              <div><dt>Mobile</dt><dd>{{ form.controls.mobile.value || '—' }}</dd></div>
+              <div><dt>Social category</dt><dd>{{ form.controls.social_category.value || '—' }}</dd></div>
+            </dl>
+          </section>
+          <section>
+            <h3>Business</h3>
+            <dl>
+              <div><dt>Shop name</dt><dd>{{ form.controls.shop_name.value || '—' }}</dd></div>
+              <div><dt>Business type</dt><dd>{{ form.controls.business_type.value || '—' }}</dd></div>
+              <div><dt>Vendor category</dt><dd>{{ form.controls.vendor_category.value || '—' }}</dd></div>
+              <div><dt>Years in business</dt><dd>{{ form.controls.years_in_business.value ?? '—' }}</dd></div>
+              <div><dt>Ownership</dt><dd>{{ form.controls.ownership.value || '—' }}</dd></div>
+            </dl>
+          </section>
+          <section>
+            <h3>Location</h3>
+            <dl>
+              <div><dt>Address</dt><dd>{{ form.controls.address.value || '—' }}</dd></div>
+              <div><dt>Coordinates</dt><dd>{{ form.controls.gps_latitude.value ?? '—' }}, {{ form.controls.gps_longitude.value ?? '—' }}</dd></div>
+              <div><dt>City</dt><dd>{{ form.controls.city.value || '—' }}</dd></div>
+              <div><dt>District</dt><dd>{{ form.controls.district.value || '—' }}</dd></div>
+              <div><dt>State</dt><dd>{{ form.controls.state.value || '—' }}</dd></div>
+              <div><dt>PIN code</dt><dd>{{ form.controls.pin_code.value || '—' }}</dd></div>
+            </dl>
+          </section>
+          <section>
+            <h3>Images</h3>
+            <p>{{ imageFor('vendor') ? '✓' : '✗' }} Vendor photo &nbsp; {{ imageFor('shop') ? '✓' : '✗' }} Shop front &nbsp; {{ productImages().length }} extra</p>
+          </section>
+        </div>
+
+        <div class="vc-declare">
+          <mat-checkbox formControlName="declaration_truth">
+            I declare that all information provided is true and correct to the best of my knowledge.
+          </mat-checkbox>
+          <mat-checkbox formControlName="declaration_submit">
+            I agree to submit this certification for official vendor registration.
+          </mat-checkbox>
+        </div>
+
+        <div class="vc-nav">
+          <button mat-stroked-button type="button" matStepperPrevious><mat-icon>arrow_back</mat-icon> Back</button>
+          <button mat-stroked-button type="button" (click)="saveDraftClicked()"><mat-icon>save</mat-icon> Save draft</button>
+          <button
+            mat-flat-button
+            color="primary"
+            class="tide-cta-pill"
+            type="button"
+            (click)="submit()"
+            [disabled]="submitting() || form.controls.declaration_truth.invalid || form.controls.declaration_submit.invalid"
+          >
+            <mat-icon>send</mat-icon> {{ submitting() ? 'Submitting…' : 'Submit certification' }}
+          </button>
+        </div>
+      </mat-step>
+    </mat-stepper>
+  </form>
+}

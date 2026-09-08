@@ -1,0 +1,220 @@
+// Mirrors login.component.scss so the "Join as Vendor" page reads as the
+// same Fino sign-in surface. Kept as its own copy because component styles
+// are view-encapsulated.
+
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.login__hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: var(--app-space-7) var(--app-space-6);
+  padding-bottom: calc(var(--app-space-7) + 96px);
+  color: var(--tide-color-text-inverse);
+  background: radial-gradient(circle at 15% 15%, rgba(255, 255, 255, 0.08), transparent 55%),
+    linear-gradient(160deg, var(--tide-navy) 0%, #0f3d5c 55%, var(--tide-teal-700) 150%);
+  overflow: hidden;
+
+  --tide-wave-color: rgba(255, 255, 255, 0.08);
+  --tide-wave-height: 96px;
+}
+
+.login__hero-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-5);
+  max-width: 460px;
+  margin: 0 auto;
+}
+
+.login__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.login__brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--app-radius-md);
+  background: rgba(255, 255, 255, 0.14);
+
+  mat-icon {
+    font-size: 1.5rem;
+    height: 1.5rem;
+    width: 1.5rem;
+  }
+}
+
+.login__brand-name {
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.login__headline {
+  margin: 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.login__tagline {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.login__features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: var(--app-space-3);
+    font-size: 0.92rem;
+  }
+}
+
+.login__feature-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--app-radius-sm);
+  background: rgba(255, 255, 255, 0.12);
+
+  mat-icon {
+    font-size: 1.15rem;
+    height: 1.15rem;
+    width: 1.15rem;
+  }
+}
+
+.login__panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--app-space-5);
+  background: var(--mat-sys-surface);
+  overflow-y: auto;
+}
+
+.login__card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--mat-sys-surface-container);
+  border-radius: var(--app-radius-lg);
+  box-shadow: var(--app-shadow-md);
+  padding: var(--app-space-6) var(--app-space-5);
+  position: relative;
+}
+
+.login__progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: var(--app-radius-lg) var(--app-radius-lg) 0 0;
+  overflow: hidden;
+}
+
+.login__title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.login__subtitle {
+  margin: var(--app-space-1) 0 var(--app-space-5);
+  font-size: 0.9rem;
+  color: var(--tide-color-text-secondary);
+}
+
+.login__inline-link {
+  color: var(--tide-color-secondary);
+  font-weight: 600;
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.login__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--app-space-2);
+}
+
+.login__submit {
+  width: 100%;
+  margin-top: var(--app-space-2);
+}
+
+.login__resend {
+  width: 100%;
+}
+
+.login__dev-hint {
+  margin: 0 0 var(--app-space-4);
+  padding: var(--app-space-2) var(--app-space-3);
+  border-radius: var(--app-radius-sm);
+  background: var(--mat-sys-surface);
+  font-size: 0.8rem;
+  color: var(--tide-color-text-secondary);
+}
+
+.login__error {
+  margin: var(--app-space-2) 0 0;
+  color: var(--tide-color-error);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@media (max-width: 860px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .login__hero {
+    padding: var(--app-space-5);
+    padding-bottom: calc(var(--app-space-5) + 72px);
+    --tide-wave-height: 72px;
+  }
+
+  .login__headline {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login__features li {
+    font-size: 0.85rem;
+  }
+
+  .login__row {
+    grid-template-columns: 1fr;
+  }
+}

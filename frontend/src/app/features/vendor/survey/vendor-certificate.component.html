@@ -1,0 +1,123 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+}
+
+@if (error(); as message) {
+  <p class="vc-error" role="alert">{{ message }}</p>
+}
+
+@if (cert(); as c) {
+  <app-page-header
+    icon="workspace_premium"
+    title="Vendor Certificate"
+    [subtitle]="'Certificate number ' + (c.certificate_number ?? '')"
+  >
+    <div page-header-actions class="vc-actions no-print">
+      <button mat-flat-button color="primary" class="tide-cta-pill" (click)="downloadPdf()" [disabled]="generating()">
+        <mat-icon>download</mat-icon> {{ generating() ? 'Preparing…' : 'Download Certification' }}
+      </button>
+      <button mat-stroked-button (click)="print()"><mat-icon>print</mat-icon> Print</button>
+      <button mat-stroked-button (click)="copyLink()"><mat-icon>link</mat-icon> Copy link</button>
+      <a mat-stroked-button routerLink="/vendor/dashboard"><mat-icon>arrow_back</mat-icon> Dashboard</a>
+    </div>
+  </app-page-header>
+
+  <div class="vc-scroll">
+    <article #certificate class="certificate" id="certificate">
+      <header class="certificate__head">
+        <span class="certificate__emblem"><mat-icon>account_balance</mat-icon></span>
+        <div class="certificate__titles">
+          <p class="certificate__org">{{ c.certificate?.org }}</p>
+          <h2 class="certificate__title">Vendor Certification Certificate</h2>
+          <p class="certificate__dept">{{ c.certificate?.department }}</p>
+        </div>
+        <span class="certificate__idbox">ID {{ c.certificate?.verification_code }}</span>
+      </header>
+
+      <div class="certificate__meta">
+        <div><span>Certificate Number</span><strong>{{ c.certificate_number ?? '—' }}</strong></div>
+        <div><span>Issue Date</span><strong>{{ c.submitted_at | date: 'dd MMM y' }}</strong></div>
+        <div><span>Status</span><strong>{{ c.status_label }}</strong></div>
+      </div>
+
+      <div class="certificate__body">
+        <div class="certificate__photos">
+          <figure>
+            @if (photo('vendor'); as src) { <img [src]="src | authImage | async" alt="Vendor photograph" /> }
+            <figcaption>Vendor Photograph</figcaption>
+          </figure>
+          <figure>
+            @if (photo('shop'); as src) { <img [src]="src | authImage | async" alt="Shop front photograph" /> }
+            <figcaption>Shop Front</figcaption>
+          </figure>
+          <figure class="certificate__qr">
+            <canvas #qr width="120" height="120"></canvas>
+            <figcaption>Scan to verify</figcaption>
+          </figure>
+        </div>
+
+        <div class="certificate__details">
+          <h3 class="certificate__section">Vendor Details</h3>
+          <dl class="certificate__grid">
+            <div><dt>Full Name</dt><dd>{{ c.full_name || '—' }}</dd></div>
+            <div><dt>Father / Husband</dt><dd>{{ c.guardian_name || '—' }}</dd></div>
+            <div><dt>Gender</dt><dd>{{ c.gender || '—' }}</dd></div>
+            <div><dt>Age</dt><dd>{{ c.age ?? '—' }}</dd></div>
+            <div><dt>Date of Birth</dt><dd>{{ c.dob ? (c.dob | date: 'dd MMM y') : '—' }}</dd></div>
+            <div><dt>Mobile</dt><dd>{{ c.mobile || '—' }}</dd></div>
+            <div><dt>Email</dt><dd>{{ c.email || '—' }}</dd></div>
+            <div><dt>Aadhaar</dt><dd>{{ maskAadhaar(c.aadhaar_number) }}</dd></div>
+            <div><dt>Education</dt><dd>{{ c.education || '—' }}</dd></div>
+            <div><dt>Social Category</dt><dd>{{ c.social_category || '—' }}</dd></div>
+          </dl>
+
+          <h3 class="certificate__section">Business Details</h3>
+          <dl class="certificate__grid">
+            <div><dt>Shop / Business Name</dt><dd>{{ c.shop_name || '—' }}</dd></div>
+            <div><dt>Business Type</dt><dd>{{ c.business_type || '—' }}</dd></div>
+            <div><dt>Vendor Category</dt><dd>{{ c.vendor_category || '—' }}</dd></div>
+            <div><dt>Years in Business</dt><dd>{{ c.years_in_business ?? '—' }}</dd></div>
+            <div><dt>Ownership</dt><dd>{{ c.ownership || '—' }}</dd></div>
+            <div><dt>GST Number</dt><dd>{{ c.gst_number || '—' }}</dd></div>
+            <div><dt>License Number</dt><dd>{{ c.license_number || '—' }}</dd></div>
+            <div><dt>Daily Income</dt><dd>{{ c.daily_income != null ? ('₹ ' + (c.daily_income | number: '1.2-2')) : '—' }}</dd></div>
+            <div><dt>Monthly Income</dt><dd>{{ c.monthly_income != null ? ('₹ ' + (c.monthly_income | number: '1.2-2')) : '—' }}</dd></div>
+            <div><dt>Employees</dt><dd>{{ c.employees ?? 0 }}</dd></div>
+            <div><dt>Seasonal Business</dt><dd>{{ c.seasonal_business || '—' }}</dd></div>
+            <div><dt>Business Timing</dt><dd>{{ (c.business_open_time || '—') }} – {{ (c.business_close_time || '—') }}</dd></div>
+          </dl>
+
+          <h3 class="certificate__section">Location</h3>
+          <dl class="certificate__grid">
+            <div class="certificate__grid-wide"><dt>Address</dt><dd>{{ composedAddress() }}</dd></div>
+            <div><dt>Coordinates</dt><dd>{{ c.gps_latitude }}, {{ c.gps_longitude }}</dd></div>
+          </dl>
+        </div>
+      </div>
+
+      @if (products().length) {
+        <div class="certificate__products">
+          <h3 class="certificate__section">Business / Product Photographs</h3>
+          <div class="certificate__product-grid">
+            @for (p of products(); track p.id) {
+              <img [src]="p.path | authImage | async" alt="Business product photograph" />
+            }
+          </div>
+        </div>
+      }
+
+      <footer class="certificate__foot">
+        <p class="certificate__note">
+          This certificate is generated electronically from Vendor Certification record
+          <strong>{{ c.certificate_number }}</strong> and is valid without a physical seal. Quote the
+          ID above to verify the record with the issuing office.
+        </p>
+        <div class="certificate__sign">
+          <span class="certificate__sign-line"></span>
+          <strong>{{ c.certificate?.officer }}</strong>
+          <small>{{ c.certificate?.org }}</small>
+        </div>
+      </footer>
+    </article>
+  </div>
+}

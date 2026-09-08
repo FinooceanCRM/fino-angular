@@ -27,6 +27,17 @@ export const routes: Routes = [
       ),
   },
   {
+    // Public "Join as Vendor" signup — self-service registration for the
+    // standalone `vendor` role, phone-OTP gated. Same shell-bypass reasoning
+    // as the connector signup above; linked from the login page.
+    path: 'join-vendor',
+    title: 'Join as a vendor — FINOOCEAN',
+    loadComponent: () =>
+      import('@features/public/join-vendor/public-join-vendor.component').then(
+        (m) => m.PublicJoinVendorComponent,
+      ),
+  },
+  {
     path: 'join-connector/:code',
     title: 'Become a connector — FINOOCEAN',
     loadComponent: () =>
@@ -65,6 +76,13 @@ export const routes: Routes = [
           import('@features/connector/connector.routes').then(
             (m) => m.connectorRoutes,
           ),
+      },
+      {
+        // Vendor module. Independent of the reporting hierarchy, like
+        // Connector. Every route is role-gated to `vendor`.
+        path: 'vendor',
+        loadChildren: () =>
+          import('@features/vendor/vendor.routes').then((m) => m.vendorRoutes),
       },
       {
         // Affiliate module. Independent of the reporting hierarchy, like Connector.
