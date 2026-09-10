@@ -19,6 +19,7 @@ import { jsPDF } from 'jspdf';
 import QRCode from 'qrcode';
 
 import { CertImage, VendorCertification } from '@core/models/vendor-certification.model';
+import { DownloadService } from '@core/services/download.service';
 import { VendorCertificationService } from '@core/services/vendor-certification.service';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { AuthImagePipe } from '@shared/pipes/auth-image.pipe';
@@ -51,6 +52,7 @@ export class VendorCertificateComponent implements OnInit, AfterViewInit {
   private readonly route = inject(ActivatedRoute);
   private readonly certs = inject(VendorCertificationService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly downloads = inject(DownloadService);
 
   @ViewChild('certificate') private certificateEl?: ElementRef<HTMLElement>;
   @ViewChild('qr') private qrEl?: ElementRef<HTMLCanvasElement>;
@@ -151,8 +153,14 @@ export class VendorCertificateComponent implements OnInit, AfterViewInit {
       const offsetX = (pageWidth - imgWidth) / 2;
 
       pdf.addImage(canvas.toDataURL('image/jpeg', 0.94), 'JPEG', offsetX, margin, imgWidth, imgHeight);
-      pdf.save(`Vendor-Certification-${c.certificate_number}.pdf`);
-      this.snackBar.open('Certificate PDF downloaded.', 'Dismiss', { duration: 4000 });
+      // `pdf.save()` triggers a browser download, which is inert in the
+      // native WebView — route through DownloadService (share sheet on
+      // native, anchor download on the web).
+      await this.downloads.save(
+        pdf.output('blob'),
+        `Vendor-Certification-${c.certificate_number}.pdf`,
+      );
+      this.snackBar.open('Certificate PDF ready.', 'Dismiss', { duration: 4000 });
     } catch {
       this.snackBar.open('PDF generation failed. Use your browser Print instead.', 'Dismiss', {
         duration: 5000,

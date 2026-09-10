@@ -9,6 +9,7 @@ import { map } from 'rxjs';
 import { AuthService } from '@core/services/auth.service';
 import { BreadcrumbComponent } from '@shared/components/breadcrumb.component';
 
+import { BottomNavComponent } from './bottom-nav.component';
 import { SidebarComponent } from './sidebar.component';
 import { TopbarComponent } from './topbar.component';
 
@@ -27,6 +28,7 @@ import { TopbarComponent } from './topbar.component';
     RouterOutlet,
     TopbarComponent,
     SidebarComponent,
+    BottomNavComponent,
     BreadcrumbComponent,
   ],
   templateUrl: './app-shell.component.html',
@@ -42,7 +44,11 @@ export class AppShellComponent {
     { initialValue: false },
   );
 
-  protected readonly sidenavOpened = signal(true);
+  // Docked open on desktop; closed on a phone so the `over` sidenav does
+  // not cover the screen on first load (the bottom nav's "More" opens it).
+  protected readonly sidenavOpened = signal(
+    !this.breakpointObserver.isMatched(Breakpoints.Handset),
+  );
 
   // Desktop-only icon rail toggle ("Collapse" in the approved mockups); the
   // handset overlay sidenav always shows full labels since it already opens

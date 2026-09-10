@@ -29,7 +29,13 @@ import { MatIconModule } from '@angular/material/icon';
       >
         <div class="details-drawer__header">
           <h2 class="details-drawer__title">{{ title() }}</h2>
-          <button mat-icon-button type="button" aria-label="Close" (click)="close()">
+          <button
+            mat-icon-button
+            type="button"
+            class="details-drawer__close"
+            aria-label="Close"
+            (click)="close()"
+          >
             <mat-icon>close</mat-icon>
           </button>
         </div>
@@ -79,14 +85,23 @@ import { MatIconModule } from '@angular/material/icon';
         justify-content: space-between;
         gap: var(--app-space-3);
         margin-bottom: var(--app-space-4);
+        flex-shrink: 0;
       }
       .details-drawer__title {
         margin: 0;
         font-size: 1.2rem;
         font-weight: 600;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .details-drawer__close {
+        flex-shrink: 0;
+        color: var(--mat-sys-on-surface);
+        background: var(--mat-sys-surface-container-high);
       }
       .details-drawer__body {
         flex: 1;
+        min-height: 0;
         overflow-y: auto;
       }
       .details-drawer__actions {
@@ -96,6 +111,24 @@ import { MatIconModule } from '@angular/material/icon';
         margin-top: var(--app-space-4);
         padding-top: var(--app-space-3);
         border-top: 1px solid var(--mat-sys-outline-variant);
+        flex-shrink: 0;
+      }
+
+      /* Phone: full-screen sheet, clear of the status bar and home
+         indicator. The bottom nav now shares the sidenav-content stacking
+         context and sits below this (z-index 1001 > 100), so the action
+         row is no longer hidden behind it. */
+      @media (max-width: 599.98px) {
+        .details-drawer {
+          inset: 0;
+          width: 100vw;
+          border-radius: 0;
+          padding: calc(var(--app-space-4) + env(safe-area-inset-top)) var(--app-space-4)
+            calc(var(--app-space-4) + env(safe-area-inset-bottom));
+        }
+        .details-drawer__actions > * {
+          flex: 1 1 auto;
+        }
       }
     `,
   ],

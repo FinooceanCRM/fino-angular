@@ -1,5 +1,9 @@
 .shell-container {
+  // Fill the viewport below the topbar. The second declaration wins where
+  // supported: `dvh` tracks the shrinking mobile URL bar, and the topbar
+  // grows by the status-bar inset in the native shell.
   height: calc(100vh - 64px);
+  height: calc(100dvh - 64px - env(safe-area-inset-top));
   background: var(--mat-sys-surface);
 }
 
@@ -53,6 +57,12 @@
   @media (max-width: 600px) {
     padding: var(--app-space-3);
   }
+}
+
+// Reserve room for the fixed handset bottom tab bar (min-height 56px plus
+// the device's bottom safe-area inset).
+.content-inner--with-bottom-nav {
+  padding-bottom: calc(56px + env(safe-area-inset-bottom) + var(--app-space-4));
 }
 
 .guest-content {

@@ -222,3 +222,21 @@
     font-size: 0.85rem;
   }
 }
+
+// Phones: hide the navy→teal marketing hero entirely (brand + name,
+// "Lending, charted like a voyage." headline, tagline, feature list) and
+// show only the centred sign-in card. Tablet and desktop keep the
+// existing split navy hero unchanged.
+@media (max-width: 600px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .login__hero {
+    display: none;
+  }
+
+  .login__panel {
+    padding: var(--app-space-4);
+  }
+}

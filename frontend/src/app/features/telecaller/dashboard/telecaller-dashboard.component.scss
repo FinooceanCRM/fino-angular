@@ -84,7 +84,9 @@ app-dashboard-hero {
   grid-column: 1 / -1;
   display: grid;
   gap: var(--app-space-4);
-  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  // `min(100%, 360px)` keeps the min track from exceeding the container on
+  // a ≤360px phone (which would force horizontal overflow).
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
 }
 
 .telecaller-dashboard__account {

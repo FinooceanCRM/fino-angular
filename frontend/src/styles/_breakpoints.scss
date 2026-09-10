@@ -1,0 +1,31 @@
+// Shared responsive breakpoints.
+//
+// Before this file every component hand-rolled its own `@media` at
+// 600 / 720 / 1024px with no shared token. New work uses these mixins;
+// the existing ad-hoc queries migrate to them opportunistically.
+//
+// Usage:
+//   @use 'breakpoints' as bp;
+//   .thing { ... @include bp.bp-down(bp.$md) { ... } }
+//
+// (`src/styles` is on the Sass `includePaths`, so `@use 'breakpoints'`
+// works from any component stylesheet regardless of its folder depth.)
+
+$sm: 600px; // phone
+$md: 905px; // tablet portrait — <app-table> collapses to cards below this
+$lg: 1240px; // small desktop
+
+/// Styles that apply at or below `$max` (mobile-first: layer these on top
+/// of the wide-screen defaults).
+@mixin bp-down($max) {
+  @media (max-width: ($max - 0.02px)) {
+    @content;
+  }
+}
+
+/// Styles that apply at or above `$min`.
+@mixin bp-up($min) {
+  @media (min-width: $min) {
+    @content;
+  }
+}

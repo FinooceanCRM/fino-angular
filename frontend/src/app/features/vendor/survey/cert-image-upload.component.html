@@ -35,7 +35,7 @@
       <span>{{ formatBytes(img.file_size ?? 0) }}</span>
     </div>
     <div class="cert-upload__tools">
-      <button mat-stroked-button type="button" (click)="openPicker(isMobile ? profile.capture : undefined)">
+      <button mat-stroked-button type="button" (click)="capture('prompt')">
         <mat-icon>autorenew</mat-icon> Replace
       </button>
       <button mat-stroked-button type="button" color="warn" (click)="remove()">
@@ -47,17 +47,17 @@
       type="button"
       class="cert-upload__zone"
       [disabled]="busy() || locationLocked"
-      (click)="openPicker(isMobile ? profile.capture : undefined)"
+      (click)="capture('prompt')"
     >
       <mat-icon>cloud_upload</mat-icon>
       <span>Click to upload</span>
       <small>or drag &amp; drop the photo here</small>
     </button>
     <div class="cert-upload__sources">
-      <button mat-stroked-button type="button" [disabled]="busy() || locationLocked" (click)="openPicker(profile.capture)">
+      <button mat-stroked-button type="button" [disabled]="busy() || locationLocked" (click)="capture('camera')">
         <mat-icon>photo_camera</mat-icon> Take photo
       </button>
-      <button mat-stroked-button type="button" [disabled]="busy() || locationLocked" (click)="openPicker()">
+      <button mat-stroked-button type="button" [disabled]="busy() || locationLocked" (click)="capture('photos')">
         <mat-icon>collections</mat-icon> Gallery
       </button>
     </div>

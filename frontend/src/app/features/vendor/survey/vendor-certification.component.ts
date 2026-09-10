@@ -32,6 +32,7 @@ import {
   VendorCertificationDraftPayload,
   VendorCertificationMetadata,
 } from '@core/models/vendor-certification.model';
+import { DeviceService } from '@core/services/device.service';
 import { GeocodeService } from '@core/services/geocode.service';
 import { VendorCertificationService } from '@core/services/vendor-certification.service';
 import {
@@ -92,6 +93,7 @@ export class VendorCertificationComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly certs = inject(VendorCertificationService);
   private readonly geocode = inject(GeocodeService);
+  private readonly device = inject(DeviceService);
   private readonly router = inject(Router);
   private readonly snackBar = inject(MatSnackBar);
   private readonly destroyRef = inject(DestroyRef);
@@ -279,42 +281,39 @@ export class VendorCertificationComponent implements OnInit {
 
   /* --------------------------------------------------------- step 1: GPS */
 
-  protected enableLocation(): void {
-    if (!navigator.geolocation) {
-      this.geoDenied.set(true);
-      this.continueManually();
-      return;
-    }
+  protected async enableLocation(): Promise<void> {
     this.locating.set(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.locating.set(false);
-        this.geoDenied.set(false);
-        const lat = +pos.coords.latitude.toFixed(7);
-        const lng = +pos.coords.longitude.toFixed(7);
-        this.form.patchValue({
-          location_mode: 'gps',
-          gps_latitude: lat,
-          gps_longitude: lng,
-          accuracy: pos.coords.accuracy ? +pos.coords.accuracy.toFixed(2) : null,
-          gps_heading: pos.coords.heading ?? null,
-          gps_speed: pos.coords.speed ?? null,
-          gps_captured_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
-          location_verified: true,
-        });
-        this.reverseGeocode(lat, lng);
-        this.persistDraft(false);
-        this.stepper?.next();
-      },
-      () => {
-        this.locating.set(false);
-        this.geoDenied.set(true);
-        this.snackBar.open('Location could not be captured. Please enter the address manually.', 'Dismiss', {
-          duration: 5000,
-        });
-      },
-      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 },
-    );
+    try {
+      // DeviceService uses the Capacitor Geolocation plugin on native
+      // (handling the OS permission prompt) and navigator.geolocation on
+      // the web.
+      const pos = await this.device.getPosition({ timeout: 12000, highAccuracy: true });
+      this.locating.set(false);
+      this.geoDenied.set(false);
+      const lat = +pos.latitude.toFixed(7);
+      const lng = +pos.longitude.toFixed(7);
+      this.form.patchValue({
+        location_mode: 'gps',
+        gps_latitude: lat,
+        gps_longitude: lng,
+        accuracy: pos.accuracy != null ? +pos.accuracy.toFixed(2) : null,
+        gps_heading: pos.heading ?? null,
+        gps_speed: pos.speed ?? null,
+        gps_captured_at: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        location_verified: true,
+      });
+      this.reverseGeocode(lat, lng);
+      this.persistDraft(false);
+      this.stepper?.next();
+    } catch {
+      this.locating.set(false);
+      this.geoDenied.set(true);
+      this.snackBar.open(
+        'Location could not be captured. Please enter the address manually.',
+        'Dismiss',
+        { duration: 5000 },
+      );
+    }
   }
 
   protected continueManually(): void {

@@ -56,6 +56,7 @@ import {
 import { AccessRequestService } from '@core/services/access-request.service';
 import { AuthService } from '@core/services/auth.service';
 import { DocumentService } from '@core/services/document.service';
+import { DownloadService } from '@core/services/download.service';
 import { FollowUpService } from '@core/services/follow-up.service';
 import { LeadService } from '@core/services/lead.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
@@ -96,6 +97,7 @@ export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly leads = inject(LeadService);
   private readonly documentsApi = inject(DocumentService);
+  private readonly downloads = inject(DownloadService);
   private readonly accessRequestsApi = inject(AccessRequestService);
   private readonly followUpsApi = inject(FollowUpService);
   private readonly fb = inject(FormBuilder);
@@ -634,14 +636,7 @@ export class LeadDetailComponent implements OnInit {
 
   download(item: LeadDocument): void {
     this.documentsApi.download(item).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = item.original_name;
-        anchor.click();
-        URL.revokeObjectURL(url);
-      },
+      next: (blob) => void this.downloads.save(blob, item.original_name),
       error: () => this.error.set('The document could not be downloaded.'),
     });
   }

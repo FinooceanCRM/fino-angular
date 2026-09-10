@@ -65,15 +65,15 @@
           <tbody>
             @for (group of groups(); track group.bankName) {
               <tr class="bank-list__row" (click)="toggleExpanded(group.bankName)">
-                <td>
+                <td class="bank-list__bank-td">
                   <div class="bank-list__bank-cell">
                     <span class="bank-list__avatar">{{ group.bankName.slice(0, 2).toUpperCase() }}</span>
                     <span class="bank-list__bank-name">{{ group.bankName }}</span>
                   </div>
                 </td>
-                <td>{{ group.productCount }} active product{{ group.productCount === 1 ? '' : 's' }}</td>
-                <td class="bank-list__amount">{{ group.avgTicketSize | currency: 'INR' : 'symbol-narrow' : '1.0-0' }} avg. ticket</td>
-                <td>
+                <td data-label="Products">{{ group.productCount }} active product{{ group.productCount === 1 ? '' : 's' }}</td>
+                <td class="bank-list__amount" data-label="Avg. ticket">{{ group.avgTicketSize | currency: 'INR' : 'symbol-narrow' : '1.0-0' }} avg. ticket</td>
+                <td data-label="Status">
                   <app-status-pill
                     [label]="group.active ? 'Active' : 'Inactive'"
                     [colour]="group.active ? 'success' : 'default'"

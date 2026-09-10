@@ -37,6 +37,15 @@
     <button
       mat-icon-button
       type="button"
+      class="topbar__search-compact"
+      aria-label="Search leads, users, employees, connectors and bankers"
+      (click)="openSearch()"
+    >
+      <mat-icon>search</mat-icon>
+    </button>
+    <button
+      mat-icon-button
+      type="button"
       class="topbar__help"
       matTooltip="Help & support"
       aria-label="Help & support"

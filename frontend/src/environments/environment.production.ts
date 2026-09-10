@@ -1,5 +1,7 @@
 export const environment = {
   production: true,
+  // Web deployment: served same-origin as the API, so this stays false.
+  mobile: false,
   appName: 'FINOOCEAN',
   apiBaseUrl: '/api/v1',
   withCredentials: false,

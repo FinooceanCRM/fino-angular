@@ -1,0 +1,12 @@
+{
+  "name": "FINOOCEAN",
+  "short_name": "FINOOCEAN",
+  "description": "FINOOCEAN loan management platform",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a2a43",
+  "theme_color": "#0a2a43",
+  "icons": []
+}

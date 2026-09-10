@@ -16,6 +16,7 @@ import {
 } from '@core/models/user.model';
 
 import { ApiService } from './api.service';
+import { PushService } from './push.service';
 import { SessionService } from './session.service';
 
 /**
@@ -25,6 +26,7 @@ import { SessionService } from './session.service';
 export class AuthService {
   private readonly api = inject(ApiService);
   private readonly session = inject(SessionService);
+  private readonly push = inject(PushService);
 
   private readonly userState = signal<AuthenticatedUser | null>(
     this.session.user,
@@ -57,6 +59,7 @@ export class AuthService {
           this.session.persist(response.token, response.user);
           this.userState.set(response.user);
           this.loadingState.set(false);
+          void this.push.register();
         },
         error: () => this.loadingState.set(false),
       }),
@@ -74,6 +77,7 @@ export class AuthService {
       tap((user) => {
         this.session.persistUser(user);
         this.userState.set(user);
+        void this.push.register();
       }),
       catchError(() => {
         this.clear();
@@ -83,6 +87,10 @@ export class AuthService {
   }
 
   logout(): Observable<unknown> {
+    // Detach this device from push before the token is invalidated, so the
+    // DELETE call still carries a valid bearer token.
+    void this.push.unregister();
+
     return this.api.post('auth/logout').pipe(
       tap({
         next: () => this.clear(),

@@ -26,6 +26,20 @@
   align-items: center;
 }
 
+/* Phone: the 4-segment toggle ("All / Pending queue / Payment history /
+   Failed") doesn't fit one row — let it wrap to a 2×2 grid so "Failed"
+   stays visible instead of scrolling off the edge. */
+@media (max-width: 599.98px) {
+  .commission-page__filters mat-button-toggle-group {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .commission-page__filters mat-button-toggle {
+    flex: 1 0 40%;
+  }
+}
+
 .commission-page__search {
   flex: 1 1 240px;
   min-width: 200px;

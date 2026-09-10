@@ -20,6 +20,7 @@ import { DocumentTypeOption, LeadDocument } from '@core/models/document.model';
 import { Lead } from '@core/models/lead.model';
 import { AuthService } from '@core/services/auth.service';
 import { DocumentService } from '@core/services/document.service';
+import { DownloadService } from '@core/services/download.service';
 import { LeadService } from '@core/services/lead.service';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
 import { FilterBarComponent, FilterFieldConfig, FilterFieldOption } from '@shared/components/filter-bar.component';
@@ -101,6 +102,7 @@ export interface DocumentRow extends LeadDocument {
 export class DocumentsComponent implements OnInit {
   private readonly leadsApi = inject(LeadService);
   private readonly documentsApi = inject(DocumentService);
+  private readonly downloads = inject(DownloadService);
   private readonly fb = inject(FormBuilder);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -312,14 +314,7 @@ export class DocumentsComponent implements OnInit {
 
   download(item: LeadDocument): void {
     this.documentsApi.download(item).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = item.original_name;
-        anchor.click();
-        URL.revokeObjectURL(url);
-      },
+      next: (blob) => void this.downloads.save(blob, item.original_name),
     });
   }
 

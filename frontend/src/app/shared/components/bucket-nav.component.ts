@@ -45,6 +45,24 @@ export interface BucketNavLink {
         gap: var(--app-space-2);
         margin-bottom: var(--app-space-4);
       }
+      /* Phone: keep the stage strip to a single swipeable row instead of
+         wrapping into a tall pile of pills. */
+      @media (max-width: 599.98px) {
+        .bucket-nav {
+          flex-wrap: nowrap;
+          overflow-x: auto;
+          scrollbar-width: none;
+          -webkit-overflow-scrolling: touch;
+          margin-inline: calc(-1 * var(--app-space-3));
+          padding-inline: var(--app-space-3);
+        }
+        .bucket-nav::-webkit-scrollbar {
+          display: none;
+        }
+        .bucket-nav__link {
+          flex-shrink: 0;
+        }
+      }
       .bucket-nav__link {
         display: inline-flex;
         align-items: center;

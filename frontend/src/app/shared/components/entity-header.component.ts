@@ -83,6 +83,28 @@ import { StatusPillComponent } from './status-pill.component';
         gap: var(--app-space-2);
         flex-shrink: 0;
       }
+
+      /* Phone: the action buttons take their own full-width row and wrap
+         within it, instead of overflowing off the right edge. */
+      @media (max-width: 599.98px) {
+        .entity-header {
+          gap: var(--app-space-3);
+        }
+        .entity-header__actions {
+          width: 100%;
+        }
+        .entity-header__actions > * {
+          flex: 1 1 auto;
+        }
+        .entity-header__title {
+          font-size: 1.3rem;
+        }
+        .entity-header__avatar {
+          width: 48px;
+          height: 48px;
+          font-size: 1.1rem;
+        }
+      }
     `,
   ],
 })

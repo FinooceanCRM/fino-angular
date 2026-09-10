@@ -15,6 +15,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 import { CertImage, CertImageProfile, CertImageType } from '@core/models/vendor-certification.model';
+import { DeviceService } from '@core/services/device.service';
 import { VendorCertificationService } from '@core/services/vendor-certification.service';
 import { AuthImagePipe } from '@shared/pipes/auth-image.pipe';
 
@@ -34,6 +35,7 @@ import { AuthImagePipe } from '@shared/pipes/auth-image.pipe';
 })
 export class CertImageUploadComponent {
   private readonly certs = inject(VendorCertificationService);
+  private readonly device = inject(DeviceService);
 
   @Input({ required: true }) type!: CertImageType;
   @Input({ required: true }) profile!: CertImageProfile;
@@ -73,6 +75,21 @@ export class CertImageUploadComponent {
     if (capture) input.setAttribute('capture', capture);
     else input.removeAttribute('capture');
     input.click();
+  }
+
+  /**
+   * Native: Capacitor Camera (real camera / gallery, orientation-corrected).
+   * Web: falls back to the hidden `<input type="file">`, with the camera
+   * `capture` hint when the user asked for the camera specifically.
+   */
+  protected async capture(source: 'camera' | 'photos' | 'prompt' = 'prompt'): Promise<void> {
+    if (this.busy() || this.locationLocked) return;
+    const file = await this.device.takePhoto({ source });
+    if (file) {
+      void this.handle(file);
+      return;
+    }
+    this.openPicker(source === 'camera' ? this.profile.capture : undefined);
   }
 
   protected onFile(event: Event): void {

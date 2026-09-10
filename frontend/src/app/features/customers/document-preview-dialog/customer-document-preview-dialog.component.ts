@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 
 import { CustomerDocument, DocumentType } from '@core/models/customer.model';
 import { CustomerDocumentService } from '@core/services/customer-document.service';
+import { DownloadService } from '@core/services/download.service';
 import { ModalComponent } from '@shared/components/modal.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
 
@@ -117,6 +118,7 @@ const STATUS_COLOUR: Record<CustomerDocument['status'], string> = { pending: 'ac
 export class CustomerDocumentPreviewDialogComponent {
   protected readonly data = inject<CustomerDocumentPreviewDialogData>(MAT_DIALOG_DATA);
   private readonly documents = inject(CustomerDocumentService);
+  private readonly downloads = inject(DownloadService);
 
   protected readonly icon = TYPE_ICON[this.data.document.document_type] ?? 'description';
   protected readonly typeLabel = this.data.document.document_type_label;
@@ -124,13 +126,8 @@ export class CustomerDocumentPreviewDialogComponent {
   protected readonly statusColour = STATUS_COLOUR[this.data.document.status];
 
   protected download(): void {
-    this.documents.download(this.data.document).subscribe((blob) => {
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement('a');
-      anchor.href = url;
-      anchor.download = this.data.document.original_name;
-      anchor.click();
-      URL.revokeObjectURL(url);
-    });
+    this.documents
+      .download(this.data.document)
+      .subscribe((blob) => void this.downloads.save(blob, this.data.document.original_name));
   }
 }

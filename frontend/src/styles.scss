@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use 'breakpoints' as bp;
 
 html {
   @include mat.theme(
@@ -181,8 +182,23 @@ body {
   font-family: var(--tide-font-body);
 }
 
+// The page body must never scroll sideways on a phone. `clip` (not
+// `hidden`) enforces this without creating a scroll container, so
+// `position: sticky` and the fixed bottom nav keep working. Genuinely
+// wide content still scrolls inside its own `.app-scroll-x` wrapper.
+html {
+  overflow-x: clip;
+}
+
 * {
   box-sizing: border-box;
+}
+
+// Media never widens its container.
+img,
+video,
+canvas {
+  max-width: 100%;
 }
 
 // Lora is reserved for brand/page-title/hero moments (see the M3
@@ -212,9 +228,56 @@ h1 {
 
 // Wide content (tables, etc.) scrolls inside its own container instead of
 // the page body — every component that renders a table wraps it in
-// something carrying this class.
+// something carrying this class. `min-width: 0` lets it actually shrink
+// when it sits in a flex/grid item (whose default `min-width: auto`
+// would otherwise let a `white-space: nowrap` table push the whole page
+// wide); `max-width: 100%` caps it to the parent.
 .app-scroll-x {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  min-width: 0;
+  max-width: 100%;
+}
+
+// Generic "table → stacked cards" flip for hand-rolled `<table>`s that
+// can't fit their columns on a phone (the shared <app-table> has its own
+// card mode). Add `class="app-table-flip"` to the `<table>`; on phones
+// each row becomes a bordered block with the first cell emphasised.
+@include bp.bp-down(bp.$sm) {
+  .app-table-flip,
+  .app-table-flip tbody,
+  .app-table-flip tr,
+  .app-table-flip td {
+    display: block;
+    width: 100%;
+  }
+
+  .app-table-flip thead {
+    display: none;
+  }
+
+  .app-table-flip tr {
+    border: 1px solid var(--mat-sys-outline-variant);
+    border-radius: var(--app-radius-md);
+    margin-bottom: var(--app-space-2);
+    padding: var(--app-space-2) var(--app-space-3);
+  }
+
+  .app-table-flip td {
+    border: 0 !important;
+    padding: 2px 0 !important;
+    white-space: normal !important;
+    text-align: left !important;
+  }
+
+  .app-table-flip td:first-child {
+    font-weight: 600;
+    margin-bottom: var(--app-space-1);
+  }
+
+  .app-table-flip td:empty {
+    display: none;
+  }
 }
 
 // Circular, coloured icon-button used for row actions (view/edit/delete) in
@@ -258,6 +321,10 @@ h1 {
 // change a component opts into (see .app-hover-lift) never looks abrupt.
 .mat-mdc-card {
   transition: box-shadow var(--app-duration-base) var(--app-ease), transform var(--app-duration-base) var(--app-ease);
+  // Cards are the usual flex/grid item across the app — let them shrink
+  // (rather than be sized by nowrap content) and never exceed the column.
+  min-width: 0;
+  max-width: 100%;
 }
 
 // Opt-in lift for genuinely clickable cards (e.g. a card wrapping a
@@ -575,5 +642,82 @@ h1 {
 
   .mat-mdc-snack-bar-label::before {
     content: 'i';
+  }
+}
+
+// ---------------------------------------------------------------------
+// Handset overrides.
+// ---------------------------------------------------------------------
+@include bp.bp-down(bp.$md) {
+  // `mat-sidenav-content` gets `overflow: auto` from Material, so a wide
+  // child scrolls THERE, bypassing `html { overflow-x: clip }`. Clip the
+  // content pane's horizontal axis too — the page must never pan sideways.
+  .mat-drawer-content {
+    overflow-x: clip;
+  }
+}
+
+@include bp.bp-down(bp.$sm) {
+  // Dialogs render as a bottom sheet: full width, anchored to the bottom
+  // edge, rounded top, height driven by content up to most of the screen
+  // (internal scroll past that), and always clear of the status bar and
+  // the home indicator. Reaches every MatDialog (app-modal, confirm,
+  // reason, detail dialogs) since the pane lives in the CDK overlay.
+  .cdk-global-overlay-wrapper:has(> .mat-mdc-dialog-panel) {
+    align-items: flex-end !important;
+  }
+
+  .mat-mdc-dialog-panel {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    max-height: calc(100dvh - env(safe-area-inset-top) - var(--app-space-4)) !important;
+  }
+
+  .mat-mdc-dialog-panel .mat-mdc-dialog-container {
+    max-height: calc(100dvh - env(safe-area-inset-top) - var(--app-space-4));
+  }
+
+  .mat-mdc-dialog-panel .mdc-dialog__surface {
+    border-radius: var(--app-radius-lg) var(--app-radius-lg) 0 0 !important;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  // Let a tall dialog body use more of the sheet before it scrolls.
+  .mat-mdc-dialog-panel .mat-mdc-dialog-content {
+    max-height: 70dvh;
+  }
+
+  // The lending-criteria details dialog opts out of the inner scroll on
+  // desktop (shows the whole list at once). On a phone the list is taller
+  // than the sheet, so re-enable scrolling or the bottom rows (FOIR/DBR,
+  // etc.) are clipped and unreachable.
+  .criteria-details-dialog-panel .mat-mdc-dialog-content {
+    max-height: 70dvh !important;
+    overflow-y: auto !important;
+  }
+
+  .criteria-details-dialog-panel .mat-mdc-dialog-container {
+    max-height: calc(100dvh - env(safe-area-inset-top) - var(--app-space-4)) !important;
+  }
+
+  // The global-search overlay opens with its own fixed width and top
+  // offset — let it fill the screen on a phone as well.
+  .search-overlay-panel {
+    max-width: 100vw !important;
+    width: 100vw !important;
+    position: static !important;
+  }
+
+  // Topbar notification dropdown (mat-menu panel) — fit the viewport
+  // instead of a fixed 380px that clips off the right edge.
+  .notif-dropdown-panel,
+  .notif-dropdown-panel .mat-mdc-menu-content {
+    max-width: calc(100vw - var(--app-space-4)) !important;
+    width: calc(100vw - var(--app-space-4)) !important;
+  }
+
+  // Roomier hit area for icon buttons without disturbing glyph centring.
+  .mat-mdc-icon-button {
+    --mdc-icon-button-state-layer-size: 44px;
   }
 }

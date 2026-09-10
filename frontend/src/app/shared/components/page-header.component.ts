@@ -67,6 +67,34 @@ import { MatIconModule } from '@angular/material/icon';
         letter-spacing: -0.01em;
         color: var(--mat-sys-on-surface);
       }
+
+      /* Phone: title block stacks above a full-width action row so a long
+         title and an action button never fight for one line. */
+      @media (max-width: 599.98px) {
+        .page-header {
+          flex-wrap: wrap;
+          gap: var(--app-space-2);
+          margin-bottom: var(--app-space-4);
+        }
+        .page-header__text {
+          flex: 1 1 100%;
+        }
+        .page-header__actions {
+          margin-left: 0;
+          width: 100%;
+          flex-wrap: wrap;
+        }
+        .page-header__icon {
+          width: 32px;
+          height: 32px;
+        }
+        h1 {
+          font-size: 1.3rem;
+        }
+        p {
+          font-size: 0.875rem;
+        }
+      }
       p {
         margin: 0.3rem 0 0;
         font-size: 0.95rem;

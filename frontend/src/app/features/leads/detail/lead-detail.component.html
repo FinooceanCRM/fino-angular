@@ -152,7 +152,14 @@
           <h3 class="lead-detail__section-title">Applicant details</h3>
           <div class="lead-detail__grid">
             <div><span class="lead-detail__label">Email</span><strong>{{ data.lead.applicant_email ?? '—' }}</strong></div>
-            <div><span class="lead-detail__label">Phone</span><strong>{{ data.lead.applicant_phone ?? '—' }}</strong></div>
+            <div>
+              <span class="lead-detail__label">Phone</span>
+              @if (data.lead.applicant_phone; as phone) {
+                <strong><a [href]="'tel:' + phone">{{ phone }}</a></strong>
+              } @else {
+                <strong>—</strong>
+              }
+            </div>
             <div><span class="lead-detail__label">Tenure</span><strong>{{ data.lead.tenure_months ?? '—' }} months</strong></div>
             <div><span class="lead-detail__label">Monthly income</span><strong>{{ data.lead.monthly_income | currency: 'INR' : 'symbol-narrow' : '1.0-0' }}</strong></div>
             <div><span class="lead-detail__label">Credit score</span><strong>{{ data.lead.credit_score ?? '—' }}</strong></div>
@@ -170,7 +177,14 @@
                 <div><span class="lead-detail__label">Gender</span><strong>{{ optionLabel(genderOptions, details.gender) }}</strong></div>
                 <div><span class="lead-detail__label">Date of birth</span><strong>{{ details.dob ? (details.dob | date: 'mediumDate') : '—' }}</strong></div>
                 <div><span class="lead-detail__label">Age</span><strong>{{ details.age ?? '—' }}</strong></div>
-                <div><span class="lead-detail__label">Alternative mobile</span><strong>{{ details.alternative_phone ?? '—' }}</strong></div>
+                <div>
+                  <span class="lead-detail__label">Alternative mobile</span>
+                  @if (details.alternative_phone; as altPhone) {
+                    <strong><a [href]="'tel:' + altPhone">{{ altPhone }}</a></strong>
+                  } @else {
+                    <strong>—</strong>
+                  }
+                </div>
                 <div><span class="lead-detail__label">Marital status</span><strong>{{ optionLabel(maritalStatusOptions, details.marital_status) }}</strong></div>
                 <div><span class="lead-detail__label">Caste category</span><strong>{{ optionLabel(casteCategoryOptions, details.caste_category) }}</strong></div>
               </div>

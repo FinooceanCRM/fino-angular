@@ -192,6 +192,38 @@ export const WORKSPACE_NAV_ITEMS: NavItem[] = [
  * leads.view (the Disbursements register is a filtered view over the same
  * permission) and reports.view.
  */
+/** Number of role/workspace destinations shown directly in the handset bottom bar. */
+const MOBILE_PRIMARY_COUNT = 4;
+
+function dedupeByLink(items: NavItem[]): NavItem[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.link)) return false;
+    seen.add(item.link);
+    return true;
+  });
+}
+
+/**
+ * Flat, de-duplicated list of every destination a role can reach from the
+ * primary nav — role-specific items first, then the shared loan workspace.
+ * Backs the handset bottom navigation.
+ */
+export function mobileNavItems(auth: AuthService): NavItem[] {
+  return dedupeByLink([...roleNavItems(auth), ...workspaceNavItems(auth)]);
+}
+
+/**
+ * The destinations pinned into the handset bottom tab bar. Profile is
+ * excluded (it stays in the account menu / the "More" drawer); the bar's
+ * fifth slot is a "More" button that opens the full nav drawer.
+ */
+export function primaryMobileNavItems(auth: AuthService): NavItem[] {
+  return mobileNavItems(auth)
+    .filter((item) => !item.link.endsWith('/profile'))
+    .slice(0, MOBILE_PRIMARY_COUNT);
+}
+
 export function workspaceNavItems(auth: AuthService): NavItem[] {
   // Vendors have no place in the shared loan workspace — their own
   // dashboard is the only surface they get. (Phase 4 may add a

@@ -12,22 +12,40 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
  */
 class NotificationService extends BaseService
 {
+    public function __construct(private readonly PushService $push)
+    {
+    }
+
     /**
      * @param array<string, mixed> $data
+     * @param bool $push  send a device push as well as writing the in-app row
+     *                    (set false by notifyMany, which pushes once in bulk)
      */
-    public function notify(?int $userId, string $type, string $title, ?string $body = null, array $data = []): ?Notification
-    {
+    public function notify(
+        ?int $userId,
+        string $type,
+        string $title,
+        ?string $body = null,
+        array $data = [],
+        bool $push = true,
+    ): ?Notification {
         if ($userId === null) {
             return null;
         }
 
-        return Notification::query()->create([
+        $notification = Notification::query()->create([
             'user_id' => $userId,
             'type' => $type,
             'title' => $title,
             'body' => $body,
             'data' => $data,
         ]);
+
+        if ($push) {
+            $this->push->sendToUsers([$userId], $title, $body, ['type' => $type] + $data);
+        }
+
+        return $notification;
     }
 
     /**
@@ -36,9 +54,13 @@ class NotificationService extends BaseService
      */
     public function notifyMany(array $userIds, string $type, string $title, ?string $body = null, array $data = []): void
     {
-        foreach (array_unique(array_filter($userIds)) as $userId) {
-            $this->notify((int) $userId, $type, $title, $body, $data);
+        $userIds = array_values(array_unique(array_filter($userIds)));
+
+        foreach ($userIds as $userId) {
+            $this->notify((int) $userId, $type, $title, $body, $data, push: false);
         }
+
+        $this->push->sendToUsers($userIds, $title, $body, ['type' => $type] + $data);
     }
 
     public function paginateFor(User $user, bool $unreadOnly = false, int $perPage = 15): LengthAwarePaginator

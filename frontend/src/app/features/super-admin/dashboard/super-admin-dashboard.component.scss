@@ -5,6 +5,12 @@
   justify-content: flex-end;
   gap: var(--app-space-2);
   margin-bottom: var(--app-space-2);
+
+  // The topbar already carries a notification bell on phones — this
+  // standalone dropdown just floats in whitespace there.
+  @media (max-width: 599.98px) {
+    display: none;
+  }
 }
 
 

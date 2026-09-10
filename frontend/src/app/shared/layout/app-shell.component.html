@@ -3,10 +3,13 @@
 
   <mat-sidenav-container class="shell-container">
     <mat-sidenav
+      #sidenav
       class="shell-sidenav"
       [class.shell-sidenav--collapsed]="!isHandset() && railCollapsed()"
       [mode]="isHandset() ? 'over' : 'side'"
       [opened]="sidenavOpened()"
+      (closedStart)="sidenavOpened.set(false)"
+      (click)="isHandset() && sidenav.close()"
     >
       <app-sidebar class="shell-sidenav__nav" [collapsed]="!isHandset() && railCollapsed()" />
 
@@ -25,10 +28,20 @@
     </mat-sidenav>
 
     <mat-sidenav-content class="shell-content">
-      <main class="content-inner">
+      <main
+        class="content-inner"
+        [class.content-inner--with-bottom-nav]="isHandset()"
+      >
         <app-breadcrumb />
         <router-outlet />
       </main>
+
+      <!-- Inside the sidenav-content so the bottom nav shares its stacking
+           context: it sits above page content but below any slide-in
+           drawer / CDK dialog overlay. -->
+      @if (isHandset()) {
+        <app-bottom-nav (more)="sidenavOpened.set(true)" />
+      }
     </mat-sidenav-content>
   </mat-sidenav-container>
 } @else {

@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\V1\CustomerController;
 use App\Http\Controllers\Api\V1\CustomerDocumentController;
 use App\Http\Controllers\Api\V1\CustomerInteractionController;
 use App\Http\Controllers\Api\V1\CustomerNoteController;
+use App\Http\Controllers\Api\V1\DeviceTokenController;
 use App\Http\Controllers\Api\V1\DocumentController;
 use App\Http\Controllers\Api\V1\EmployeeController;
 use App\Http\Controllers\Api\V1\GeocodeController;
@@ -119,6 +120,11 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::post('auth/password', [AuthController::class, 'updatePassword'])->name('auth.password.update');
         Route::put('auth/preferences', [AuthController::class, 'updatePreferences'])->name('auth.preferences.update');
         Route::get('me/lead-referral-link', [AuthController::class, 'leadReferralLink'])->name('me.lead-referral-link');
+
+        // Native-app push registration. The mobile client posts its FCM
+        // token here after login and deletes it on logout (see PushService).
+        Route::post('me/device-tokens', [DeviceTokenController::class, 'store'])->name('me.device-tokens.store');
+        Route::delete('me/device-tokens', [DeviceTokenController::class, 'destroy'])->name('me.device-tokens.destroy');
 
         // Global search (Phase 1). Any authenticated user may search — no
         // `role:`/`permission:` gate here, results are scoped to the

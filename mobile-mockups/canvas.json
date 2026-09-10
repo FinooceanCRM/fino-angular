@@ -1,0 +1,13 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html", "x": 0, "y": 0, "w": 390, "h": 820, "title": "Login" },
+    { "file": "Dashboard.dc.html", "x": 510, "y": 0, "w": 390, "h": 1040, "title": "Telecaller home" },
+    { "file": "Leads.dc.html", "x": 1020, "y": 0, "w": 390, "h": 1000, "title": "Leads — stacked cards" }
+  ],
+  "annotations": [
+    { "id": "note-login", "x": 0, "y": -104, "w": 360, "text": "Login — mirrors the current LoginComponent: navy→teal hero, anchor brand mark, outlined Material fields, coral pill CTA. No redesign, just phone widths and safe-area padding." },
+    { "id": "note-home", "x": 510, "y": -124, "w": 360, "text": "Telecaller home — the desktop sidebar becomes a bottom tab bar (5 primary destinations derived from roleNavItems() + workspaceNavItems(), rest under More). Dashboard hero and stat cards stack to one column." },
+    { "id": "note-leads", "x": 1020, "y": -124, "w": 360, "text": "Leads list — <app-table> switches to stacked-card mode below the md breakpoint: one card per row, same status pills and row actions, phone number becomes a tel: link. This one change carries most list screens." }
+  ],
+  "launch": { "view": "canvas" }
+}

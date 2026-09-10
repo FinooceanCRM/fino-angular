@@ -98,6 +98,24 @@ export interface FilterFieldConfig {
         gap: var(--app-space-2);
         flex-shrink: 0;
       }
+
+      /* Phone: each field on its own row, actions full-width and evenly
+         split so both stay comfortably tappable. Tighter gap so the filter
+         block doesn't eat a whole screen before the results. */
+      @media (max-width: 599.98px) {
+        .filter-bar {
+          gap: var(--app-space-2);
+        }
+        .filter-bar__field {
+          flex-basis: 100%;
+        }
+        .filter-bar__actions {
+          width: 100%;
+        }
+        .filter-bar__actions > * {
+          flex: 1 1 0;
+        }
+      }
     `,
   ],
 })

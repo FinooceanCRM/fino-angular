@@ -3,7 +3,14 @@
   align-items: center;
   gap: var(--app-space-3);
   padding-inline: var(--app-space-4);
-  height: 64px;
+  // Never let the action cluster push the page sideways on a phone.
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  // Sit clear of the device status bar / notch in the native shell.
+  // `env(...)` is 0 in a normal browser, so this is a no-op on the web.
+  height: calc(64px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
 
   // M3's mat-toolbar always sources its background from the surface token
   // and ignores the legacy `color="primary"` input, so the brand colour is
@@ -107,12 +114,43 @@
   color: var(--mat-sys-on-primary);
 }
 
-.topbar__help {
+.topbar__help,
+.topbar__search-compact {
   color: var(--mat-sys-on-primary);
+}
+
+// The compact search icon replaces the full search pill on narrow screens.
+.topbar__search-compact {
+  display: none;
 }
 
 @media (max-width: 720px) {
   .topbar__search {
+    display: none;
+  }
+
+  .topbar__search-compact {
+    display: inline-flex;
+  }
+
+  // Drop the help button on phones to keep the action cluster from
+  // crowding the notification bell and account menu.
+  .topbar__help {
+    display: none;
+  }
+}
+
+// Phones: the anchor badge alone is enough branding (page-header + bottom
+// nav carry context). Dropping the "FINOOCEAN" wordmark and tightening
+// the rhythm is what keeps menu + search + bell + account on one line
+// inside the viewport.
+@media (max-width: 599.98px) {
+  .topbar {
+    gap: var(--app-space-1);
+    padding-inline: var(--app-space-2);
+  }
+
+  .topbar__brand-name {
     display: none;
   }
 }

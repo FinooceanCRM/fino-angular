@@ -1,5 +1,9 @@
 export const environment = {
   production: false,
+  // True only in native (Capacitor) builds — see environment.mobile.ts.
+  // Guards behavior that must not run in a browser tab (native status bar,
+  // splash screen, hardware back button, secure token storage).
+  mobile: false,
   appName: 'FINOOCEAN',
   apiBaseUrl: '/api/v1',
   // Token-based auth only — no cookies are sent.

@@ -20,6 +20,7 @@ import {
   TelecallerFollowUpType,
 } from '@core/models/telecaller-follow-up.model';
 import { DocumentService } from '@core/services/document.service';
+import { DownloadService } from '@core/services/download.service';
 import { LeadService } from '@core/services/lead.service';
 import { TelecallerFollowUpService } from '@core/services/telecaller-follow-up.service';
 
@@ -53,6 +54,7 @@ export class TelecallerLeadPanelComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly leads = inject(LeadService);
   private readonly documentsApi = inject(DocumentService);
+  private readonly downloads = inject(DownloadService);
   private readonly followUpsApi = inject(TelecallerFollowUpService);
   private readonly fb = inject(FormBuilder);
   private readonly snackBar = inject(MatSnackBar);
@@ -177,14 +179,7 @@ export class TelecallerLeadPanelComponent implements OnInit {
 
   download(item: LeadDocument): void {
     this.documentsApi.download(item).subscribe({
-      next: (blob) => {
-        const url = URL.createObjectURL(blob);
-        const anchor = document.createElement('a');
-        anchor.href = url;
-        anchor.download = item.original_name;
-        anchor.click();
-        URL.revokeObjectURL(url);
-      },
+      next: (blob) => void this.downloads.save(blob, item.original_name),
       error: () => this.error.set('The document could not be downloaded.'),
     });
   }
