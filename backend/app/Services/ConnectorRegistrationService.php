@@ -7,7 +7,6 @@ use App\Enums\UserRole;
 use App\Exceptions\DomainException;
 use App\Models\Connector;
 use App\Models\User;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Self-service connector signup: no admin approval gate, but the account
@@ -28,6 +27,10 @@ class ConnectorRegistrationService extends BaseService
     private const REFERRAL_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 
     private const REFERRAL_CODE_LENGTH = 8;
+
+    public function __construct(private readonly Msg91OtpService $msg91OtpService)
+    {
+    }
 
     /**
      * @param array<string, mixed> $data
@@ -169,20 +172,9 @@ class ConnectorRegistrationService extends BaseService
         ];
     }
 
-    /**
-     * No SMS gateway is configured for this app — the OTP is written to the
-     * log, the same "simulate delivery" convention already used for mail in
-     * local development (no MAIL_MAILER set means Laravel's mail also just
-     * logs).
-     */
     private function sendOtp(User $user, string $otp): void
     {
-        Log::info(sprintf(
-            '[SMS to %s] Your FINOOCEAN connector verification code is %s. It expires in %d minutes.',
-            $user->phone ?? $user->email,
-            $otp,
-            (int) config('connectors.otp_expiry_minutes'),
-        ));
+        $this->msg91OtpService->send($user->phone, $otp, (int) config('connectors.otp_expiry_minutes'));
     }
 
     /**

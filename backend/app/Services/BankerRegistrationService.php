@@ -8,7 +8,6 @@ use App\Exceptions\DomainException;
 use App\Models\Banker;
 use App\Models\User;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Self-service banker signup ("Join as Banker"): no admin approval gate,
@@ -24,6 +23,10 @@ use Illuminate\Support\Facades\Log;
  */
 class BankerRegistrationService extends BaseService
 {
+    public function __construct(private readonly Msg91OtpService $msg91OtpService)
+    {
+    }
+
     /**
      * @param  array<string, mixed>  $data
      */
@@ -164,18 +167,8 @@ class BankerRegistrationService extends BaseService
         ];
     }
 
-    /**
-     * No SMS gateway is configured for this app — the OTP is written to the
-     * log, the same "simulate delivery" convention the Vendor and Connector
-     * registration services use.
-     */
     private function sendOtp(User $user, string $otp): void
     {
-        Log::info(sprintf(
-            '[SMS to %s] Your FINOOCEAN banker verification code is %s. It expires in %d minutes.',
-            $user->phone ?? $user->email,
-            $otp,
-            (int) config('bankers.otp_expiry_minutes'),
-        ));
+        $this->msg91OtpService->send($user->phone, $otp, (int) config('bankers.otp_expiry_minutes'));
     }
 }

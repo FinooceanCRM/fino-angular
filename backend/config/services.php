@@ -27,4 +27,14 @@ return [
         'credentials' => env('FCM_CREDENTIALS'),
     ],
 
+    // Signup OTP delivery (Vendor/Banker/Connector). `otp_template_id` is
+    // the DLT-approved MSG91 template used to send it. Leave either unset
+    // to disable delivery — Msg91OtpService then just logs a warning and
+    // the OTP flow continues to work the same as before (code still
+    // generated/stored/verified, just not actually texted).
+    'msg91' => [
+        'auth_key' => env('MSG91_AUTH_KEY'),
+        'otp_template_id' => env('MSG91_OTP_TEMPLATE_ID'),
+    ],
+
 ];

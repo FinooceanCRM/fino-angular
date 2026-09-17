@@ -8,7 +8,6 @@ use App\Exceptions\DomainException;
 use App\Models\User;
 use App\Models\Vendor;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
 
 /**
  * Self-service vendor signup: no admin approval gate, but the account stays
@@ -22,6 +21,10 @@ use Illuminate\Support\Facades\Log;
  */
 class VendorRegistrationService extends BaseService
 {
+    public function __construct(private readonly Msg91OtpService $msg91OtpService)
+    {
+    }
+
     /**
      * @param  array<string, mixed>  $data
      */
@@ -155,18 +158,8 @@ class VendorRegistrationService extends BaseService
         ];
     }
 
-    /**
-     * No SMS gateway is configured for this app — the OTP is written to the
-     * log, the same "simulate delivery" convention ConnectorRegistrationService
-     * uses.
-     */
     private function sendOtp(User $user, string $otp): void
     {
-        Log::info(sprintf(
-            '[SMS to %s] Your FINOOCEAN vendor verification code is %s. It expires in %d minutes.',
-            $user->phone ?? $user->email,
-            $otp,
-            (int) config('vendors.otp_expiry_minutes'),
-        ));
+        $this->msg91OtpService->send($user->phone, $otp, (int) config('vendors.otp_expiry_minutes'));
     }
 }
