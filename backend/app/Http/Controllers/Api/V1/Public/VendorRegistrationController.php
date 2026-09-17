@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Vendor\RegisterVendorRequest;
 use App\Http\Requests\Vendor\ResendVendorOtpRequest;
 use App\Http\Requests\Vendor\VerifyVendorOtpRequest;
+use App\Enums\VendorStatus;
 use App\Services\VendorRegistrationService;
 use Illuminate\Http\JsonResponse;
 
@@ -21,9 +22,13 @@ class VendorRegistrationController extends BaseApiController
     {
         $vendor = $this->registrations->register($request->validated());
 
+        $verificationRequired = $vendor->statusEnum() === VendorStatus::PendingVerification;
+
         return $this->respondCreated(
-            $this->devOtpPayload($vendor->otp_code),
-            'Registration received. Enter the code we sent to your phone to verify your account.',
+            array_merge(['verification_required' => $verificationRequired], $this->devOtpPayload($vendor->otp_code) ?? []),
+            $verificationRequired
+                ? 'Registration received. Enter the code we sent to your phone to verify your account.'
+                : 'Registration received. You can now log in.',
         );
     }
 

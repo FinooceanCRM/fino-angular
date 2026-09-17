@@ -31,12 +31,19 @@ export interface PublicVendorOtpResult {
    * Laravel log for the code while testing. Never present in production.
    */
   devOtp: string | null;
+  /**
+   * False while the backend's signup OTP kill switch is off (no DLT/MSG91
+   * approval yet — see config/vendors.php `otp_required`). The account is
+   * then already active on registration; the caller should skip the OTP
+   * step entirely rather than show a code field nothing will arrive for.
+   */
+  verificationRequired: boolean;
 }
 
 interface PublicVendorRegistrationApiResponse {
   success: boolean;
   message: string | null;
-  data: { dev_otp?: string } | null;
+  data: { dev_otp?: string; verification_required?: boolean } | null;
 }
 
 /**
@@ -77,6 +84,10 @@ export class PublicVendorRegistrationService {
   }
 
   private toOtpResult(response: PublicVendorRegistrationApiResponse): PublicVendorOtpResult {
-    return { message: response.message, devOtp: response.data?.dev_otp ?? null };
+    return {
+      message: response.message,
+      devOtp: response.data?.dev_otp ?? null,
+      verificationRequired: response.data?.verification_required ?? true,
+    };
   }
 }

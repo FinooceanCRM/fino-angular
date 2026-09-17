@@ -18,6 +18,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Signup OTP kill switch
+    |--------------------------------------------------------------------------
+    |
+    | TEMPORARY: see config/vendors.php for why this exists and how to
+    | restore it. Same shared SIGNUP_OTP_REQUIRED env var.
+    |
+    */
+    'otp_required' => (bool) env('SIGNUP_OTP_REQUIRED', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Loan products
     |--------------------------------------------------------------------------
     |

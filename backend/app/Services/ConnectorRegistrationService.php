@@ -37,21 +37,23 @@ class ConnectorRegistrationService extends BaseService
      */
     public function register(array $data): Connector
     {
-        $connector = $this->transaction(function () use ($data): Connector {
+        $otpRequired = (bool) config('connectors.otp_required');
+
+        $connector = $this->transaction(function () use ($data, $otpRequired): Connector {
             $user = User::query()->create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'role' => UserRole::Connector,
                 'phone' => $data['phone'],
-                'is_active' => false,
+                'is_active' => ! $otpRequired,
             ]);
 
             $connector = Connector::query()->create([
                 'user_id' => $user->id,
                 'referral_code' => $this->generateUniqueReferralCode(),
                 'referred_by_connector_id' => $this->resolveInviterUserId($data['invite_code'] ?? null),
-                'status' => ConnectorStatus::PendingVerification,
+                'status' => $otpRequired ? ConnectorStatus::PendingVerification : ConnectorStatus::Active,
                 'company_name' => $data['company_name'] ?? null,
                 'contact_person' => $data['contact_person'] ?? null,
                 'alternate_phone' => $data['alternate_phone'] ?? null,
@@ -67,7 +69,7 @@ class ConnectorRegistrationService extends BaseService
                 'payout_account_number' => $data['payout_account_number'] ?? null,
                 'payout_ifsc_or_upi' => $data['payout_ifsc_or_upi'] ?? null,
                 'joined_at' => now(),
-                ...$this->generateOtp(),
+                ...($otpRequired ? $this->generateOtp() : ['phone_verified_at' => now()]),
             ]);
 
             $connector->setRelation('user', $user);
@@ -75,7 +77,9 @@ class ConnectorRegistrationService extends BaseService
             return $connector;
         });
 
-        $this->sendOtp($connector->user, $connector->otp_code);
+        if ($otpRequired) {
+            $this->sendOtp($connector->user, $connector->otp_code);
+        }
 
         return $connector;
     }

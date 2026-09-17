@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Banker\RegisterBankerRequest;
 use App\Http\Requests\Banker\ResendBankerOtpRequest;
 use App\Http\Requests\Banker\VerifyBankerOtpRequest;
+use App\Enums\BankerStatus;
 use App\Services\BankerRegistrationService;
 use Illuminate\Http\JsonResponse;
 
@@ -21,9 +22,13 @@ class BankerRegistrationController extends BaseApiController
     {
         $banker = $this->registrations->register($request->validated());
 
+        $verificationRequired = $banker->statusEnum() === BankerStatus::PendingVerification;
+
         return $this->respondCreated(
-            $this->devOtpPayload($banker->otp_code),
-            'Registration received. Enter the code we sent to your phone to verify your account.',
+            array_merge(['verification_required' => $verificationRequired], $this->devOtpPayload($banker->otp_code) ?? []),
+            $verificationRequired
+                ? 'Registration received. Enter the code we sent to your phone to verify your account.'
+                : 'Registration received. You can now log in.',
         );
     }
 

@@ -30,19 +30,21 @@ class VendorRegistrationService extends BaseService
      */
     public function register(array $data): Vendor
     {
-        $vendor = $this->transaction(function () use ($data): Vendor {
+        $otpRequired = (bool) config('vendors.otp_required');
+
+        $vendor = $this->transaction(function () use ($data, $otpRequired): Vendor {
             $user = User::query()->create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
                 'role' => UserRole::Vendor,
                 'phone' => $data['phone'],
-                'is_active' => false,
+                'is_active' => ! $otpRequired,
             ]);
 
             $vendor = Vendor::query()->create([
                 'user_id' => $user->id,
-                'status' => VendorStatus::PendingVerification,
+                'status' => $otpRequired ? VendorStatus::PendingVerification : VendorStatus::Active,
                 'business_name' => $data['business_name'] ?? null,
                 'contact_person' => $data['contact_person'] ?? null,
                 'alternate_phone' => $data['alternate_phone'] ?? null,
@@ -54,7 +56,7 @@ class VendorRegistrationService extends BaseService
                 'pan_number' => $data['pan_number'] ?? null,
                 'gst_number' => $data['gst_number'] ?? null,
                 'joined_at' => now(),
-                ...$this->generateOtp(),
+                ...($otpRequired ? $this->generateOtp() : ['phone_verified_at' => now()]),
             ]);
 
             $vendor->setRelation('user', $user);
@@ -62,7 +64,9 @@ class VendorRegistrationService extends BaseService
             return $vendor;
         });
 
-        $this->sendOtp($vendor->user, $vendor->otp_code);
+        if ($otpRequired) {
+            $this->sendOtp($vendor->user, $vendor->otp_code);
+        }
 
         return $vendor;
     }

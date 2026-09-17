@@ -32,7 +32,9 @@ class BankerRegistrationService extends BaseService
      */
     public function register(array $data): Banker
     {
-        $banker = $this->transaction(function () use ($data): Banker {
+        $otpRequired = (bool) config('bankers.otp_required');
+
+        $banker = $this->transaction(function () use ($data, $otpRequired): Banker {
             $fullName = trim(($data['first_name'] ?? '').' '.($data['last_name'] ?? ''));
 
             $user = User::query()->create([
@@ -41,7 +43,7 @@ class BankerRegistrationService extends BaseService
                 'password' => $data['password'],
                 'role' => UserRole::Banker,
                 'phone' => $data['phone'],
-                'is_active' => false,
+                'is_active' => ! $otpRequired,
             ]);
 
             $banker = Banker::query()->create([
@@ -62,9 +64,9 @@ class BankerRegistrationService extends BaseService
                 'manager_name' => $data['manager_name'] ?? null,
                 'manager_email' => $data['manager_email'] ?? null,
                 'manager_phone' => $data['manager_phone'] ?? null,
-                'status' => BankerStatus::PendingVerification->value,
+                'status' => $otpRequired ? BankerStatus::PendingVerification->value : BankerStatus::Active->value,
                 'joined_at' => now(),
-                ...$this->generateOtp(),
+                ...($otpRequired ? $this->generateOtp() : ['phone_verified_at' => now()]),
             ]);
 
             $banker->setRelation('user', $user);
@@ -72,7 +74,9 @@ class BankerRegistrationService extends BaseService
             return $banker;
         });
 
-        $this->sendOtp($banker->user, $banker->otp_code);
+        if ($otpRequired) {
+            $this->sendOtp($banker->user, $banker->otp_code);
+        }
 
         return $banker;
     }

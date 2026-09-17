@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\BaseApiController;
 use App\Http\Requests\Connector\RegisterConnectorRequest;
 use App\Http\Requests\Connector\ResendConnectorOtpRequest;
 use App\Http\Requests\Connector\VerifyConnectorOtpRequest;
+use App\Enums\ConnectorStatus;
 use App\Services\ConnectorRegistrationService;
 use Illuminate\Http\JsonResponse;
 
@@ -19,9 +20,13 @@ class ConnectorRegistrationController extends BaseApiController
     {
         $connector = $this->registrations->register($request->validated());
 
+        $verificationRequired = $connector->statusEnum() === ConnectorStatus::PendingVerification;
+
         return $this->respondCreated(
-            $this->devOtpPayload($connector->otp_code),
-            'Registration received. Enter the code we sent to your phone to verify your account.',
+            array_merge(['verification_required' => $verificationRequired], $this->devOtpPayload($connector->otp_code) ?? []),
+            $verificationRequired
+                ? 'Registration received. Enter the code we sent to your phone to verify your account.'
+                : 'Registration received. You can now log in.',
         );
     }
 

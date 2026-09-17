@@ -16,6 +16,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Signup OTP kill switch
+    |--------------------------------------------------------------------------
+    |
+    | TEMPORARY: false until DLT/MSG91 approval comes through (no SMS
+    | gateway can deliver the OTP until then — see Msg91OtpService). While
+    | false, VendorRegistrationService activates the account immediately on
+    | signup instead of gating it behind a phone OTP. Flip
+    | SIGNUP_OTP_REQUIRED back to true once approved; no code changes
+    | needed. Shared by config/bankers.php and config/connectors.php.
+    |
+    */
+    'otp_required' => (bool) env('SIGNUP_OTP_REQUIRED', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Vendor Certification
     |--------------------------------------------------------------------------
     |

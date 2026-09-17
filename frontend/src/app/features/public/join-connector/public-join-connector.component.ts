@@ -101,6 +101,12 @@ export class PublicJoinConnectorComponent {
         next: (result) => {
           this.submitting.set(false);
           this.registeredEmail = raw.email;
+
+          if (!result.verificationRequired) {
+            this.step.set('done');
+            return;
+          }
+
           this.devOtp.set(result.devOtp);
           this.otpForm.reset({ otp: result.devOtp ?? '' });
           this.step.set('otp');
