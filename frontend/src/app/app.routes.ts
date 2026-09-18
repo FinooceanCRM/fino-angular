@@ -218,11 +218,12 @@ export const routes: Routes = [
           ),
       },
       {
+        // Native WebViews can reopen with a stale/deep-link URL after an app
+        // restart. Never expose the not-found screen for that startup case:
+        // the dashboard guard will route guests to login and signed-in users
+        // to their role dashboard.
         path: '**',
-        loadComponent: () =>
-          import('@shared/components/not-found.component').then(
-            (m) => m.NotFoundComponent,
-          ),
+        redirectTo: 'dashboard',
       },
     ],
   },
