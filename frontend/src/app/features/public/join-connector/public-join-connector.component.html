@@ -7,7 +7,12 @@
     @if (step() === 'done') {
       <div class="confirmation">
         <h1>You're verified</h1>
-        <p>Your connector account is active. You can log in now.</p>
+        @if (error(); as message) {
+          <p class="form-error" role="alert">{{ message }}</p>
+          <p>Your connector account is active. Please sign in from the login page.</p>
+        } @else {
+          <p>Your connector account is active. Redirecting to your dashboard…</p>
+        }
       </div>
     } @else if (step() === 'otp') {
       <h1>Enter your code</h1>

@@ -40,11 +40,18 @@
 
       @if (step() === 'done') {
         <h2 class="login__title tide-display">You're verified</h2>
-        <p class="login__subtitle">
-          Your vendor account is active. Sign in to open your Vendor dashboard.
-        </p>
+        @if (error(); as message) {
+          <p class="login__subtitle" role="alert">{{ message }}</p>
+          <p class="login__subtitle">
+            Your vendor account is active. Please sign in to open your Vendor dashboard.
+          </p>
+        } @else {
+          <p class="login__subtitle">
+            Your vendor account is active. Redirecting to your Vendor dashboard…
+          </p>
+        }
         <a mat-flat-button color="primary" class="login__submit tide-cta-pill" routerLink="/auth/login">
-          Go to sign in
+          Sign in manually
         </a>
       } @else if (step() === 'otp') {
         <h2 class="login__title tide-display">Enter your code</h2>

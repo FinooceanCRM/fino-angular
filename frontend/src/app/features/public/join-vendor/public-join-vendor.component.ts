@@ -5,8 +5,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
+import { AuthService } from '@core/services/auth.service';
 import { PublicVendorRegistrationService } from '@core/services/public-vendor-registration.service';
 import { environment } from '@env/environment';
 
@@ -41,6 +42,8 @@ type Step = 'form' | 'otp' | 'done';
 })
 export class PublicJoinVendorComponent {
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly auth = inject(AuthService);
   private readonly registration = inject(PublicVendorRegistrationService);
 
   protected readonly appName = environment.appName;
@@ -54,6 +57,7 @@ export class PublicJoinVendorComponent {
   protected readonly devOtp = signal<string | null>(null);
 
   private registeredEmail = '';
+  private registeredPassword = '';
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
@@ -103,9 +107,10 @@ export class PublicJoinVendorComponent {
         next: (result) => {
           this.submitting.set(false);
           this.registeredEmail = raw.email;
+          this.registeredPassword = raw.password;
 
           if (!result.verificationRequired) {
-            this.step.set('done');
+            this.loginAndRedirect();
             return;
           }
 
@@ -132,11 +137,30 @@ export class PublicJoinVendorComponent {
     this.registration.verifyOtp(this.registeredEmail, this.otpForm.controls.otp.value).subscribe({
       next: () => {
         this.verifying.set(false);
-        this.step.set('done');
+        this.loginAndRedirect();
       },
       error: (err: { message?: string }) => {
         this.verifying.set(false);
         this.error.set(err?.message ?? 'That code did not work. Please try again.');
+      },
+    });
+  }
+
+  private loginAndRedirect(): void {
+    this.auth.login({
+      email: this.registeredEmail,
+      password: this.registeredPassword,
+      device_name: 'vendor-signup',
+    }).subscribe({
+      next: () => {
+        void this.router.navigate(['/vendor/dashboard']);
+      },
+      error: (err: { message?: string }) => {
+        this.error.set(
+          err?.message ??
+            'Your account is active, but automatic sign-in failed. Please sign in manually.',
+        );
+        this.step.set('done');
       },
     });
   }
