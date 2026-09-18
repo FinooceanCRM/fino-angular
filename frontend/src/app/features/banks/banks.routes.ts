@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from '@core/guards/auth.guard';
 
-/** Bank criteria management (Phase 9). Writes are Super Admin only (API-enforced). */
+/** Shared bank-criteria view. Banker writes use the banker-scoped route. */
 export const banksRoutes: Routes = [
   {
     path: '',

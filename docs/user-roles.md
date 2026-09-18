@@ -208,5 +208,5 @@ Password for every account: `12345678`
 | Assign lead | anyone | own RMs/employees | own employees | no | no |
 | Change status | yes | yes | yes | own assigned | no |
 | Run matching | yes | yes | yes | yes | no |
-| Manage bank criteria | yes | no | no | no | no |
+| Manage bank criteria | yes | yes | no | no | no |
 | Upload documents | yes | yes | yes | own assigned | own leads |

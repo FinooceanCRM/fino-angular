@@ -113,7 +113,9 @@ class RolePermissionSeeder extends Seeder
                 'notifications' => 'view',
             ],
             UserRole::Banker->value => [
-                'banking' => 'view',
+                // Bankers submit and maintain their own criteria rows;
+                // BankCriteriaPolicy scopes update/delete to banker_id.
+                'banking' => 'manage',
                 'dashboard' => 'view',
                 'leads' => 'view',
                 'customers' => 'manage_except_delete',

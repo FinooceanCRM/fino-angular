@@ -198,7 +198,9 @@ Status legend: **done** = implemented and tested, **planned** = not built yet.
 - `/leads/:id` — workflow tab (status change, assignment, history), bank-match
   tab with the matching engine trigger, and a documents tab with upload,
   download and delete.
-- `/banks` — bank criteria table; the create form is shown to Super Admin.
+- `/banks` — bank criteria table; the create form is shown to Super Admin and
+  Manager. The banker workspace at `/banker/criteria` lets each Banker create,
+  edit, and delete only their own criteria rows.
 - `/documents` — pick a visible lead and manage its files.
 - `/notifications` — in-app notification feed with read/read-all.
 - `/reports` — totals, per-status breakdown, team counts and recent leads.
@@ -207,5 +209,6 @@ Status legend: **done** = implemented and tested, **planned** = not built yet.
 
 ## Not implemented
 
-- Banker workspace UI (bank criteria are managed by Super Admin).
+- Banker workspace UI (bank criteria are owned and managed by the Banker who
+  submits them; Super Admin and Manager retain global management access).
 - Vendor role (removed permanently).

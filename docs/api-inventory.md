@@ -330,10 +330,10 @@ the same URL legitimately receive different rows.
 | GET | `/api/v1/documents/{id}/download` | Stream a stored document |
 | DELETE | `/api/v1/documents/{id}` | Delete a document and its file |
 | GET | `/api/v1/banks` | Bank criteria list (search, loan type, active) |
-| POST | `/api/v1/banks` | Create bank criteria (Super Admin) |
+| POST | `/api/v1/banks` | Create bank criteria (Super Admin, Manager, or Banker; bankers own the created row) |
 | GET | `/api/v1/banks/{id}` | Single bank product |
-| PUT | `/api/v1/banks/{id}` | Update bank criteria (Super Admin) |
-| DELETE | `/api/v1/banks/{id}` | Delete bank criteria (Super Admin) |
+| PUT | `/api/v1/banks/{id}` | Update bank criteria (Super Admin/Manager globally; Banker only for their own row) |
+| DELETE | `/api/v1/banks/{id}` | Delete bank criteria (Super Admin/Manager globally; Banker only for their own row) |
 | GET | `/api/v1/notifications` | Own notifications, `?unread=1` supported |
 | POST | `/api/v1/notifications/{id}/read` | Mark one as read |
 | POST | `/api/v1/notifications/read-all` | Mark every notification as read |
