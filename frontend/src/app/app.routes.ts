@@ -5,6 +5,16 @@ import { AppShellComponent } from '@shared/layout/app-shell.component';
 
 export const routes: Routes = [
   {
+    // Public privacy notice required for the app listing; keep it outside
+    // the authenticated shell so it can be opened without signing in.
+    path: 'privacy-policy',
+    title: 'Privacy Policy — FINOOCEAN',
+    loadComponent: () =>
+      import('@features/public/privacy-policy/privacy-policy.component').then(
+        (m) => m.PrivacyPolicyComponent,
+      ),
+  },
+  {
     // Public referral landing (Phase 8) — a marketing surface, not part of
     // the authenticated SPA. Declared before the shell-wrapped route below
     // so it's matched first and never falls through to the shell's own

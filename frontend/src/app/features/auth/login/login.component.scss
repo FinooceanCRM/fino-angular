@@ -201,6 +201,15 @@
   margin-top: var(--app-space-2);
 }
 
+.login__privacy-link {
+  display: block;
+  margin-top: var(--app-space-4);
+  color: var(--tide-color-secondary);
+  font-size: 0.85rem;
+  text-align: center;
+  text-underline-offset: 0.18em;
+}
+
 @media (max-width: 860px) {
   .login {
     grid-template-columns: 1fr;
