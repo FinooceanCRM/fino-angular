@@ -323,9 +323,9 @@ class LeadWorkflowTest extends TestCase
         $this->assertSame('5 years', $response->json('data.details.since_resident'));
     }
 
-    public function test_only_super_admin_can_create_bank_criteria(): void
+    public function test_only_hierarchy_roles_can_create_bank_criteria(): void
     {
-        ['manager' => $manager] = $this->hierarchy();
+        ['manager' => $manager, 'employee' => $employee] = $this->hierarchy();
         $superAdmin = User::factory()->create(['role' => UserRole::SuperAdmin->value]);
 
         $payload = [
@@ -338,9 +338,13 @@ class LeadWorkflowTest extends TestCase
             'is_active' => true,
         ];
 
-        $this->actingAs($manager, 'sanctum')
+        $this->actingAs($employee, 'sanctum')
             ->postJson('/api/v1/banks', $payload)
             ->assertForbidden();
+
+        $this->actingAs($manager, 'sanctum')
+            ->postJson('/api/v1/banks', $payload)
+            ->assertCreated();
 
         $this->actingAs($superAdmin, 'sanctum')
             ->postJson('/api/v1/banks', $payload)
