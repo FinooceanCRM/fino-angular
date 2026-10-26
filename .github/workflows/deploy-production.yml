@@ -1,65 +1,64 @@
 
-name: FINOOCEAN - Production Deployment Preflight
+name: FINOOCEAN - Deployment Preparation
 
 on:
   workflow_dispatch:
+    inputs:
+      release_run_id:
+        description: "GitHub Actions run ID that created the release artifact"
+        required: true
+        type: string
 
 permissions:
+  actions: read
   contents: read
 
 concurrency:
-  group: finoocean-production-preflight
+  group: finoocean-deployment-preparation
   cancel-in-progress: false
 
 jobs:
-  preflight:
-    name: Verify Production Readiness
+  inspect-release:
+    name: Inspect Release Artifact (No Deployment)
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 5
 
     steps:
-      - name: Check production server
-        uses: appleboy/ssh-action@v1
+      - name: Download release artifact
+        uses: actions/download-artifact@v4
         with:
-          host: business30.web-hosting.com
-          username: finovobw
-          port: 21098
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
-          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
-          timeout: 15s
-          command_timeout: 20s
-          script: |
-            set -eu
+          name: finoocean-release-${{ github.sha }}
+          path: release-download
+          run-id: ${{ inputs.release_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-            echo "=== Production deployment preflight ==="
-            echo "No files will be changed."
+      - name: Inspect release archive
+        shell: bash
+        run: |
+          set -euo pipefail
 
-            echo ""
-            echo "=== Server identity ==="
-            whoami
-            printf 'Home: %s\n' "$HOME"
+          ARCHIVE="release-download/finoocean-release.zip"
 
-            echo ""
-            echo "=== Available disk space ==="
-            df -h "$HOME"
+          if [ ! -f "$ARCHIVE" ]; then
+            echo "::error::Expected release archive not found."
+            find release-download -maxdepth 3 -type f -print
+            exit 1
+          fi
 
-            echo ""
-            echo "=== Expected directories ==="
+          echo "Release archive found."
+          ls -lh "$ARCHIVE"
 
-            for path in \
-              "$HOME/public_html" \
-              "$HOME/fino-deploy/backend" \
-              "$HOME/fino-deploy/backend/public"
-            do
-              if [ -d "$path" ]; then
-                echo "EXISTS: $path"
-              else
-                echo "MISSING: $path"
-                exit 1
-              fi
-            done
+          echo ""
+          echo "Archive contents:"
+          unzip -l "$ARCHIVE"
 
-            echo ""
-            echo "=== Preflight complete ==="
-            echo "This workflow does not deploy or restart services."
+          echo ""
+          echo "Checking for environment files..."
+          if unzip -Z1 "$ARCHIVE" | grep -E '(^|/)\.env($|\.)'; then
+            echo "::error::Environment file detected in release archive."
+            exit 1
+          fi
+
+          echo "No environment files detected."
+          echo ""
+          echo "Inspection completed. No server was contacted."
