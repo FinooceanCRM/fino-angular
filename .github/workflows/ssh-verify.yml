@@ -1,5 +1,5 @@
 
-name: FINOOCEAN - Read-only SSH Verification
+name: FINOOCEAN - SSH Host Key Diagnostics
 
 on:
   workflow_dispatch:
@@ -7,56 +7,40 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: finoocean-ssh-verification
-  cancel-in-progress: false
-
 jobs:
-  verify-ssh:
-    name: Verify Namecheap SSH
+  diagnose:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 2
 
     steps:
-      - name: Diagnose SSH server fingerprints
+      - name: Inspect SSH host fingerprints
         shell: bash
-        env:
-          SSH_HOST: business30.web-hosting.com
-          SSH_PORT: "21098"
+        timeout-minutes: 1
         run: |
           set -eu
 
-          echo "Checking SSH host keys advertised by the server..."
-          echo "Host: $SSH_HOST"
-          echo "Port: $SSH_PORT"
+          HOST="business30.web-hosting.com"
+          PORT="21098"
+          OUTPUT="/tmp/ssh-host-keys"
 
-          KEY_SCAN="$(ssh-keyscan -T 10 -p "$SSH_PORT" "$SSH_HOST" 2>/dev/null || true)"
+          echo "Checking ED25519, ECDSA, and RSA host keys..."
 
-          if [ -z "$KEY_SCAN" ]; then
-            echo "::error::Unable to retrieve SSH host keys. Check hostname, port, or server connectivity."
+          timeout 12s ssh-keyscan \
+            -T 5 \
+            -p "$PORT" \
+            -t ed25519,ecdsa,rsa \
+            "$HOST" \
+            2>/dev/null > "$OUTPUT" || true
+
+          if [ ! -s "$OUTPUT" ]; then
+            echo "::error::No SSH host keys received."
             exit 1
           fi
 
-          echo "$KEY_SCAN" | ssh-keygen -lf - -E sha256
+          echo ""
+          echo "Advertised host fingerprints:"
+          ssh-keygen -lf "$OUTPUT" -E sha256
 
           echo ""
-          echo "Compare these fingerprints with the fingerprints confirmed by Namecheap."
-          echo "This scan is diagnostic; it does not authenticate the server."
-
-      - name: Verify SSH connection (read-only)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: business30.web-hosting.com
-          username: finovobw
-          port: 21098
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
-          fingerprint: SHA256:pIvkHveZOdtmhm6GdPDptZTyP0ekIKO4b9Fa6uSbjEg
-          command_timeout: 15s
-          script: |
-            set -eu
-            echo "SSH authentication successful."
-            echo "User:"
-            whoami
-            echo "Home directory:"
-            pwd
+          echo "Compare these values with fingerprints confirmed by Namecheap."
+          echo "No SSH login or deployment was attempted."
