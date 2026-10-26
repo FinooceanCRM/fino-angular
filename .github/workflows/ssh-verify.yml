@@ -1,5 +1,5 @@
 
-name: FINOOCEAN - SSH Host Key Diagnostics
+name: FINOOCEAN - Read-only SSH Verification
 
 on:
   workflow_dispatch:
@@ -7,40 +7,60 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: finoocean-ssh-verification
+  cancel-in-progress: true
+
 jobs:
-  diagnose:
+  verify-ssh:
+    name: Verify Namecheap SSH
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
     steps:
-      - name: Inspect SSH host fingerprints
+      - name: Validate required secrets
         shell: bash
-        timeout-minutes: 1
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
         run: |
           set -eu
 
-          HOST="business30.web-hosting.com"
-          PORT="21098"
-          OUTPUT="/tmp/ssh-host-keys"
-
-          echo "Checking ED25519, ECDSA, and RSA host keys..."
-
-          timeout 12s ssh-keyscan \
-            -T 5 \
-            -p "$PORT" \
-            -t ed25519,ecdsa,rsa \
-            "$HOST" \
-            2>/dev/null > "$OUTPUT" || true
-
-          if [ ! -s "$OUTPUT" ]; then
-            echo "::error::No SSH host keys received."
+          if [ -z "$SSH_PRIVATE_KEY" ]; then
+            echo "::error::SSH_PRIVATE_KEY secret is missing."
             exit 1
           fi
 
-          echo ""
-          echo "Advertised host fingerprints:"
-          ssh-keygen -lf "$OUTPUT" -E sha256
+          if [ -z "$SSH_KEY_PASSPHRASE" ]; then
+            echo "::error::SSH_KEY_PASSPHRASE secret is missing."
+            exit 1
+          fi
 
-          echo ""
-          echo "Compare these values with fingerprints confirmed by Namecheap."
-          echo "No SSH login or deployment was attempted."
+          echo "Required SSH secrets are configured."
+
+      - name: Verify SSH authentication
+        uses: appleboy/ssh-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          timeout: 15s
+          command_timeout: 10s
+          script: |
+            set -eu
+
+            echo "SSH authentication successful."
+
+            echo "Authenticated user:"
+            whoami
+
+            echo "Home directory:"
+            pwd
+
+            echo "Home directory permissions:"
+            ls -ld "$HOME"
+
+            echo "Read-only verification completed."
