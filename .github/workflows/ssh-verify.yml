@@ -1,5 +1,5 @@
 
-name: FINOOCEAN - Read-only SSH Verification
+name: FINOOCEAN - SSH Diagnostic
 
 on:
   workflow_dispatch:
@@ -8,55 +8,52 @@ permissions:
   contents: read
 
 concurrency:
-  group: finoocean-ssh-verification
-  cancel-in-progress: false
+  group: finoocean-ssh-diagnostic
+  cancel-in-progress: true
 
 jobs:
-  verify-ssh:
-    name: Verify Namecheap SSH
+  diagnose-ssh:
+    name: Diagnose Namecheap SSH
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 2
 
     steps:
-      - name: Diagnose SSH server fingerprints
+      - name: Check SSH server fingerprint
         shell: bash
-        env:
-          SSH_HOST: business30.web-hosting.com
-          SSH_PORT: "21098"
+        timeout-minutes: 1
         run: |
           set -eu
 
-          echo "Checking SSH host keys advertised by the server..."
-          echo "Host: $SSH_HOST"
-          echo "Port: $SSH_PORT"
+          HOST="business30.web-hosting.com"
+          PORT="21098"
+          OUTPUT="/tmp/ssh-host-keys"
 
-          KEY_SCAN="$(ssh-keyscan -T 10 -p "$SSH_PORT" "$SSH_HOST" 2>/dev/null || true)"
+          echo "Checking SSH host: ${HOST}:${PORT}"
+          echo "Requesting ED25519 host key with a short timeout..."
 
-          if [ -z "$KEY_SCAN" ]; then
-            echo "::error::Unable to retrieve SSH host keys. Check hostname, port, or server connectivity."
+          if ! timeout 8s ssh-keyscan \
+            -T 5 \
+            -p "$PORT" \
+            -t ed25519 \
+            "$HOST" \
+            > "$OUTPUT" 2>/dev/null; then
+            echo "Warning: ssh-keyscan did not complete successfully."
+          fi
+
+          if [ ! -s "$OUTPUT" ]; then
+            echo "::error::No ED25519 host key received."
+            echo "Check connectivity and SSH service status with Namecheap."
             exit 1
           fi
 
-          echo "$KEY_SCAN" | ssh-keygen -lf - -E sha256
+          echo ""
+          echo "Advertised SSH host fingerprint(s):"
+          ssh-keygen -lf "$OUTPUT" -E sha256
 
           echo ""
-          echo "Compare these fingerprints with the fingerprints confirmed by Namecheap."
-          echo "This scan is diagnostic; it does not authenticate the server."
+          echo "Expected fingerprint confirmed by Namecheap:"
+          echo "SHA256:pIvkHveZOdtmhm6GdPDptZTyP0ekIKO4b9Fa6uSbjEg"
 
-      - name: Verify SSH connection (read-only)
-        uses: appleboy/ssh-action@v1
-        with:
-          host: business30.web-hosting.com
-          username: finovobw
-          port: 21098
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
-          fingerprint: SHA256:pIvkHveZOdtmhm6GdPDptZTyP0ekIKO4b9Fa6uSbjEg
-          command_timeout: 15s
-          script: |
-            set -eu
-            echo "SSH authentication successful."
-            echo "User:"
-            whoami
-            echo "Home directory:"
-            pwd
+          echo ""
+          echo "Compare the fingerprints above."
+          echo "This workflow does not authenticate or modify the server."
