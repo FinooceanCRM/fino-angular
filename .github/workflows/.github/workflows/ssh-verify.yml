@@ -1,0 +1,29 @@
+
+name: Read-only SSH Verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-ssh:
+    name: Verify Namecheap SSH
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Verify SSH connection
+        uses: appleboy/ssh-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:pIvkHveZOdtmhm6GdPDptZTyP0ekIKO4b9Fa6uSbjEg
+          command_timeout: 15s
+          script: |
+            whoami
+            pwd
