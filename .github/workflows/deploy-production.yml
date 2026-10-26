@@ -1,1 +1,65 @@
 
+name: FINOOCEAN - Production Deployment Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-production-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Verify Production Readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Check production server
+        uses: appleboy/ssh-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          timeout: 15s
+          command_timeout: 20s
+          script: |
+            set -eu
+
+            echo "=== Production deployment preflight ==="
+            echo "No files will be changed."
+
+            echo ""
+            echo "=== Server identity ==="
+            whoami
+            printf 'Home: %s\n' "$HOME"
+
+            echo ""
+            echo "=== Available disk space ==="
+            df -h "$HOME"
+
+            echo ""
+            echo "=== Expected directories ==="
+
+            for path in \
+              "$HOME/public_html" \
+              "$HOME/fino-deploy/backend" \
+              "$HOME/fino-deploy/backend/public"
+            do
+              if [ -d "$path" ]; then
+                echo "EXISTS: $path"
+              else
+                echo "MISSING: $path"
+                exit 1
+              fi
+            done
+
+            echo ""
+            echo "=== Preflight complete ==="
+            echo "This workflow does not deploy or restart services."
