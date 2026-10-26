@@ -1,19 +1,33 @@
+
 name: CI
 
 on:
   push:
-    branches: ["**"]
+    branches:
+      - "**"
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend:
     name: Backend (Laravel 12 / PHP 8.2)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     defaults:
       run:
         working-directory: backend
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -22,39 +36,61 @@ jobs:
           extensions: mbstring, pdo_mysql, intl, bcmath, zip
           coverage: none
 
+      - name: Cache Composer dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache/files
+          key: composer-${{ runner.os }}-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: |
+            composer-${{ runner.os }}-
+
       - name: Validate composer.json
         run: composer validate --no-check-publish
 
       - name: Install dependencies
         run: composer install --prefer-dist --no-interaction --no-progress
 
-      - name: Prepare environment
+      - name: Prepare test environment
         run: |
           cp .env.example .env
           php artisan key:generate
 
-      - name: Run tests
+      - name: Run Laravel tests
         run: php artisan test
 
   frontend:
     name: Frontend (Angular 20)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+
     defaults:
       run:
         working-directory: frontend
-    steps:
-      - uses: actions/checkout@v4
 
-      - name: Setup Node
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Unit tests
+      - name: Run unit tests
         run: npm run test:ci --if-present
 
-      - name: Production build
+      - name: Build Angular for production
         run: npm run build
+
+      - name: Upload Angular build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: finoocean-angular-build-${{ github.sha }}
+          path: frontend/dist/
+          if-no-files-found: error
+          retention-days: 7
