@@ -1,0 +1,92 @@
+
+name: FINOOCEAN - Prepare Release Package
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-release-package
+  cancel-in-progress: true
+
+jobs:
+  package:
+    name: Build and Package Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          extensions: mbstring, pdo_mysql, intl, bcmath, zip
+          coverage: none
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: composer install --prefer-dist --no-interaction --no-progress --no-dev --optimize-autoloader
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build Angular
+        working-directory: frontend
+        run: npm run build
+
+      - name: Assemble release directory
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p release/backend release/frontend
+
+          rsync -a backend/ release/backend/ \
+            --exclude='.env' \
+            --exclude='.env.*' \
+            --exclude='tests/' \
+            --exclude='.git/' \
+            --exclude='node_modules/' \
+            --exclude='storage/logs/*' \
+            --exclude='storage/framework/cache/*' \
+            --exclude='storage/framework/sessions/*' \
+            --exclude='storage/framework/views/*'
+
+          cp -a frontend/dist/. release/frontend/
+
+          if find release -type f \( \
+            -name '.env' -o \
+            -name '.env.*' \
+          \) | grep -q .; then
+            echo "::error::Environment files found in release package."
+            exit 1
+          fi
+
+          echo "Release directory assembled."
+          echo "No production server was contacted."
+
+      - name: Create release archive
+        run: |
+          set -euo pipefail
+          zip -qr finoocean-release.zip release
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: finoocean-release-${{ github.sha }}
+          path: finoocean-release.zip
+          if-no-files-found: error
+          retention-days: 7
