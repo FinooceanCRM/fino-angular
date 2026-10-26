@@ -1,0 +1,80 @@
+
+name: FINOOCEAN - Release Safety Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-release-audit
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Audit Release Safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check tracked environment files
+        shell: bash
+        run: |
+          set -eu
+
+          echo "Checking tracked environment files..."
+
+          TRACKED_ENV_FILES="$(
+            git ls-files |
+            grep -E '(^|/)\.env($|\.)' |
+            grep -v -E '(^|/)\.env\.example$' || true
+          )"
+
+          if [ -n "$TRACKED_ENV_FILES" ]; then
+            echo "::warning::Review these tracked environment-related files:"
+            printf '%s\n' "$TRACKED_ENV_FILES"
+            echo "Do not print their contents or expose credentials."
+          else
+            echo "No tracked .env files or .env backups found."
+          fi
+
+      - name: Check dependency lockfiles
+        shell: bash
+        run: |
+          set -eu
+
+          for file in backend/composer.lock frontend/package-lock.json; do
+            if [ -f "$file" ]; then
+              echo "FOUND: $file"
+            else
+              echo "::warning::Missing expected lockfile: $file"
+            fi
+          done
+
+      - name: Check Angular build configuration
+        shell: bash
+        run: |
+          set -eu
+
+          if [ ! -f frontend/angular.json ]; then
+            echo "::error::frontend/angular.json was not found."
+            exit 1
+          fi
+
+          echo "Angular workspace configuration exists."
+
+          if [ -f frontend/package.json ]; then
+            echo "Frontend package manifest exists."
+          else
+            echo "::error::frontend/package.json was not found."
+            exit 1
+          fi
+
+      - name: Audit result
+        run: |
+          echo "Release safety audit completed."
+          echo "No production connection or deployment was performed."
