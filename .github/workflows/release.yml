@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   package:
-    name: Build and Package Release
+    name: Build, Validate and Package Release
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -35,9 +35,15 @@ jobs:
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install backend dependencies
+      - name: Install backend production dependencies
         working-directory: backend
-        run: composer install --prefer-dist --no-interaction --no-progress --no-dev --optimize-autoloader
+        run: |
+          composer install \
+            --prefer-dist \
+            --no-interaction \
+            --no-progress \
+            --no-dev \
+            --optimize-autoloader
 
       - name: Install frontend dependencies
         working-directory: frontend
@@ -57,8 +63,8 @@ jobs:
           rsync -a backend/ release/backend/ \
             --exclude='.env' \
             --exclude='.env.*' \
-            --exclude='tests/' \
             --exclude='.git/' \
+            --exclude='tests/' \
             --exclude='node_modules/' \
             --exclude='storage/logs/*' \
             --exclude='storage/framework/cache/*' \
@@ -67,21 +73,52 @@ jobs:
 
           cp -a frontend/dist/. release/frontend/
 
-          if find release -type f \( \
-            -name '.env' -o \
-            -name '.env.*' \
-          \) | grep -q .; then
-            echo "::error::Environment files found in release package."
+          echo "Release directories assembled."
+
+      - name: Validate release contents
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Checking Laravel files..."
+
+          test -f release/backend/artisan
+          test -f release/backend/composer.json
+          test -f release/backend/vendor/autoload.php
+          test -f release/backend/public/index.php
+
+          echo "Required Laravel files are present."
+
+          echo "Checking Angular output..."
+
+          if ! find release/frontend \
+            -type f -name index.html -print -quit | grep -q .; then
+            echo "::error::Angular index.html was not found."
             exit 1
           fi
 
-          echo "Release directory assembled."
-          echo "No production server was contacted."
+          echo "Angular index.html is present."
+
+          echo "Checking for environment files..."
+
+          if find release -type f \
+            \( -name '.env' -o -name '.env.*' \) \
+            -print -quit | grep -q .; then
+            echo "::error::Environment files found in release."
+            exit 1
+          fi
+
+          echo "No environment files found."
 
       - name: Create release archive
+        shell: bash
         run: |
           set -euo pipefail
+
           zip -qr finoocean-release.zip release
+
+          echo "Release archive created."
+          ls -lh finoocean-release.zip
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
