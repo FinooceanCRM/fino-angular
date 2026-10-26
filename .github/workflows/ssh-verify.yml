@@ -1,5 +1,5 @@
 
-name: FINOOCEAN - Read-only Server Inventory
+name: FINOOCEAN - Read-only Production Inventory
 
 on:
   workflow_dispatch:
@@ -8,17 +8,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: finoocean-server-inventory
+  group: finoocean-production-inventory
   cancel-in-progress: true
 
 jobs:
   inventory:
-    name: Inspect Production Paths
+    name: Inspect Paths and Disk Usage
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
 
     steps:
-      - name: Read-only server inventory
+      - name: Inspect production directories
         uses: appleboy/ssh-action@v1
         with:
           host: business30.web-hosting.com
@@ -28,17 +28,15 @@ jobs:
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
           timeout: 15s
-          command_timeout: 15s
+          command_timeout: 30s
           script: |
             set -eu
 
-            echo "=== Connected account ==="
-            whoami
-            printf 'Home: %s\n' "$HOME"
+            echo "=== Disk usage ==="
+            df -h "$HOME"
 
             echo ""
-            echo "=== Relevant directory metadata ==="
-
+            echo "=== Directory sizes ==="
             for path in \
               "$HOME/public_html" \
               "$HOME/fino-deploy" \
@@ -46,15 +44,27 @@ jobs:
               "$HOME/fino-deploy/backend/public"
             do
               if [ -d "$path" ]; then
-                ls -ld "$path"
-              else
-                printf 'Not found: %s\n' "$path"
+                du -sh "$path" 2>/dev/null || true
               fi
             done
 
             echo ""
-            echo "=== Disk space ==="
-            df -h "$HOME"
+            echo "=== Frontend top-level entries ==="
+            find "$HOME/public_html" \
+              -mindepth 1 -maxdepth 1 \
+              -printf '%f\n' 2>/dev/null | head -40
 
             echo ""
-            echo "=== Inventory completed; no files changed ==="
+            echo "=== Backend top-level entries ==="
+            find "$HOME/fino-deploy/backend" \
+              -mindepth 1 -maxdepth 1 \
+              -printf '%f\n' 2>/dev/null | head -40
+
+            echo ""
+            echo "=== Laravel public entries ==="
+            find "$HOME/fino-deploy/backend/public" \
+              -mindepth 1 -maxdepth 1 \
+              -printf '%f\n' 2>/dev/null | head -40
+
+            echo ""
+            echo "Read-only inventory completed. No files changed."
