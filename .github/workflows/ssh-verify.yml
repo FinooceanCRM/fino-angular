@@ -1,5 +1,5 @@
 
-name: FINOOCEAN - Read-only SSH Verification
+name: FINOOCEAN - Read-only Server Inventory
 
 on:
   workflow_dispatch:
@@ -8,37 +8,17 @@ permissions:
   contents: read
 
 concurrency:
-  group: finoocean-ssh-verification
+  group: finoocean-server-inventory
   cancel-in-progress: true
 
 jobs:
-  verify-ssh:
-    name: Verify Namecheap SSH
+  inventory:
+    name: Inspect Production Paths
     runs-on: ubuntu-latest
     timeout-minutes: 2
 
     steps:
-      - name: Validate required secrets
-        shell: bash
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
-        run: |
-          set -eu
-
-          if [ -z "$SSH_PRIVATE_KEY" ]; then
-            echo "::error::SSH_PRIVATE_KEY secret is missing."
-            exit 1
-          fi
-
-          if [ -z "$SSH_KEY_PASSPHRASE" ]; then
-            echo "::error::SSH_KEY_PASSPHRASE secret is missing."
-            exit 1
-          fi
-
-          echo "Required SSH secrets are configured."
-
-      - name: Verify SSH authentication
+      - name: Read-only server inventory
         uses: appleboy/ssh-action@v1
         with:
           host: business30.web-hosting.com
@@ -48,19 +28,33 @@ jobs:
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
           timeout: 15s
-          command_timeout: 10s
+          command_timeout: 15s
           script: |
             set -eu
 
-            echo "SSH authentication successful."
-
-            echo "Authenticated user:"
+            echo "=== Connected account ==="
             whoami
+            printf 'Home: %s\n' "$HOME"
 
-            echo "Home directory:"
-            pwd
+            echo ""
+            echo "=== Relevant directory metadata ==="
 
-            echo "Home directory permissions:"
-            ls -ld "$HOME"
+            for path in \
+              "$HOME/public_html" \
+              "$HOME/fino-deploy" \
+              "$HOME/fino-deploy/backend" \
+              "$HOME/fino-deploy/backend/public"
+            do
+              if [ -d "$path" ]; then
+                ls -ld "$path"
+              else
+                printf 'Not found: %s\n' "$path"
+              fi
+            done
 
-            echo "Read-only verification completed."
+            echo ""
+            echo "=== Disk space ==="
+            df -h "$HOME"
+
+            echo ""
+            echo "=== Inventory completed; no files changed ==="
