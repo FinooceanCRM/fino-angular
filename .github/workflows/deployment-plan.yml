@@ -1,0 +1,168 @@
+
+name: FINOOCEAN - Deployment Plan Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_filename:
+        description: "Exact ZIP filename in finoocean-releases/incoming"
+        required: true
+        type: string
+      expected_sha256:
+        description: "Expected SHA-256 from the successful upload workflow"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-deployment-plan
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    name: Validate Release and Rollback Plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Validate release and inspect live paths
+        uses: appleboy/ssh-action@v1
+        env:
+          RELEASE_FILENAME: ${{ inputs.release_filename }}
+          EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: RELEASE_FILENAME,EXPECTED_SHA256
+          timeout: 15s
+          command_timeout: 45s
+          script: |
+            set -eu
+
+            HOME_DIR="$HOME"
+            FRONTEND="$HOME_DIR/public_html"
+            APP="$HOME_DIR/fino-deploy/backend"
+            INCOMING="$HOME_DIR/finoocean-releases/incoming"
+
+            echo "=== 1. Validate supplied inputs ==="
+
+            case "$RELEASE_FILENAME" in
+              finoocean-release-*.zip) ;;
+              *)
+                echo "ERROR: Invalid release filename."
+                exit 1
+                ;;
+            esac
+
+            case "$EXPECTED_SHA256" in
+              *[!0-9a-fA-F]*|"")
+                echo "ERROR: SHA-256 must contain hexadecimal characters only."
+                exit 1
+                ;;
+            esac
+
+            if [ "${#EXPECTED_SHA256}" -ne 64 ]; then
+              echo "ERROR: SHA-256 must be exactly 64 characters."
+              exit 1
+            fi
+
+            ARCHIVE="$INCOMING/$RELEASE_FILENAME"
+
+            if [ ! -s "$ARCHIVE" ]; then
+              echo "ERROR: Release archive is missing or empty."
+              exit 1
+            fi
+
+            echo
+            echo "=== 2. Verify release checksum ==="
+            ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+            printf 'Expected: %s\n' "$EXPECTED_SHA256"
+            printf 'Actual:   %s\n' "$ACTUAL_SHA256"
+
+            if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+              echo "ERROR: Checksum mismatch. Release rejected."
+              exit 1
+            fi
+
+            echo "Checksum matches."
+
+            echo
+            echo "=== 3. Validate ZIP structure ==="
+            unzip -t "$ARCHIVE" >/dev/null
+
+            CONTENTS="$(unzip -Z1 "$ARCHIVE")"
+
+            for required in \
+              "release/backend/artisan" \
+              "release/backend/composer.json" \
+              "release/backend/vendor/autoload.php" \
+              "release/backend/public/index.php"
+            do
+              if ! printf '%s\n' "$CONTENTS" | grep -Fxq "$required"; then
+                echo "ERROR: Missing required file: $required"
+                exit 1
+              fi
+            done
+
+            if ! printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/frontend/(.*/)?index\.html$'; then
+              echo "ERROR: Angular index.html missing."
+              exit 1
+            fi
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)'; then
+              echo "ERROR: Environment file found in release."
+              exit 1
+            fi
+
+            echo "Release structure passed."
+
+            echo
+            echo "=== 4. Inspect current production ==="
+            df -h "$HOME_DIR"
+            du -sh "$FRONTEND" "$APP"
+
+            for path in \
+              "$FRONTEND/index.html" \
+              "$FRONTEND/.htaccess" \
+              "$APP/.env" \
+              "$APP/artisan" \
+              "$APP/vendor/autoload.php" \
+              "$APP/public/index.php" \
+              "$APP/storage" \
+              "$APP/bootstrap/cache"
+            do
+              if [ -e "$path" ]; then
+                echo "FOUND: ${path#"$HOME_DIR"/}"
+              else
+                echo "MISSING: ${path#"$HOME_DIR"/}"
+              fi
+            done
+
+            if [ ! -L "$APP/public/storage" ]; then
+              echo "WARNING: Laravel public/storage is not a symlink."
+            elif [ ! -d "$APP/public/storage" ]; then
+              echo "WARNING: Laravel storage symlink target is inaccessible."
+            else
+              echo "Laravel storage symlink is accessible."
+            fi
+
+            echo
+            echo "=== 5. Proposed deployment plan ==="
+            echo "Frontend target: $FRONTEND"
+            echo "Laravel target: $APP"
+            echo "Preserve Laravel .env and storage."
+            echo "Preserve the existing public storage symlink."
+            echo "Do not run database migrations in initial deployment."
+            echo "Keep the current release available for rollback."
+            echo "No files have been extracted or replaced."
+            echo "No backups have been created."
+            echo "No database commands have been run."
+            echo "LIVE DEPLOYMENT IS NOT ENABLED."
