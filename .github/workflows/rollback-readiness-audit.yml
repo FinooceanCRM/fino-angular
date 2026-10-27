@@ -1,0 +1,171 @@
+
+name: FINOOCEAN - Rollback Readiness Audit
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_filename:
+        description: "Exact release ZIP filename in incoming"
+        required: true
+        type: string
+      expected_sha256:
+        description: "SHA-256 from the successful upload workflow"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-rollback-readiness
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Inspect Rollback Prerequisites (Read Only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Audit rollback prerequisites
+        uses: appleboy/ssh-action@v1
+        env:
+          RELEASE_FILENAME: ${{ inputs.release_filename }}
+          EXPECTED_SHA256: ${{ inputs.expected_sha256 }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: RELEASE_FILENAME,EXPECTED_SHA256
+          timeout: 15s
+          command_timeout: 45s
+          script: |
+            set -eu
+
+            HOME_DIR="$HOME"
+            FRONTEND="$HOME_DIR/public_html"
+            APP="$HOME_DIR/fino-deploy/backend"
+            INCOMING="$HOME_DIR/finoocean-releases/incoming"
+
+            echo "======================================"
+            echo "FINOOCEAN ROLLBACK READINESS AUDIT"
+            echo "READ ONLY - NO DEPLOYMENT"
+            echo "======================================"
+
+            echo
+            echo "=== 1. Validate inputs ==="
+
+            case "$RELEASE_FILENAME" in
+              finoocean-release-*.zip) ;;
+              *)
+                echo "ERROR: Invalid release filename."
+                exit 1
+                ;;
+            esac
+
+            case "$EXPECTED_SHA256" in
+              *[!0-9a-fA-F]*|"")
+                echo "ERROR: Invalid SHA-256 format."
+                exit 1
+                ;;
+            esac
+
+            if [ "${#EXPECTED_SHA256}" -ne 64 ]; then
+              echo "ERROR: SHA-256 must contain 64 hex characters."
+              exit 1
+            fi
+
+            ARCHIVE="$INCOMING/$RELEASE_FILENAME"
+
+            if [ ! -s "$ARCHIVE" ]; then
+              echo "ERROR: Release archive missing or empty."
+              exit 1
+            fi
+
+            echo
+            echo "=== 2. Verify release checksum ==="
+            ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
+
+            if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+              echo "ERROR: Checksum mismatch."
+              exit 1
+            fi
+
+            echo "Release checksum matches."
+
+            echo
+            echo "=== 3. Disk capacity ==="
+            df -h "$HOME_DIR"
+
+            echo
+            echo "=== 4. Current production sizes ==="
+            for path in "$FRONTEND" "$APP"; do
+              if [ -d "$path" ]; then
+                du -sh "$path"
+              else
+                echo "MISSING: $path"
+              fi
+            done
+
+            echo
+            echo "=== 5. User-uploaded storage size ==="
+            if [ -d "$APP/storage/app" ]; then
+              du -sh "$APP/storage/app"
+            else
+              echo "WARNING: Laravel storage/app missing."
+            fi
+
+            echo
+            echo "=== 6. Existing rollback-related directories ==="
+            for path in \
+              "$HOME_DIR/finoocean-backups" \
+              "$HOME_DIR/finoocean-releases" \
+              "$HOME_DIR/fino-deploy"
+            do
+              if [ -d "$path" ]; then
+                echo "FOUND: ${path#"$HOME_DIR"/}"
+                ls -ld "$path"
+              else
+                echo "NOT FOUND: ${path#"$HOME_DIR"/}"
+              fi
+            done
+
+            echo
+            echo "=== 7. Essential current files ==="
+            for file in \
+              "$FRONTEND/index.html" \
+              "$FRONTEND/.htaccess" \
+              "$APP/.env" \
+              "$APP/artisan" \
+              "$APP/vendor/autoload.php" \
+              "$APP/public/index.php"
+            do
+              if [ -f "$file" ]; then
+                echo "FOUND: ${file#"$HOME_DIR"/}"
+              else
+                echo "MISSING: ${file#"$HOME_DIR"/}"
+              fi
+            done
+
+            echo
+            echo "=== 8. Storage preservation ==="
+            if [ -L "$APP/public/storage" ] &&
+               [ -d "$APP/public/storage" ]; then
+              echo "Existing public storage symlink is accessible."
+            else
+              echo "WARNING: Public storage symlink needs investigation."
+            fi
+
+            echo
+            echo "=== 9. Rollback assessment ==="
+            echo "No backup has been created."
+            echo "No production files have been changed."
+            echo "No database commands have been run."
+            echo "A rollback method must be verified before deployment."
+            echo "LIVE DEPLOYMENT REMAINS DISABLED."
+
+            echo
+            echo "ROLLBACK READINESS AUDIT COMPLETE."
