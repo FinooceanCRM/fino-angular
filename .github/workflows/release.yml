@@ -2,7 +2,10 @@
 name: FINOOCEAN - Prepare Release Package
 
 on:
-  workflow_dispatch:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
 
 permissions:
   contents: read
@@ -13,13 +16,19 @@ concurrency:
 
 jobs:
   package:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     name: Build, Validate and Package Release
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
+    env:
+      RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+
     steps:
-      - name: Checkout repository
+      - name: Checkout tested commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -57,7 +66,6 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-
           mkdir -p release/backend release/frontend
 
           rsync -a backend/ release/backend/ \
@@ -73,57 +81,33 @@ jobs:
 
           cp -a frontend/dist/. release/frontend/
 
-          echo "Release directories assembled."
-
       - name: Validate release contents
         shell: bash
         run: |
           set -euo pipefail
-
-          echo "Checking Laravel files..."
 
           test -f release/backend/artisan
           test -f release/backend/composer.json
           test -f release/backend/vendor/autoload.php
           test -f release/backend/public/index.php
 
-          echo "Required Laravel files are present."
-
-          echo "Checking Angular output..."
-
-          if ! find release/frontend \
-            -type f -name index.html -print -quit | grep -q .; then
+          if ! find release/frontend -type f -name index.html -print -quit | grep -q .; then
             echo "::error::Angular index.html was not found."
             exit 1
           fi
 
-          echo "Angular index.html is present."
-
-          echo "Checking for environment files..."
-
-          if find release -type f \
-            \( -name '.env' -o -name '.env.*' \) \
-            -print -quit | grep -q .; then
-            echo "::error::Environment files found in release."
+          if find release -type f \( -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
+            echo "::error::Environment file found in release."
             exit 1
           fi
 
-          echo "No environment files found."
-
       - name: Create release archive
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          zip -qr finoocean-release.zip release
-
-          echo "Release archive created."
-          ls -lh finoocean-release.zip
+        run: zip -qr finoocean-release.zip release
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: finoocean-release-${{ github.sha }}
+          name: finoocean-release-${{ github.event.workflow_run.head_sha }}
           path: finoocean-release.zip
           if-no-files-found: error
           retention-days: 7
