@@ -7,14 +7,18 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: finoocean-production-path-audit
+  cancel-in-progress: false
+
 jobs:
   audit:
     name: Inspect Production Paths (Read Only)
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
 
     steps:
-      - name: Inspect hosting directories
+      - name: Inspect hosting directories and frontend
         uses: appleboy/ssh-action@v1
         with:
           host: business30.web-hosting.com
@@ -28,49 +32,120 @@ jobs:
           script: |
             set -eu
 
-            echo "=== Account and disk ==="
-            whoami
-            printf 'Home: %s\n' "$HOME"
-            df -h "$HOME"
+            HOME_DIR="$HOME"
+            APP="$HOME_DIR/fino-deploy/backend"
+            FRONTEND="$HOME_DIR/public_html"
+            API_PUBLIC="$APP/public"
+
+            echo "========================================"
+            echo "FINOOCEAN PRODUCTION PATH AUDIT"
+            echo "READ ONLY - NO DEPLOYMENT"
+            echo "========================================"
 
             echo
-            echo "=== Expected website and application paths ==="
+            echo "=== 1. Account and disk ==="
+            whoami
+            printf 'Home directory: %s\n' "$HOME_DIR"
+            df -h "$HOME_DIR"
+
+            echo
+            echo "=== 2. Expected website and application paths ==="
             for path in \
-              "$HOME/public_html" \
-              "$HOME/fino-deploy" \
-              "$HOME/fino-deploy/backend" \
-              "$HOME/fino-deploy/backend/public"
+              "$FRONTEND" \
+              "$HOME_DIR/fino-deploy" \
+              "$APP" \
+              "$API_PUBLIC"
             do
               if [ -e "$path" ]; then
                 ls -ld "$path"
+                printf 'Resolved path: '
                 readlink -f "$path"
               else
-                echo "NOT FOUND: $path"
+                echo "MISSING: $path"
               fi
             done
 
             echo
-            echo "=== Frontend entry points ==="
-            for path in \
-              "$HOME/public_html/index.html" \
-              "$HOME/public_html/.htaccess" \
-              "$HOME/fino-deploy/backend/public/index.php" \
-              "$HOME/fino-deploy/backend/public/.htaccess"
+            echo "=== 3. Frontend entry points ==="
+            for file in \
+              "$FRONTEND/index.html" \
+              "$FRONTEND/.htaccess"
             do
-              if [ -f "$path" ]; then
-                ls -lh "$path"
+              if [ -f "$file" ]; then
+                echo "FOUND: ${file#"$HOME_DIR"/}"
+                ls -lh "$file"
               else
-                echo "NOT FOUND: $path"
+                echo "MISSING: ${file#"$HOME_DIR"/}"
               fi
             done
 
             echo
-            echo "=== Laravel public directory contents ==="
-            if [ -d "$HOME/fino-deploy/backend/public" ]; then
-              find "$HOME/fino-deploy/backend/public" \
-                -maxdepth 1 -mindepth 1 -printf '%f\n' | sort
+            echo "=== 4. Laravel essential files ==="
+            for file in \
+              "$APP/artisan" \
+              "$APP/composer.json" \
+              "$APP/composer.lock" \
+              "$APP/vendor/autoload.php" \
+              "$API_PUBLIC/index.php" \
+              "$API_PUBLIC/.htaccess" \
+              "$APP/.env"
+            do
+              if [ -f "$file" ]; then
+                echo "FOUND: ${file#"$APP"/}"
+              else
+                echo "MISSING: ${file#"$APP"/}"
+              fi
+            done
+
+            echo
+            echo "=== 5. Laravel environment file metadata only ==="
+            if [ -f "$APP/.env" ]; then
+              stat -c \
+                'File exists; permissions=%a; owner=%U; group=%G' \
+                "$APP/.env"
+              echo "Environment values were not read or displayed."
+            else
+              echo "WARNING: Laravel .env file not found."
             fi
 
             echo
-            echo "READ-ONLY AUDIT COMPLETE."
-            echo "No application files or database records were changed."
+            echo "=== 6. Laravel storage directories ==="
+            for path in \
+              "$APP/storage" \
+              "$APP/storage/app" \
+              "$APP/storage/logs" \
+              "$APP/bootstrap/cache" \
+              "$API_PUBLIC/storage"
+            do
+              if [ -d "$path" ]; then
+                echo "FOUND: ${path#"$HOME_DIR"/}"
+                ls -ld "$path"
+              else
+                echo "NOT FOUND: ${path#"$HOME_DIR"/}"
+              fi
+            done
+
+            echo
+            echo "=== 7. Release upload directory ==="
+            INCOMING="$HOME_DIR/finoocean-releases/incoming"
+
+            if [ -d "$INCOMING" ]; then
+              echo "Incoming release directory exists."
+              ls -ld "$INCOMING"
+
+              echo "Release archive names and sizes:"
+              find "$INCOMING" \
+                -maxdepth 1 \
+                -type f \
+                -name 'finoocean-release-*.zip' \
+                -printf '%f | %s bytes\n'
+            else
+              echo "Incoming release directory not found."
+            fi
+
+            echo
+            echo "========================================"
+            echo "READ-ONLY AUDIT COMPLETE"
+            echo "No application files or database records"
+            echo "were changed by this audit."
+            echo "========================================"
