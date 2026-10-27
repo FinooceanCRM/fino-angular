@@ -1,0 +1,72 @@
+```yaml
+name: FINOOCEAN - Existing Backup Content Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-backup-content-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Inspect Existing Backup Metadata
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Inspect backup directories (read only)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          command_timeout: 30s
+          script: |
+            set -eu
+
+            HOME_DIR="$HOME"
+
+            echo "=== EXISTING BACKUP CONTENT AUDIT ==="
+            echo "READ ONLY - NO FILE CONTENTS OR SECRETS PRINTED"
+
+            for path in \
+              "$HOME_DIR/wordpress-backups" \
+              "$HOME_DIR/softaculous_backups" \
+              "$HOME_DIR/.softaculous/backups" \
+              "$HOME_DIR/frontend-backup-20260917" \
+              "$HOME_DIR/fino-release-aae7c69" \
+              "$HOME_DIR/fino-release-privacy-simple-20261015" \
+              "$HOME_DIR/fino-release-privacy-simple-final-20261015" \
+              "$HOME_DIR/fino-release-policy-visibility-20261015" \
+              "$HOME_DIR/fino-release-policy-redeploy-20261015-1554"
+            do
+              if [ -d "$path" ]; then
+                echo
+                echo "=== DIRECTORY: $path ==="
+                ls -ld "$path"
+
+                echo "-- Immediate entries (names and metadata only) --"
+                find "$path" -mindepth 1 -maxdepth 2 \
+                  -printf '%y | %p | %s bytes\n' \
+                  2>/dev/null | head -n 60 || true
+
+                echo "-- Total directory size --"
+                du -sh "$path" 2>/dev/null || true
+              else
+                echo
+                echo "NOT FOUND: $path"
+              fi
+            done
+
+            echo
+            echo "AUDIT COMPLETE: no files changed or created."
+            echo "No database backup was created."
+            echo "Production deployment remains disabled."
+```
