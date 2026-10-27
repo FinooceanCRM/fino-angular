@@ -1,0 +1,178 @@
+
+name: FINOOCEAN - Deployment Preflight
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-deployment-preflight
+  cancel-in-progress: false
+
+jobs:
+  preflight:
+    name: Inspect Release and Production (Read Only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Validate release and inspect production
+        uses: appleboy/ssh-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          timeout: 15s
+          command_timeout: 60s
+          script: |
+            set -eu
+
+            HOME_DIR="$HOME"
+            APP="$HOME_DIR/fino-deploy/backend"
+            FRONTEND="$HOME_DIR/public_html"
+            INCOMING="$HOME_DIR/finoocean-releases/incoming"
+
+            echo "======================================"
+            echo "FINOOCEAN DEPLOYMENT PREFLIGHT"
+            echo "READ ONLY - DEPLOYMENT DISABLED"
+            echo "======================================"
+
+            echo
+            echo "=== 1. Disk space ==="
+            df -h "$HOME_DIR"
+
+            echo
+            echo "=== 2. Current production sizes ==="
+            for path in "$FRONTEND" "$APP"; do
+              if [ -d "$path" ]; then
+                du -sh "$path"
+              else
+                echo "MISSING: $path"
+              fi
+            done
+
+            echo
+            echo "=== 3. Production readiness files ==="
+            for file in \
+              "$FRONTEND/index.html" \
+              "$FRONTEND/.htaccess" \
+              "$APP/artisan" \
+              "$APP/composer.json" \
+              "$APP/composer.lock" \
+              "$APP/vendor/autoload.php" \
+              "$APP/.env" \
+              "$APP/public/index.php" \
+              "$APP/public/.htaccess"
+            do
+              if [ -f "$file" ]; then
+                echo "FOUND: ${file#"$HOME_DIR"/}"
+              else
+                echo "MISSING: ${file#"$HOME_DIR"/}"
+              fi
+            done
+
+            echo
+            echo "=== 4. Confirm storage symlink ==="
+            STORAGE_LINK="$APP/public/storage"
+            STORAGE_TARGET="$APP/storage/app/public"
+
+            if [ -L "$STORAGE_LINK" ]; then
+              ls -ld "$STORAGE_LINK"
+              if [ -d "$STORAGE_LINK" ]; then
+                echo "Storage symlink target is accessible."
+              else
+                echo "WARNING: Storage symlink target is not accessible."
+              fi
+            else
+              echo "WARNING: public/storage is not a symbolic link."
+            fi
+
+            if [ -d "$STORAGE_TARGET" ]; then
+              echo "Laravel public storage directory exists."
+            else
+              echo "WARNING: Laravel public storage directory is missing."
+            fi
+
+            echo
+            echo "=== 5. Select latest uploaded release ==="
+            if [ ! -d "$INCOMING" ]; then
+              echo "ERROR: Incoming release directory is missing."
+              exit 1
+            fi
+
+            ARCHIVE="$(find "$INCOMING" \
+              -maxdepth 1 \
+              -type f \
+              -name 'finoocean-release-*.zip' \
+              -printf '%T@ %p\n' |
+              sort -nr |
+              head -n 1 |
+              cut -d ' ' -f 2-)"
+
+            if [ -z "$ARCHIVE" ] || [ ! -s "$ARCHIVE" ]; then
+              echo "ERROR: No non-empty release archive found."
+              exit 1
+            fi
+
+            echo "Archive: ${ARCHIVE##*/}"
+            ls -lh "$ARCHIVE"
+
+            echo
+            echo "=== 6. Validate archive integrity ==="
+            if ! unzip -t "$ARCHIVE" >/dev/null; then
+              echo "ERROR: ZIP integrity validation failed."
+              exit 1
+            fi
+            echo "ZIP integrity check passed."
+
+            echo
+            echo "=== 7. Check required archive entries ==="
+            CONTENTS="$(unzip -Z1 "$ARCHIVE")"
+
+            for required in \
+              "release/backend/artisan" \
+              "release/backend/composer.json" \
+              "release/backend/vendor/autoload.php" \
+              "release/backend/public/index.php"
+            do
+              if printf '%s\n' "$CONTENTS" | grep -Fxq "$required"; then
+                echo "FOUND: $required"
+              else
+                echo "ERROR: Missing archive entry: $required"
+                exit 1
+              fi
+            done
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/frontend/(.*/)?index\.html$'; then
+              echo "FOUND: Angular index.html"
+            else
+              echo "ERROR: Angular index.html missing from archive."
+              exit 1
+            fi
+
+            echo
+            echo "=== 8. Check for environment files ==="
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)'; then
+              echo "ERROR: Environment file detected in archive."
+              exit 1
+            fi
+            echo "No .env files detected in archive."
+
+            echo
+            echo "=== 9. Report archive checksum ==="
+            sha256sum "$ARCHIVE"
+
+            echo
+            echo "======================================"
+            echo "PREFLIGHT CHECKS COMPLETED"
+            echo "No files were extracted or replaced."
+            echo "No database commands were run."
+            echo "LIVE DEPLOYMENT REMAINS DISABLED."
+            echo "======================================"
