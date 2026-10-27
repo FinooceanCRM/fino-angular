@@ -14,10 +14,10 @@ jobs:
   audit:
     name: Inspect Existing Backup Metadata
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
 
     steps:
-      - name: Inspect backup directories (read only)
+      - name: Inspect existing backup directories (read only)
         uses: appleboy/ssh-action@v1
         with:
           host: business30.web-hosting.com
@@ -26,14 +26,17 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
-          command_timeout: 30s
+          timeout: 15s
+          command_timeout: 60s
           script: |
             set -eu
 
             HOME_DIR="$HOME"
 
-            echo "=== EXISTING BACKUP CONTENT AUDIT ==="
-            echo "READ ONLY - NO FILE CONTENTS OR SECRETS PRINTED"
+            echo "========================================"
+            echo "FINOOCEAN EXISTING BACKUP CONTENT AUDIT"
+            echo "READ ONLY - NO FILES WILL BE MODIFIED"
+            echo "========================================"
 
             for path in \
               "$HOME_DIR/wordpress-backups" \
@@ -46,26 +49,31 @@ jobs:
               "$HOME_DIR/fino-release-policy-visibility-20261015" \
               "$HOME_DIR/fino-release-policy-redeploy-20261015-1554"
             do
+              echo
+              echo "----------------------------------------"
+              echo "Checking: $path"
+
               if [ -d "$path" ]; then
-                echo
-                echo "=== DIRECTORY: $path ==="
                 ls -ld "$path"
 
-                echo "-- Immediate entries (names and metadata only) --"
-                find "$path" -mindepth 1 -maxdepth 2 \
+                echo "Entries (names, types and sizes only):"
+                find "$path" \
+                  -mindepth 1 \
+                  -maxdepth 2 \
                   -printf '%y | %p | %s bytes\n' \
                   2>/dev/null | head -n 60 || true
 
-                echo "-- Total directory size --"
+                echo "Directory size:"
                 du -sh "$path" 2>/dev/null || true
               else
-                echo
-                echo "NOT FOUND: $path"
+                echo "Directory not found."
               fi
             done
 
             echo
-            echo "AUDIT COMPLETE: no files changed or created."
-            echo "No database backup was created."
+            echo "========================================"
+            echo "AUDIT COMPLETE"
+            echo "No files created, copied, deleted or changed."
+            echo "No database backup created."
             echo "Production deployment remains disabled."
-```
+            echo "========================================"
