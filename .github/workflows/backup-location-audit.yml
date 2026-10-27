@@ -1,0 +1,120 @@
+
+name: FINOOCEAN - Backup Location Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-backup-location-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Inspect Backup Options (Read Only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+
+    steps:
+      - name: Inspect disk and backup destinations
+        uses: appleboy/ssh-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          timeout: 15s
+          command_timeout: 30s
+          script: |
+            set -eu
+
+            HOME_DIR="$HOME"
+
+            echo "======================================"
+            echo "FINOOCEAN BACKUP LOCATION AUDIT"
+            echo "READ ONLY - NO BACKUPS CREATED"
+            echo "======================================"
+
+            echo
+            echo "=== 1. Filesystem capacity ==="
+            df -h "$HOME_DIR"
+
+            echo
+            echo "=== 2. Current application sizes ==="
+            for path in \
+              "$HOME_DIR/public_html" \
+              "$HOME_DIR/fino-deploy/backend" \
+              "$HOME_DIR/fino-deploy/backend/storage/app" \
+              "$HOME_DIR/finoocean-releases"
+            do
+              if [ -d "$path" ]; then
+                du -sh "$path"
+              else
+                echo "NOT FOUND: $path"
+              fi
+            done
+
+            echo
+            echo "=== 3. Existing backup candidates ==="
+            for path in \
+              "$HOME_DIR/backups" \
+              "$HOME_DIR/backup" \
+              "$HOME_DIR/finoocean-backups" \
+              "$HOME_DIR/finoocean-releases"
+            do
+              if [ -d "$path" ]; then
+                echo "FOUND: $path"
+                ls -ld "$path"
+
+                if [ -w "$path" ]; then
+                  echo "Current account can write here."
+                else
+                  echo "Current account cannot write here."
+                fi
+
+                df -h "$path"
+              else
+                echo "NOT FOUND: $path"
+              fi
+            done
+
+            echo
+            echo "=== 4. Existing backup-like directories ==="
+            find "$HOME_DIR" \
+              -maxdepth 2 \
+              -type d \
+              \( -iname '*backup*' -o -iname '*snapshot*' \) \
+              -print 2>/dev/null |
+              head -n 50
+
+            echo
+            echo "=== 5. Existing release archives ==="
+            INCOMING="$HOME_DIR/finoocean-releases/incoming"
+
+            if [ -d "$INCOMING" ]; then
+              find "$INCOMING" \
+                -maxdepth 1 \
+                -type f \
+                -name 'finoocean-release-*.zip' \
+                -printf '%f | %s bytes\n'
+            else
+              echo "Incoming directory not found."
+            fi
+
+            echo
+            echo "=== 6. Backup safety requirements ==="
+            echo "No new directory was created."
+            echo "No files were copied, deleted, or changed."
+            echo "No database backup was created."
+            echo "A backup on the same filesystem is not"
+            echo "protection against filesystem failure."
+            echo "External backup availability must be"
+            echo "confirmed separately."
+
+            echo
+            echo "BACKUP LOCATION AUDIT COMPLETE."
+            echo "LIVE DEPLOYMENT REMAINS DISABLED."
