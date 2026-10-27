@@ -1,0 +1,76 @@
+
+name: FINOOCEAN - Production Path Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    name: Inspect Production Paths (Read Only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+
+    steps:
+      - name: Inspect hosting directories
+        uses: appleboy/ssh-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          timeout: 15s
+          command_timeout: 30s
+          script: |
+            set -eu
+
+            echo "=== Account and disk ==="
+            whoami
+            printf 'Home: %s\n' "$HOME"
+            df -h "$HOME"
+
+            echo
+            echo "=== Expected website and application paths ==="
+            for path in \
+              "$HOME/public_html" \
+              "$HOME/fino-deploy" \
+              "$HOME/fino-deploy/backend" \
+              "$HOME/fino-deploy/backend/public"
+            do
+              if [ -e "$path" ]; then
+                ls -ld "$path"
+                readlink -f "$path"
+              else
+                echo "NOT FOUND: $path"
+              fi
+            done
+
+            echo
+            echo "=== Frontend entry points ==="
+            for path in \
+              "$HOME/public_html/index.html" \
+              "$HOME/public_html/.htaccess" \
+              "$HOME/fino-deploy/backend/public/index.php" \
+              "$HOME/fino-deploy/backend/public/.htaccess"
+            do
+              if [ -f "$path" ]; then
+                ls -lh "$path"
+              else
+                echo "NOT FOUND: $path"
+              fi
+            done
+
+            echo
+            echo "=== Laravel public directory contents ==="
+            if [ -d "$HOME/fino-deploy/backend/public" ]; then
+              find "$HOME/fino-deploy/backend/public" \
+                -maxdepth 1 -mindepth 1 -printf '%f\n' | sort
+            fi
+
+            echo
+            echo "READ-ONLY AUDIT COMPLETE."
+            echo "No application files or database records were changed."
