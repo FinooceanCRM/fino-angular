@@ -4,11 +4,11 @@ on:
   workflow_dispatch:
     inputs:
       release_filename:
-        description: "Exact ZIP filename in finoocean-releases/incoming"
+        description: "Exact uploaded release ZIP filename"
         required: true
         type: string
       expected_sha256:
-        description: "Exact SHA-256 from the successful upload log"
+        description: "Exact SHA-256 from upload log"
         required: true
         type: string
 
@@ -70,10 +70,10 @@ jobs:
               exit 1
             fi
 
-            echo "Release filename and checksum format are valid."
+            echo "Input formats are valid."
 
             echo
-            echo "=== 2. Verify SHA-256 ==="
+            echo "=== 2. Verify checksum ==="
 
             ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
 
@@ -81,7 +81,7 @@ jobs:
             echo "Actual SHA-256:   $ACTUAL_SHA256"
 
             if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
-              echo "ERROR: Checksum mismatch. Release rejected."
+              echo "ERROR: Checksum mismatch."
               exit 1
             fi
 
@@ -90,18 +90,13 @@ jobs:
             echo
             echo "=== 3. Verify ZIP integrity ==="
 
-            if ! unzip -t "$ARCHIVE" >/dev/null; then
-              echo "ERROR: ZIP integrity check failed."
-              exit 1
-            fi
-
+            unzip -t "$ARCHIVE" >/dev/null
             CONTENTS="$(unzip -Z1 "$ARCHIVE")"
-            printf '%s\n' "$CONTENTS" > /tmp/finoocean-release-contents.txt
 
             echo "ZIP integrity verified."
 
             echo
-            echo "=== 4. Inspect archive paths ==="
+            echo "=== 4. Check archive paths ==="
 
             while IFS= read -r entry; do
               case "$entry" in
@@ -110,16 +105,18 @@ jobs:
                   exit 1
                   ;;
                 *\\*)
-                  echo "ERROR: Backslash in archive path rejected."
+                  echo "ERROR: Backslash in archive path."
                   exit 1
                   ;;
               esac
-            done < /tmp/finoocean-release-contents.txt
+            done <<EOF
+            $CONTENTS
+            EOF
 
-            echo "No obvious unsafe archive paths found."
+            echo "Archive path check passed."
 
             echo
-            echo "=== 5. Validate required Laravel files ==="
+            echo "=== 5. Validate Laravel files ==="
 
             for required in \
               "release/backend/artisan" \
@@ -127,8 +124,9 @@ jobs:
               "release/backend/vendor/autoload.php" \
               "release/backend/public/index.php"
             do
-              if ! grep -Fxq "$required" /tmp/finoocean-release-contents.txt; then
-                echo "ERROR: Missing required file: $required"
+              if ! printf '%s\n' "$CONTENTS" |
+                grep -Fxq "$required"; then
+                echo "ERROR: Missing $required"
                 exit 1
               fi
 
@@ -136,7 +134,7 @@ jobs:
             done
 
             echo
-            echo "=== 6. Detect Angular frontend layout ==="
+            echo "=== 6. Detect Angular frontend ==="
 
             FRONTEND_INDEX=""
 
@@ -144,31 +142,36 @@ jobs:
               "release/frontend/index.html" \
               "release/frontend/browser/index.html"
             do
-              if grep -Fxq "$candidate" /tmp/finoocean-release-contents.txt; then
+              if printf '%s\n' "$CONTENTS" |
+                grep -Fxq "$candidate"; then
                 FRONTEND_INDEX="$candidate"
                 break
               fi
             done
 
             if [ -z "$FRONTEND_INDEX" ]; then
-              echo "ERROR: Angular index.html not found in supported layouts."
-              echo "Frontend entries found in archive:"
-              grep '^release/frontend/' /tmp/finoocean-release-contents.txt |
+              echo "ERROR: Angular index.html not found."
+              echo "Frontend files in archive:"
+
+              printf '%s\n' "$CONTENTS" |
+                grep '^release/frontend/' |
                 head -n 60 || true
+
               exit 1
             fi
 
             echo "Angular index found: $FRONTEND_INDEX"
 
             echo
-            echo "=== 7. Reject environment files ==="
+            echo "=== 7. Check for environment files ==="
 
-            if grep -Eq '(^|/)\.env($|\.)' /tmp/finoocean-release-contents.txt; then
-              echo "ERROR: Environment file detected in release."
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)'; then
+              echo "ERROR: Environment file detected."
               exit 1
             fi
 
-            echo "No .env files detected in the archive."
+            echo "No .env files detected."
 
             echo
             echo "=== 8. Inspect production paths ==="
@@ -210,23 +213,20 @@ jobs:
 
             if [ -L "$APP/public/storage" ] &&
                [ -d "$APP/public/storage" ]; then
-              echo "Laravel public storage link is accessible."
+              echo "Laravel storage link is accessible."
             else
-              echo "WARNING: Laravel public storage link needs review."
+              echo "WARNING: Laravel storage link needs review."
             fi
 
             echo
-            echo "=== 10. Deployment plan (no changes) ==="
+            echo "=== 10. Proposed plan only ==="
             echo "Frontend target: $FRONTEND"
-            echo "Laravel target: $APP"
-            echo "Detected frontend index: $FRONTEND_INDEX"
+            echo "Backend target: $APP"
+            echo "Detected index: $FRONTEND_INDEX"
             echo "Preserve .env, storage and uploaded files."
-            echo "Preserve existing storage symlink."
             echo "Do not run database migrations."
-            echo "Do not extract or replace production files."
-            echo "Do not delete releases or create backups."
-            echo "No database commands have been run."
-            echo "LIVE DEPLOYMENT REMAINS DISABLED."
-
-            rm -f /tmp/finoocean-release-contents.txt
-```
+            echo "Do not replace production files."
+            echo "Do not delete existing releases."
+            echo "No files have been extracted or changed."
+            echo "No backups or database commands were run."
+            echo "PRODUCTION DEPLOYMENT REMAINS DISABLED."
