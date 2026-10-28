@@ -1,0 +1,135 @@
+name: FINOOCEAN - Production Publishing (Disabled)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type DISABLED to run the safe publishing preflight"
+        required: true
+        type: string
+      release_sha:
+        description: "Full 40-character commit SHA of the uploaded release"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-production-publishing
+  cancel-in-progress: false
+
+jobs:
+  preflight-only:
+    name: Publishing Preflight (No Changes)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      RELEASE_SHA: ${{ inputs.release_sha }}
+      CONFIRM: ${{ inputs.confirm }}
+      ENABLE_PUBLISHING: "false"
+
+    steps:
+      - name: Validate manual inputs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "$CONFIRM" != "DISABLED" ]; then
+            echo "::error::Enter DISABLED exactly."
+            exit 1
+          fi
+
+          if ! [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::A full lowercase 40-character commit SHA is required."
+            exit 1
+          fi
+
+          echo "Release SHA format validated."
+          echo "Publishing is disabled."
+
+      - name: Inspect release on Namecheap
+        uses: appleboy/ssh-action@v1
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: RELEASE_SHA
+          timeout: 30s
+          command_timeout: 60s
+          script: |
+            set -eu
+
+            DIR="$HOME/finoocean-releases/incoming"
+            FILE="$DIR/finoocean-release-${RELEASE_SHA}.zip"
+            CHECKSUM="$FILE.sha256"
+
+            test -s "$FILE" || {
+              echo "ERROR: Release ZIP not found."
+              exit 1
+            }
+
+            test -s "$CHECKSUM" || {
+              echo "ERROR: Release checksum file not found."
+              exit 1
+            }
+
+            EXPECTED="$(awk 'NR == 1 {print $1}' "$CHECKSUM")"
+            EXPECTED_NAME="$(awk 'NR == 1 {print $2}' "$CHECKSUM")"
+            ACTUAL="$(sha256sum "$FILE" | awk '{print $1}')"
+
+            test "$EXPECTED_NAME" = "finoocean-release-${RELEASE_SHA}.zip"
+            test "$EXPECTED" = "$ACTUAL"
+
+            unzip -t "$FILE" >/dev/null
+
+            CONTENTS="$(unzip -Z1 "$FILE")"
+
+            for REQUIRED in \
+              "release/backend/artisan" \
+              "release/backend/composer.json" \
+              "release/backend/vendor/autoload.php" \
+              "release/backend/public/index.php"
+            do
+              printf '%s\n' "$CONTENTS" | grep -Fxq "$REQUIRED"
+            done
+
+            printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/frontend/([^/]+/)*index\.html$'
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)'; then
+              echo "ERROR: Environment file found in archive."
+              exit 1
+            fi
+
+            test -d "$HOME/public_html"
+            test -f "$HOME/fino-deploy/backend/artisan"
+            test -f "$HOME/fino-deploy/backend/.env"
+            test -d "$HOME/fino-deploy/backend/storage"
+            test -L "$HOME/fino-deploy/backend/public/storage"
+
+            echo "PASS: Release checksum and ZIP integrity verified."
+            echo "PASS: Required Laravel and Angular files found."
+            echo "PASS: Existing production paths detected."
+            echo "No files were extracted or changed."
+
+      - name: Enforce disabled publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "$ENABLE_PUBLISHING" != "false" ]; then
+            echo "::error::Publishing must remain disabled."
+            exit 1
+          fi
+
+          echo "PREFLIGHT PASSED."
+          echo "No production files were published."
+          echo "No database commands were run."
