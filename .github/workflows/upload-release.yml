@@ -1,11 +1,13 @@
-
 name: FINOOCEAN - Upload Release to Namecheap
 
 on:
   workflow_run:
-    workflows: ["FINOOCEAN - Prepare Release Package"]
-    types: [completed]
-    branches: [main]
+    workflows:
+      - "FINOOCEAN - Prepare Release Package"
+    types:
+      - completed
+    branches:
+      - main
 
 permissions:
   actions: read
@@ -56,11 +58,16 @@ jobs:
           fi
 
           cp "$SOURCE" "$TARGET"
+
           SHA256="$(sha256sum "$TARGET" | awk '{print $1}')"
 
+          # Generate a checksum sidecar for server-side verification.
+          printf '%s  %s\n' "$SHA256" "$TARGET" > "$TARGET.sha256"
+
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
+
           echo "Release archive validated."
-          ls -lh "$TARGET"
+          ls -lh "$TARGET" "$TARGET.sha256"
           echo "SHA-256: $SHA256"
 
       - name: Prepare separate incoming directory
@@ -76,9 +83,11 @@ jobs:
           command_timeout: 15s
           script: |
             set -eu
+
             mkdir -p "$HOME/finoocean-releases/incoming"
             chmod 700 "$HOME/finoocean-releases"
             chmod 700 "$HOME/finoocean-releases/incoming"
+
             echo "Incoming directory ready."
             echo "Live application files have not been changed."
 
@@ -97,7 +106,22 @@ jobs:
           command_timeout: 60s
           overwrite: false
 
-      - name: Verify uploaded archive
+      - name: Transfer checksum file through SCP
+        uses: appleboy/scp-action@v1
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          source: finoocean-release-${{ github.event.workflow_run.head_sha }}.zip.sha256
+          target: /home/finovobw/finoocean-releases/incoming/
+          timeout: 15s
+          command_timeout: 60s
+          overwrite: false
+
+      - name: Verify uploaded archive and checksum
         uses: appleboy/ssh-action@v1
         env:
           EXPECTED_SHA256: ${{ steps.validate.outputs.sha256 }}
@@ -111,12 +135,49 @@ jobs:
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
           envs: EXPECTED_SHA256,RELEASE_SHA
           timeout: 15s
-          command_timeout: 15s
+          command_timeout: 30s
           script: |
             set -eu
 
-            FILE="$HOME/finoocean-releases/incoming/finoocean-release-${RELEASE_SHA}.zip"
-            test -s "$FILE"
+            DIR="$HOME/finoocean-releases/incoming"
+            FILE="$DIR/finoocean-release-${RELEASE_SHA}.zip"
+            CHECKSUM_FILE="$FILE.sha256"
+
+            echo "=== Verify uploaded release ==="
+
+            test -s "$FILE" || {
+              echo "ERROR: Uploaded release archive not found."
+              exit 1
+            }
+
+            test -s "$CHECKSUM_FILE" || {
+              echo "ERROR: Uploaded checksum file not found."
+              exit 1
+            }
+
+            echo "Release archive exists."
+            ls -lh "$FILE" "$CHECKSUM_FILE"
+
+            echo
+            echo "=== Verify checksum sidecar ==="
+
+            SIDECAR_SHA256="$(awk 'NR == 1 {print $1}' "$CHECKSUM_FILE")"
+
+            if ! printf '%s' "$SIDECAR_SHA256" |
+              grep -Eq '^[0-9a-f]{64}$'; then
+              echo "ERROR: Invalid checksum format in sidecar."
+              exit 1
+            fi
+
+            if [ "$SIDECAR_SHA256" != "$EXPECTED_SHA256" ]; then
+              echo "ERROR: Sidecar checksum does not match GitHub checksum."
+              exit 1
+            fi
+
+            echo "Sidecar checksum matches GitHub-generated checksum."
+
+            echo
+            echo "=== Verify archive checksum ==="
 
             ACTUAL_SHA256="$(sha256sum "$FILE" | awk '{print $1}')"
 
@@ -125,8 +186,18 @@ jobs:
               exit 1
             fi
 
-            echo "SUCCESS: Release archive uploaded and verified."
+            echo "SUCCESS: Uploaded archive matches GitHub-generated SHA-256."
             echo "Commit: $RELEASE_SHA"
-            echo "Location: $FILE"
-            ls -lh "$FILE"
+            echo "Archive: $FILE"
+            echo "SHA-256: $ACTUAL_SHA256"
+
+            echo
+            echo "=== Verify ZIP integrity ==="
+
+            unzip -t "$FILE" >/dev/null
+            echo "ZIP integrity passed."
+
+            echo
             echo "No production deployment was performed."
+            echo "No production files were changed."
+            echo "No database commands were run."
