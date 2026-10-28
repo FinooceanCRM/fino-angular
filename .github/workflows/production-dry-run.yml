@@ -1,3 +1,4 @@
+
 name: FINOOCEAN - Production Deployment Dry Run
 
 on:
@@ -19,7 +20,7 @@ jobs:
   inspect-server-release:
     name: Inspect Uploaded Release (No Deployment)
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: Validate release SHA
@@ -28,10 +29,36 @@ jobs:
           RELEASE_SHA: ${{ inputs.release_sha }}
         run: |
           set -euo pipefail
-          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+
+          if ! [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::Enter a full 40-character lowercase commit SHA."
             exit 1
-          }
+          fi
+
+          echo "Release SHA format is valid: $RELEASE_SHA"
+
+      - name: Diagnose SSH network connectivity
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          HOST="business30.web-hosting.com"
+          PORT="21098"
+
+          echo "Checking DNS resolution..."
+          getent hosts "$HOST"
+
+          echo
+          echo "Checking TCP connectivity to $HOST:$PORT..."
+
+          if timeout 10 bash -c \
+            'exec 3<>/dev/tcp/$1/$2' _ "$HOST" "$PORT"; then
+            echo "TCP connection succeeded."
+          else
+            echo "::error::GitHub runner cannot reach the SSH port."
+            echo "Check hosting firewall rules and SSH availability."
+            exit 1
+          fi
 
       - name: Inspect uploaded archive on Namecheap
         uses: appleboy/ssh-action@v1
@@ -45,30 +72,50 @@ jobs:
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
           envs: RELEASE_SHA
-          timeout: 15s
-          command_timeout: 30s
+          timeout: 30s
+          command_timeout: 60s
           script: |
             set -eu
 
             FILE="$HOME/finoocean-releases/incoming/finoocean-release-${RELEASE_SHA}.zip"
+
+            echo "=== Check uploaded archive ==="
 
             if [ ! -s "$FILE" ]; then
               echo "ERROR: Uploaded release archive not found."
               exit 1
             fi
 
-            echo "=== Archive ==="
             ls -lh "$FILE"
+
+            echo
+            echo "=== Calculate SHA-256 ==="
             sha256sum "$FILE"
 
             echo
-            echo "=== ZIP integrity ==="
+            echo "=== Validate ZIP integrity ==="
             unzip -t "$FILE" >/dev/null
             echo "ZIP integrity passed."
 
             echo
-            echo "=== Required files ==="
+            echo "=== Validate archive paths ==="
             CONTENTS="$(unzip -Z1 "$FILE")"
+
+            while IFS= read -r ENTRY; do
+              case "$ENTRY" in
+                /*|../*|*/../*|*/..|..|*\\*)
+                  echo "ERROR: Unsafe archive path detected."
+                  exit 1
+                  ;;
+              esac
+            done <<EOF
+            $CONTENTS
+            EOF
+
+            echo "Archive path check passed."
+
+            echo
+            echo "=== Validate required Laravel files ==="
 
             for REQUIRED in \
               "release/backend/artisan" \
@@ -80,35 +127,69 @@ jobs:
                 echo "ERROR: Missing required file: $REQUIRED"
                 exit 1
               fi
+
               echo "FOUND: $REQUIRED"
             done
 
+            echo
+            echo "=== Detect Angular index.html ==="
+
             if ! printf '%s\n' "$CONTENTS" |
-              grep -Eq '^release/frontend/.*/?index\.html$|^release/frontend/index\.html$'; then
+              grep -Eq '^release/frontend/([^/]+/)*index\.html$'; then
               echo "ERROR: Angular index.html not found."
+              printf '%s\n' "$CONTENTS" |
+                grep '^release/frontend/' |
+                head -n 60 || true
               exit 1
             fi
 
+            printf '%s\n' "$CONTENTS" |
+              grep -E '^release/frontend/([^/]+/)*index\.html$'
+
             echo
-            echo "=== Environment file safety ==="
+            echo "=== Check environment file safety ==="
+
             if printf '%s\n' "$CONTENTS" |
               grep -Eq '(^|/)\.env($|\.)'; then
               echo "ERROR: Environment file detected in release."
               exit 1
             fi
 
-            echo "No environment files found."
+            echo "No environment files detected."
 
             echo
-            echo "=== Live paths (read-only) ==="
-            test -d "$HOME/public_html"
-            test -f "$HOME/fino-deploy/backend/artisan"
-            test -f "$HOME/fino-deploy/backend/.env"
-            test -d "$HOME/fino-deploy/backend/storage"
+            echo "=== Verify existing live paths (read-only) ==="
+
+            test -d "$HOME/public_html" || {
+              echo "ERROR: Frontend document root missing."
+              exit 1
+            }
+
+            test -f "$HOME/fino-deploy/backend/artisan" || {
+              echo "ERROR: Existing Laravel application missing."
+              exit 1
+            }
+
+            test -f "$HOME/fino-deploy/backend/.env" || {
+              echo "ERROR: Existing Laravel .env missing."
+              exit 1
+            }
+
+            test -d "$HOME/fino-deploy/backend/storage" || {
+              echo "ERROR: Existing Laravel storage missing."
+              exit 1
+            }
 
             echo "Frontend document root exists."
-            echo "Laravel backend exists."
+            echo "Laravel application exists."
             echo "Laravel .env exists."
             echo "Laravel storage exists."
-            echo "DRY RUN PASSED: No production files changed."
+
+            echo
+            echo "=== Dry-run result ==="
+            echo "PASS: Uploaded release archive inspected."
+            echo "PASS: Required application files detected."
+            echo "PASS: Existing live paths detected."
+            echo "No files were extracted or deployed."
+            echo "No production files were changed."
             echo "No database commands were run."
