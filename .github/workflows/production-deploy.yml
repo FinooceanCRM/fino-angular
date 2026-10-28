@@ -21,40 +21,138 @@ jobs:
   validate-deployment:
     name: Validate Release Before Production
     if: >-
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main'
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    env:
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
 
     steps:
       - name: Validate source commit
         shell: bash
-        env:
-          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
-          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+
+          if ! [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error::Invalid source commit SHA."
             exit 1
-          }
-          echo "Validated source commit: $SOURCE_SHA"
+          fi
 
-      - name: Verify SSH configuration exists
+          echo "Source commit: $SOURCE_SHA"
+
+      - name: Verify SSH secrets
         shell: bash
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
         run: |
           set -euo pipefail
+
           test -n "$SSH_PRIVATE_KEY" || {
-            echo "::error::SSH_PRIVATE_KEY secret is missing."
+            echo "::error::SSH_PRIVATE_KEY is missing."
             exit 1
           }
-          echo "SSH key secret is available."
-          echo "No server connection or production changes performed."
 
-      - name: Deployment gate
+          test -n "$SSH_KEY_PASSPHRASE" || {
+            echo "::error::SSH_KEY_PASSPHRASE is missing."
+            exit 1
+          }
+
+          echo "Required SSH secrets are present."
+
+      - name: Verify uploaded release on Namecheap
+        uses: appleboy/ssh-action@v1
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: SOURCE_SHA
+          timeout: 30s
+          command_timeout: 60s
+          script: |
+            set -eu
+
+            FILE="$HOME/finoocean-releases/incoming/finoocean-release-${SOURCE_SHA}.zip"
+
+            echo "=== Verify exact release ==="
+
+            test -s "$FILE" || {
+              echo "ERROR: Release archive not found."
+              exit 1
+            }
+
+            echo "Release archive exists."
+            sha256sum "$FILE"
+
+            echo
+            echo "=== Verify ZIP integrity ==="
+
+            unzip -t "$FILE" >/dev/null
+            echo "ZIP integrity passed."
+
+            echo
+            echo "=== Verify archive contents ==="
+
+            CONTENTS="$(unzip -Z1 "$FILE")"
+
+            for REQUIRED in \
+              "release/backend/artisan" \
+              "release/backend/composer.json" \
+              "release/backend/vendor/autoload.php" \
+              "release/backend/public/index.php"
+            do
+              printf '%s\n' "$CONTENTS" | grep -Fxq "$REQUIRED" || {
+                echo "ERROR: Missing $REQUIRED"
+                exit 1
+              }
+              echo "FOUND: $REQUIRED"
+            done
+
+            printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/frontend/([^/]+/)*index\.html$' || {
+                echo "ERROR: Angular index.html missing."
+                exit 1
+              }
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)'; then
+              echo "ERROR: Environment file detected in archive."
+              exit 1
+            fi
+
+            echo "Angular index detected."
+            echo "No .env files detected in archive."
+
+            echo
+            echo "=== Verify live paths (read-only) ==="
+
+            test -d "$HOME/public_html"
+            test -f "$HOME/fino-deploy/backend/artisan"
+            test -f "$HOME/fino-deploy/backend/.env"
+            test -d "$HOME/fino-deploy/backend/storage"
+
+            echo "Frontend document root exists."
+            echo "Laravel application exists."
+            echo "Laravel .env exists."
+            echo "Laravel storage exists."
+
+            echo
+            echo "VALIDATION PASSED."
+            echo "No files were extracted or deployed."
+            echo "No production files were changed."
+            echo "No database commands were run."
+
+      - name: Keep production publishing disabled
         shell: bash
         run: |
-          echo "Release upload succeeded."
-          echo "Production deployment is not enabled yet."
-          echo "No production files or database were changed."
+          echo "Validation completed."
+          echo "Automatic production publishing remains disabled."
