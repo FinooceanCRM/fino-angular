@@ -1,15 +1,14 @@
-
-name: FINOOCEAN - Deployment Plan Validation
+name: FINOOCEAN - Deployment Plan
 
 on:
   workflow_dispatch:
     inputs:
       release_filename:
-        description: "Exact ZIP filename in finoocean-releases/incoming"
+        description: "Exact uploaded release ZIP filename"
         required: true
         type: string
       expected_sha256:
-        description: "Expected SHA-256 from the successful upload workflow"
+        description: "SHA-256 from the successful upload workflow"
         required: true
         type: string
 
@@ -22,9 +21,9 @@ concurrency:
 
 jobs:
   plan:
-    name: Validate Release and Rollback Plan
+    name: Validate Release and Inspect Production
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
 
     steps:
       - name: Validate release and inspect live paths
@@ -41,7 +40,7 @@ jobs:
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
           envs: RELEASE_FILENAME,EXPECTED_SHA256
           timeout: 15s
-          command_timeout: 45s
+          command_timeout: 60s
           script: |
             set -eu
 
@@ -50,53 +49,79 @@ jobs:
             APP="$HOME_DIR/fino-deploy/backend"
             INCOMING="$HOME_DIR/finoocean-releases/incoming"
 
-            echo "=== 1. Validate supplied inputs ==="
+            echo "=== 1. Validate inputs ==="
 
-            case "$RELEASE_FILENAME" in
-              finoocean-release-*.zip) ;;
-              *)
-                echo "ERROR: Invalid release filename."
-                exit 1
-                ;;
-            esac
+            if ! printf '%s' "$RELEASE_FILENAME" |
+              grep -Eq '^finoocean-release-[0-9a-f]{40}\.zip$'; then
+              echo "ERROR: Invalid release filename."
+              exit 1
+            fi
 
-            case "$EXPECTED_SHA256" in
-              *[!0-9a-fA-F]*|"")
-                echo "ERROR: SHA-256 must contain hexadecimal characters only."
-                exit 1
-                ;;
-            esac
-
-            if [ "${#EXPECTED_SHA256}" -ne 64 ]; then
-              echo "ERROR: SHA-256 must be exactly 64 characters."
+            if ! printf '%s' "$EXPECTED_SHA256" |
+              grep -Eq '^[0-9a-fA-F]{64}$'; then
+              echo "ERROR: SHA-256 must be exactly 64 hex characters."
               exit 1
             fi
 
             ARCHIVE="$INCOMING/$RELEASE_FILENAME"
 
-            if [ ! -s "$ARCHIVE" ]; then
-              echo "ERROR: Release archive is missing or empty."
+            if [ ! -f "$ARCHIVE" ] || [ ! -s "$ARCHIVE" ]; then
+              echo "ERROR: Release archive missing or empty."
               exit 1
             fi
 
+            echo "Release filename format is valid."
+
             echo
-            echo "=== 2. Verify release checksum ==="
+            echo "=== 2. Verify SHA-256 ==="
+
             ACTUAL_SHA256="$(sha256sum "$ARCHIVE" | awk '{print $1}')"
-            printf 'Expected: %s\n' "$EXPECTED_SHA256"
-            printf 'Actual:   %s\n' "$ACTUAL_SHA256"
+
+            echo "Expected SHA-256: $EXPECTED_SHA256"
+            echo "Actual SHA-256:   $ACTUAL_SHA256"
 
             if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
               echo "ERROR: Checksum mismatch. Release rejected."
               exit 1
             fi
 
-            echo "Checksum matches."
+            echo "Checksum verified."
 
             echo
-            echo "=== 3. Validate ZIP structure ==="
-            unzip -t "$ARCHIVE" >/dev/null
+            echo "=== 3. Test archive integrity ==="
+
+            if ! unzip -t "$ARCHIVE" >/dev/null; then
+              echo "ERROR: ZIP integrity check failed."
+              exit 1
+            fi
 
             CONTENTS="$(unzip -Z1 "$ARCHIVE")"
+
+            echo
+            echo "=== 4. Check archive paths ==="
+
+            while IFS= read -r entry; do
+              case "$entry" in
+                /*|../*|*/../*|*/..|..)
+                  echo "ERROR: Unsafe archive path detected."
+                  exit 1
+                  ;;
+              esac
+
+              case "$entry" in
+                *\\*)
+                  echo "ERROR: Backslash in archive path rejected."
+                  exit 1
+                  ;;
+              esac
+            done <<EOF
+            $CONTENTS
+            EOF
+
+            echo "No obvious absolute or parent-traversal paths found."
+
+            echo
+            echo "=== 5. Verify required release files ==="
 
             for required in \
               "release/backend/artisan" \
@@ -104,36 +129,55 @@ jobs:
               "release/backend/vendor/autoload.php" \
               "release/backend/public/index.php"
             do
-              if ! printf '%s\n' "$CONTENTS" | grep -Fxq "$required"; then
+              if ! printf '%s\n' "$CONTENTS" |
+                grep -Fxq "$required"; then
                 echo "ERROR: Missing required file: $required"
                 exit 1
               fi
+
+              echo "FOUND IN ARCHIVE: $required"
             done
 
             if ! printf '%s\n' "$CONTENTS" |
-              grep -Eq '^release/frontend/(.*/)?index\.html$'; then
-              echo "ERROR: Angular index.html missing."
+              grep -Fxq "release/frontend/index.html"; then
+              echo "ERROR: Angular frontend index.html missing."
               exit 1
             fi
 
             if printf '%s\n' "$CONTENTS" |
               grep -Eq '(^|/)\.env($|\.)'; then
-              echo "ERROR: Environment file found in release."
+              echo "ERROR: Environment file detected in release."
               exit 1
             fi
 
-            echo "Release structure passed."
+            echo "Required files found; environment files not detected."
 
             echo
-            echo "=== 4. Inspect current production ==="
+            echo "=== 6. Inspect production paths ==="
+
             df -h "$HOME_DIR"
-            du -sh "$FRONTEND" "$APP"
+
+            for path in \
+              "$FRONTEND" \
+              "$APP" \
+              "$APP/storage/app"
+            do
+              if [ -d "$path" ]; then
+                du -sh "$path"
+              else
+                echo "WARNING: Directory missing: $path"
+              fi
+            done
+
+            echo
+            echo "=== 7. Check critical production files ==="
 
             for path in \
               "$FRONTEND/index.html" \
               "$FRONTEND/.htaccess" \
               "$APP/.env" \
               "$APP/artisan" \
+              "$APP/composer.json" \
               "$APP/vendor/autoload.php" \
               "$APP/public/index.php" \
               "$APP/storage" \
@@ -142,27 +186,27 @@ jobs:
               if [ -e "$path" ]; then
                 echo "FOUND: ${path#"$HOME_DIR"/}"
               else
-                echo "MISSING: ${path#"$HOME_DIR"/}"
+                echo "WARNING: MISSING: ${path#"$HOME_DIR"/}"
               fi
             done
 
-            if [ ! -L "$APP/public/storage" ]; then
-              echo "WARNING: Laravel public/storage is not a symlink."
-            elif [ ! -d "$APP/public/storage" ]; then
-              echo "WARNING: Laravel storage symlink target is inaccessible."
+            if [ -L "$APP/public/storage" ] &&
+               [ -d "$APP/public/storage" ]; then
+              echo "Laravel public storage link is accessible."
             else
-              echo "Laravel storage symlink is accessible."
+              echo "WARNING: Laravel public storage link needs review."
             fi
 
             echo
-            echo "=== 5. Proposed deployment plan ==="
+            echo "=== 8. Proposed plan only ==="
             echo "Frontend target: $FRONTEND"
-            echo "Laravel target: $APP"
-            echo "Preserve Laravel .env and storage."
-            echo "Preserve the existing public storage symlink."
-            echo "Do not run database migrations in initial deployment."
-            echo "Keep the current release available for rollback."
-            echo "No files have been extracted or replaced."
-            echo "No backups have been created."
+            echo "Backend target:  $APP"
+            echo "Preserve .env, uploaded files, and storage."
+            echo "Preserve existing public storage link."
+            echo "Do not run database migrations."
+            echo "Do not replace production files."
+            echo "Do not delete existing releases."
+            echo "No backup has been created."
+            echo "No files have been extracted or changed."
             echo "No database commands have been run."
-            echo "LIVE DEPLOYMENT IS NOT ENABLED."
+            echo "PRODUCTION DEPLOYMENT REMAINS DISABLED."
