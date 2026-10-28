@@ -66,6 +66,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+
           mkdir -p release/backend release/frontend
 
           rsync -a backend/ release/backend/ \
@@ -74,10 +75,13 @@ jobs:
             --exclude='.git/' \
             --exclude='tests/' \
             --exclude='node_modules/' \
-            --exclude='storage/logs/*' \
-            --exclude='storage/framework/cache/*' \
-            --exclude='storage/framework/sessions/*' \
-            --exclude='storage/framework/views/*'
+            --exclude='storage/' \
+            --exclude='storage/***' \
+            --exclude='bootstrap/cache/*.php' \
+            --exclude='public/storage' \
+            --exclude='public/.htaccess' \
+            --exclude='public/php.ini' \
+            --exclude='public/.user.ini'
 
           cp -a frontend/dist/. release/frontend/
 
@@ -86,20 +90,61 @@ jobs:
         run: |
           set -euo pipefail
 
+          echo "Validating Laravel release..."
+
           test -f release/backend/artisan
           test -f release/backend/composer.json
           test -f release/backend/vendor/autoload.php
           test -f release/backend/public/index.php
+
+          echo "Validating Angular release..."
 
           if ! find release/frontend -type f -name index.html -print -quit | grep -q .; then
             echo "::error::Angular index.html was not found."
             exit 1
           fi
 
+          echo "Checking environment files..."
+
           if find release -type f \( -name '.env' -o -name '.env.*' \) -print -quit | grep -q .; then
             echo "::error::Environment file found in release."
             exit 1
           fi
+
+          echo "Checking private uploads..."
+
+          if find release/backend/storage/app/private -type f -print -quit 2>/dev/null | grep -q .; then
+            echo "::error::Private uploaded documents found in release."
+            exit 1
+          fi
+
+          echo "Checking database backup files..."
+
+          if find release -type f \( \
+            -iname '*.sql' -o \
+            -iname '*.sqlite' -o \
+            -iname '*.sqlite3' -o \
+            -iname '*.dump' \
+          \) -print -quit | grep -q .; then
+            echo "::error::Database backup file found in release."
+            exit 1
+          fi
+
+          echo "Checking Laravel runtime storage..."
+
+          if find release/backend/storage -type f -print -quit 2>/dev/null | grep -q .; then
+            echo "::error::Runtime storage files found in release."
+            exit 1
+          fi
+
+          echo "Checking public storage symlink..."
+
+          if [ -L release/backend/public/storage ]; then
+            echo "::error::Unexpected public/storage symlink found in release."
+            exit 1
+          fi
+
+          echo "All release validation checks passed."
 
       - name: Create release archive
         run: zip -qr finoocean-release.zip release
