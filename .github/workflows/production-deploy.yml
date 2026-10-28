@@ -1,3 +1,4 @@
+
 name: FINOOCEAN - Automatic Production Deployment
 
 on:
@@ -85,6 +86,8 @@ jobs:
             DIR="$HOME/finoocean-releases/incoming"
             FILE="$DIR/finoocean-release-${SOURCE_SHA}.zip"
             CHECKSUM_FILE="$FILE.sha256"
+            LIVE_BACKEND="$HOME/fino-deploy/backend"
+            LIVE_FRONTEND="$HOME/public_html"
 
             echo "=== 1. Verify exact release ==="
 
@@ -95,7 +98,6 @@ jobs:
 
             test -s "$CHECKSUM_FILE" || {
               echo "ERROR: Checksum sidecar not found."
-              echo "Confirm the updated upload workflow has run."
               exit 1
             }
 
@@ -143,7 +145,7 @@ jobs:
             echo "PASS: ZIP integrity verified."
 
             echo
-            echo "=== 4. Check archive paths and contents ==="
+            echo "=== 4. Inspect archive paths ==="
 
             CONTENTS="$(unzip -Z1 "$FILE")"
 
@@ -157,6 +159,11 @@ jobs:
             done <<EOF
             $CONTENTS
             EOF
+
+            echo "PASS: No obvious traversal paths detected."
+
+            echo
+            echo "=== 5. Validate required application files ==="
 
             for REQUIRED in \
               "release/backend/artisan" \
@@ -181,6 +188,9 @@ jobs:
             printf '%s\n' "$CONTENTS" |
               grep -E '^release/frontend/([^/]+/)*index\.html$'
 
+            echo
+            echo "=== 6. Reject environment and sensitive files ==="
+
             if printf '%s\n' "$CONTENTS" |
               grep -Eq '(^|/)\.env($|\.)'; then
               echo "ERROR: Environment file detected in release."
@@ -189,41 +199,94 @@ jobs:
 
             echo "PASS: No environment files detected."
 
-            echo
-            echo "=== 5. Inspect existing live paths ==="
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/backend/storage/app/private(/|$)|^release/backend/storage/app/vendor-db-backup(/|$)'; then
+              echo "ERROR: Private uploads or database backup directory detected."
+              exit 1
+            fi
 
-            test -d "$HOME/public_html" || {
+            if printf '%s\n' "$CONTENTS" |
+              grep -Ei '\.(sql|sqlite|sqlite3|dump)$'; then
+              echo "ERROR: Database backup file detected."
+              exit 1
+            fi
+
+            echo "PASS: No private upload or database backup paths detected."
+
+            echo
+            echo "=== 7. Reject runtime storage and storage symlink ==="
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/backend/storage/[^/]+|^release/backend/storage/.+'; then
+              echo "ERROR: Runtime storage content detected in release."
+              exit 1
+            fi
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/backend/public/storage(/|$)'; then
+              echo "ERROR: public/storage must not be shipped in release."
+              exit 1
+            fi
+
+            echo "PASS: No runtime storage content or storage symlink path detected."
+
+            echo
+            echo "=== 8. Validate live production paths ==="
+
+            test -d "$LIVE_FRONTEND" || {
               echo "ERROR: Frontend document root missing."
               exit 1
             }
 
-            test -f "$HOME/fino-deploy/backend/artisan" || {
+            test -f "$LIVE_BACKEND/artisan" || {
               echo "ERROR: Laravel application missing."
               exit 1
             }
 
-            test -f "$HOME/fino-deploy/backend/.env" || {
+            test -f "$LIVE_BACKEND/.env" || {
               echo "ERROR: Laravel .env missing."
               exit 1
             }
 
-            test -d "$HOME/fino-deploy/backend/storage" || {
+            test -d "$LIVE_BACKEND/storage" || {
               echo "ERROR: Laravel storage missing."
               exit 1
             }
 
-            test -L "$HOME/fino-deploy/backend/public/storage" || {
+            test -d "$LIVE_BACKEND/bootstrap/cache" || {
+              echo "ERROR: Laravel bootstrap/cache missing."
+              exit 1
+            }
+
+            test -L "$LIVE_BACKEND/public/storage" || {
               echo "ERROR: Expected public/storage symlink missing."
+              exit 1
+            }
+
+            test -f "$LIVE_BACKEND/public/.htaccess" || {
+              echo "ERROR: Live Laravel .htaccess missing."
+              exit 1
+            }
+
+            test -f "$LIVE_BACKEND/public/php.ini" || {
+              echo "ERROR: Live Laravel php.ini missing."
+              exit 1
+            }
+
+            test -f "$LIVE_BACKEND/public/.user.ini" || {
+              echo "ERROR: Live Laravel .user.ini missing."
               exit 1
             }
 
             echo "PASS: Frontend document root exists."
             echo "PASS: Laravel application and .env exist."
-            echo "PASS: Laravel storage exists."
+            echo "PASS: Laravel storage and bootstrap/cache exist."
             echo "PASS: public/storage symlink exists."
+            echo "PASS: Live Laravel public configuration files exist."
 
             echo
-            echo "=== Validation complete ==="
+            echo "=== 9. Final validation result ==="
+            echo "PASS: Release validation completed."
             echo "No archive was extracted."
             echo "No production files were changed."
             echo "No database commands were run."
