@@ -108,6 +108,7 @@ jobs:
 
             EXPECTED_SHA256="$(awk 'NR == 1 {print $1}' "$CHECKSUM_FILE")"
             EXPECTED_FILENAME="$(awk 'NR == 1 {print $2}' "$CHECKSUM_FILE")"
+            EXPECTED_NAME="finoocean-release-${SOURCE_SHA}.zip"
 
             case "$EXPECTED_SHA256" in
               *[!0-9a-f]*|"")
@@ -120,8 +121,6 @@ jobs:
               echo "ERROR: SHA-256 must contain 64 characters."
               exit 1
             }
-
-            EXPECTED_NAME="finoocean-release-${SOURCE_SHA}.zip"
 
             test "$EXPECTED_FILENAME" = "$EXPECTED_NAME" || {
               echo "ERROR: Checksum filename does not match release."
@@ -213,6 +212,9 @@ jobs:
 
             test -d "$LIVE_FRONTEND"
             test -f "$LIVE_FRONTEND/.htaccess"
+            test -d "$LIVE_FRONTEND/api"
+            test -d "$LIVE_FRONTEND/media"
+
             test -f "$LIVE_BACKEND/artisan"
             test -f "$LIVE_BACKEND/.env"
             test -d "$LIVE_BACKEND/storage"
@@ -255,11 +257,13 @@ jobs:
           SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
         run: |
           set -euo pipefail
+
           test -n "$SSH_PRIVATE_KEY"
           test -n "$SSH_KEY_PASSPHRASE"
+
           echo "SSH credentials are configured."
 
-      - name: Stage, back up changed files, and publish
+      - name: Stage and validate release for publishing
         uses: appleboy/ssh-action@v1
         env:
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -287,33 +291,7 @@ jobs:
             LIVE_FRONTEND="$HOME/public_html"
             LIVE_BACKEND="$HOME/fino-deploy/backend"
 
-            DEPLOY_STARTED=0
-            DEPLOY_SUCCESS=0
-
-            rollback_changed_files() {
-              STATUS=$?
-
-              if [ "$DEPLOY_SUCCESS" != "1" ] &&
-                 [ "$DEPLOY_STARTED" = "1" ]; then
-                echo "DEPLOYMENT FAILED: restoring overwritten files."
-
-                if [ -d "$BACKUP/frontend-changes" ]; then
-                  rsync -a "$BACKUP/frontend-changes/" "$LIVE_FRONTEND/" || true
-                fi
-
-                if [ -d "$BACKUP/backend-changes" ]; then
-                  rsync -a "$BACKUP/backend-changes/" "$LIVE_BACKEND/" || true
-                fi
-
-                echo "Recovery attempt finished. Verify the live website."
-              fi
-
-              exit "$STATUS"
-            }
-
-            trap rollback_changed_files EXIT
-
-            echo "=== 1. Validate exact release ==="
+            echo "=== 1. Verify release identity ==="
 
             case "$SOURCE_SHA" in
               *[!0-9a-f]*|"")
@@ -342,7 +320,6 @@ jobs:
 
             ACTUAL_SHA256="$(sha256sum "$FILE" | awk '{print $1}')"
             test "$ACTUAL_SHA256" = "$EXPECTED_SHA256"
-
             unzip -tq "$FILE"
 
             CONTENTS="$(unzip -Z1 "$FILE")"
@@ -358,7 +335,7 @@ jobs:
             $CONTENTS
             EOF
 
-            echo "=== 2. Confirm release structure ==="
+            echo "=== 2. Validate release structure ==="
 
             FRONTEND_REL="release/frontend/finoocean/browser"
             BACKEND_REL="release/backend"
@@ -377,12 +354,12 @@ jobs:
             done
 
             if printf '%s\n' "$CONTENTS" |
-              grep -Eq '(^|/)\.env($|\.)|^release/backend/storage/.+|^release/backend/public/storage(/|$)|\.sql$|\.sqlite$|\.dump$'; then
+              grep -Eq '(^|/)\.env($|\.)|^release/backend/storage/.+|^release/backend/public/storage(/|$)|\.(sql|sqlite|sqlite3|dump)$'; then
               echo "ERROR: Release contains a protected or forbidden path."
               exit 1
             fi
 
-            echo "=== 3. Confirm live protected paths ==="
+            echo "=== 3. Verify production paths ==="
 
             test -d "$LIVE_FRONTEND"
             test -f "$LIVE_FRONTEND/.htaccess"
@@ -399,7 +376,7 @@ jobs:
             test -f "$LIVE_BACKEND/public/php.ini"
             test -f "$LIVE_BACKEND/public/.user.ini"
 
-            echo "=== 4. Check publishing tools and paths ==="
+            echo "=== 4. Verify tools and staging paths ==="
 
             command -v rsync >/dev/null
             command -v unzip >/dev/null
@@ -418,8 +395,6 @@ jobs:
 
             mkdir -p "$RELEASES/backups"
             mkdir -p "$STAGE"
-            mkdir -p "$BACKUP/frontend-changes"
-            mkdir -p "$BACKUP/backend-changes"
 
             echo "=== 5. Extract to isolated staging ==="
 
@@ -432,13 +407,39 @@ jobs:
             test -s "$BACKEND_SOURCE/artisan"
             test -s "$BACKEND_SOURCE/vendor/autoload.php"
 
-            echo "=== 6. Publish Angular frontend ==="
+            echo "=== 6. Prepare recovery copies of deployable code ==="
 
-            DEPLOY_STARTED=1
+            mkdir -p "$BACKUP"
+
+            tar -czf "$BACKUP/frontend-before.tar.gz" \
+              -C "$HOME" \
+              --exclude='./public_html/api' \
+              --exclude='./public_html/media' \
+              --exclude='./public_html/cgi-bin' \
+              --exclude='./public_html/nc_assets' \
+              --exclude='./public_html/.well-known' \
+              --exclude='./public_html/.htaccess' \
+              public_html
+
+            tar -czf "$BACKUP/backend-before.tar.gz" \
+              -C "$HOME" \
+              --exclude='./fino-deploy/backend/.env' \
+              --exclude='./fino-deploy/backend/storage' \
+              --exclude='./fino-deploy/backend/bootstrap/cache' \
+              --exclude='./fino-deploy/backend/public/storage' \
+              --exclude='./fino-deploy/backend/public/.htaccess' \
+              --exclude='./fino-deploy/backend/public/php.ini' \
+              --exclude='./fino-deploy/backend/public/.user.ini' \
+              fino-deploy/backend
+
+            tar -tzf "$BACKUP/frontend-before.tar.gz" >/dev/null
+            tar -tzf "$BACKUP/backend-before.tar.gz" >/dev/null
+
+            echo "Recovery archives verified."
+
+            echo "=== 7. Publish Angular frontend ==="
 
             rsync -a \
-              --backup \
-              --backup-dir="$BACKUP/frontend-changes" \
               --exclude='/.htaccess' \
               --exclude='/api/***' \
               --exclude='/media/***' \
@@ -447,11 +448,9 @@ jobs:
               --exclude='/.well-known/***' \
               "$FRONTEND_SOURCE/" "$LIVE_FRONTEND/"
 
-            echo "=== 7. Publish Laravel backend ==="
+            echo "=== 8. Publish Laravel application ==="
 
             rsync -a \
-              --backup \
-              --backup-dir="$BACKUP/backend-changes" \
               --exclude='/.env' \
               --exclude='/.env.*' \
               --exclude='/storage/***' \
@@ -462,7 +461,7 @@ jobs:
               --exclude='/public/.user.ini' \
               "$BACKEND_SOURCE/" "$LIVE_BACKEND/"
 
-            echo "=== 8. Verify protected paths after publishing ==="
+            echo "=== 9. Verify protected paths ==="
 
             test -f "$LIVE_FRONTEND/.htaccess"
             test -d "$LIVE_FRONTEND/api"
@@ -477,19 +476,15 @@ jobs:
             test -f "$LIVE_BACKEND/public/php.ini"
             test -f "$LIVE_BACKEND/public/.user.ini"
 
-            echo "=== 9. HTTP smoke test ==="
+            echo "=== 10. Verify frontend HTTP response ==="
 
             curl -fsS --max-time 30 \
               https://www.finoocean.com/ -o /dev/null
 
-            echo "PASS: Public frontend returned a successful HTTP response."
-
-            DEPLOY_SUCCESS=1
-
-            echo "=== PUBLISH COMPLETED ==="
-            echo "Source commit: $SOURCE_SHA"
-            echo "Recovery files: $BACKUP"
+            echo "PASS: Frontend returned a successful HTTP response."
+            echo "Publishing step completed for commit: $SOURCE_SHA"
+            echo "Recovery archives: $BACKUP"
             echo "No database migrations were run."
-            echo "Old files were not automatically deleted."
+            echo "Existing files not present in the release were not deleted."
 
             rm -rf "$STAGE"
