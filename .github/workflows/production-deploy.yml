@@ -1,0 +1,62 @@
+
+name: FINOOCEAN - Automatic Production Deployment
+
+on:
+  workflow_run:
+    workflows:
+      - "FINOOCEAN - Upload Release to Namecheap"
+    types:
+      - completed
+      branches:
+      - main
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: finoocean-production-deployment
+  cancel-in-progress: false
+
+jobs:
+  validate-deployment:
+    name: Validate Release Before Production
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Validate source commit
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::Invalid source commit SHA."
+            exit 1
+          }
+          echo "Validated source commit: $SOURCE_SHA"
+
+      - name: Verify SSH configuration exists
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY" || {
+            echo "::error::SSH_PRIVATE_KEY secret is missing."
+            exit 1
+          }
+          echo "SSH key secret is available."
+          echo "No server connection or production changes performed."
+
+      - name: Deployment gate
+        shell: bash
+        run: |
+          echo "Release upload succeeded."
+          echo "Automatic deployment is NOT enabled in this version."
+          echo "Live files and database remain unchanged."
