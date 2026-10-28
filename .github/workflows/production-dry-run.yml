@@ -1,0 +1,114 @@
+name: FINOOCEAN - Production Deployment Dry Run
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Full 40-character commit SHA of an uploaded release"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-production-dry-run
+  cancel-in-progress: false
+
+jobs:
+  inspect-server-release:
+    name: Inspect Uploaded Release (No Deployment)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Validate release SHA
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::Enter a full 40-character lowercase commit SHA."
+            exit 1
+          }
+
+      - name: Inspect uploaded archive on Namecheap
+        uses: appleboy/ssh-action@v1
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: RELEASE_SHA
+          timeout: 15s
+          command_timeout: 30s
+          script: |
+            set -eu
+
+            FILE="$HOME/finoocean-releases/incoming/finoocean-release-${RELEASE_SHA}.zip"
+
+            if [ ! -s "$FILE" ]; then
+              echo "ERROR: Uploaded release archive not found."
+              exit 1
+            fi
+
+            echo "=== Archive ==="
+            ls -lh "$FILE"
+            sha256sum "$FILE"
+
+            echo
+            echo "=== ZIP integrity ==="
+            unzip -t "$FILE" >/dev/null
+            echo "ZIP integrity passed."
+
+            echo
+            echo "=== Required files ==="
+            CONTENTS="$(unzip -Z1 "$FILE")"
+
+            for REQUIRED in \
+              "release/backend/artisan" \
+              "release/backend/composer.json" \
+              "release/backend/vendor/autoload.php" \
+              "release/backend/public/index.php"
+            do
+              if ! printf '%s\n' "$CONTENTS" | grep -Fxq "$REQUIRED"; then
+                echo "ERROR: Missing required file: $REQUIRED"
+                exit 1
+              fi
+              echo "FOUND: $REQUIRED"
+            done
+
+            if ! printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/frontend/.*/?index\.html$|^release/frontend/index\.html$'; then
+              echo "ERROR: Angular index.html not found."
+              exit 1
+            fi
+
+            echo
+            echo "=== Environment file safety ==="
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)'; then
+              echo "ERROR: Environment file detected in release."
+              exit 1
+            fi
+
+            echo "No environment files found."
+
+            echo
+            echo "=== Live paths (read-only) ==="
+            test -d "$HOME/public_html"
+            test -f "$HOME/fino-deploy/backend/artisan"
+            test -f "$HOME/fino-deploy/backend/.env"
+            test -d "$HOME/fino-deploy/backend/storage"
+
+            echo "Frontend document root exists."
+            echo "Laravel backend exists."
+            echo "Laravel .env exists."
+            echo "Laravel storage exists."
+            echo "DRY RUN PASSED: No production files changed."
+            echo "No database commands were run."
