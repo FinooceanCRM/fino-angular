@@ -30,6 +30,7 @@ jobs:
 
     env:
       SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+      ENABLE_PRODUCTION_PUBLISHING: "false"
 
     steps:
       - name: Validate source commit
@@ -64,7 +65,7 @@ jobs:
 
           echo "Required SSH secrets are present."
 
-      - name: Verify uploaded release on Namecheap
+      - name: Validate uploaded release on Namecheap
         uses: appleboy/ssh-action@v1
         env:
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
@@ -81,28 +82,81 @@ jobs:
           script: |
             set -eu
 
-            FILE="$HOME/finoocean-releases/incoming/finoocean-release-${SOURCE_SHA}.zip"
+            DIR="$HOME/finoocean-releases/incoming"
+            FILE="$DIR/finoocean-release-${SOURCE_SHA}.zip"
+            CHECKSUM_FILE="$FILE.sha256"
 
-            echo "=== Verify exact release ==="
+            echo "=== 1. Verify exact release ==="
 
             test -s "$FILE" || {
               echo "ERROR: Release archive not found."
               exit 1
             }
 
-            echo "Release archive exists."
-            sha256sum "$FILE"
+            test -s "$CHECKSUM_FILE" || {
+              echo "ERROR: Checksum sidecar not found."
+              echo "Confirm the updated upload workflow has run."
+              exit 1
+            }
+
+            echo "Commit: $SOURCE_SHA"
+            ls -lh "$FILE" "$CHECKSUM_FILE"
 
             echo
-            echo "=== Verify ZIP integrity ==="
+            echo "=== 2. Verify checksum sidecar ==="
+
+            EXPECTED_SHA256="$(awk 'NR == 1 {print $1}' "$CHECKSUM_FILE")"
+            EXPECTED_FILENAME="$(awk 'NR == 1 {print $2}' "$CHECKSUM_FILE")"
+
+            case "$EXPECTED_SHA256" in
+              *[!0-9a-f]*|"")
+                echo "ERROR: Invalid SHA-256 format."
+                exit 1
+                ;;
+            esac
+
+            if [ "${#EXPECTED_SHA256}" -ne 64 ]; then
+              echo "ERROR: SHA-256 must contain 64 characters."
+              exit 1
+            fi
+
+            EXPECTED_NAME="finoocean-release-${SOURCE_SHA}.zip"
+
+            if [ "$EXPECTED_FILENAME" != "$EXPECTED_NAME" ]; then
+              echo "ERROR: Checksum filename does not match release."
+              exit 1
+            fi
+
+            ACTUAL_SHA256="$(sha256sum "$FILE" | awk '{print $1}')"
+
+            if [ "$ACTUAL_SHA256" != "$EXPECTED_SHA256" ]; then
+              echo "ERROR: Archive checksum mismatch."
+              exit 1
+            fi
+
+            echo "PASS: Archive matches its uploaded checksum."
+
+            echo
+            echo "=== 3. Verify ZIP integrity ==="
 
             unzip -t "$FILE" >/dev/null
-            echo "ZIP integrity passed."
+            echo "PASS: ZIP integrity verified."
 
             echo
-            echo "=== Verify archive contents ==="
+            echo "=== 4. Check archive paths and contents ==="
 
             CONTENTS="$(unzip -Z1 "$FILE")"
+
+            while IFS= read -r ENTRY; do
+              case "$ENTRY" in
+                /*|../*|*/../*|*/..|..|*\\*)
+                  echo "ERROR: Unsafe archive path detected."
+                  exit 1
+                  ;;
+              esac
+            done <<EOF
+            $CONTENTS
+            EOF
 
             for REQUIRED in \
               "release/backend/artisan" \
@@ -111,9 +165,10 @@ jobs:
               "release/backend/public/index.php"
             do
               printf '%s\n' "$CONTENTS" | grep -Fxq "$REQUIRED" || {
-                echo "ERROR: Missing $REQUIRED"
+                echo "ERROR: Missing required file: $REQUIRED"
                 exit 1
               }
+
               echo "FOUND: $REQUIRED"
             done
 
@@ -123,36 +178,66 @@ jobs:
                 exit 1
               }
 
+            printf '%s\n' "$CONTENTS" |
+              grep -E '^release/frontend/([^/]+/)*index\.html$'
+
             if printf '%s\n' "$CONTENTS" |
               grep -Eq '(^|/)\.env($|\.)'; then
-              echo "ERROR: Environment file detected in archive."
+              echo "ERROR: Environment file detected in release."
               exit 1
             fi
 
-            echo "Angular index detected."
-            echo "No .env files detected in archive."
+            echo "PASS: No environment files detected."
 
             echo
-            echo "=== Verify live paths (read-only) ==="
+            echo "=== 5. Inspect existing live paths ==="
 
-            test -d "$HOME/public_html"
-            test -f "$HOME/fino-deploy/backend/artisan"
-            test -f "$HOME/fino-deploy/backend/.env"
-            test -d "$HOME/fino-deploy/backend/storage"
+            test -d "$HOME/public_html" || {
+              echo "ERROR: Frontend document root missing."
+              exit 1
+            }
 
-            echo "Frontend document root exists."
-            echo "Laravel application exists."
-            echo "Laravel .env exists."
-            echo "Laravel storage exists."
+            test -f "$HOME/fino-deploy/backend/artisan" || {
+              echo "ERROR: Laravel application missing."
+              exit 1
+            }
+
+            test -f "$HOME/fino-deploy/backend/.env" || {
+              echo "ERROR: Laravel .env missing."
+              exit 1
+            }
+
+            test -d "$HOME/fino-deploy/backend/storage" || {
+              echo "ERROR: Laravel storage missing."
+              exit 1
+            }
+
+            test -L "$HOME/fino-deploy/backend/public/storage" || {
+              echo "ERROR: Expected public/storage symlink missing."
+              exit 1
+            }
+
+            echo "PASS: Frontend document root exists."
+            echo "PASS: Laravel application and .env exist."
+            echo "PASS: Laravel storage exists."
+            echo "PASS: public/storage symlink exists."
 
             echo
-            echo "VALIDATION PASSED."
-            echo "No files were extracted or deployed."
+            echo "=== Validation complete ==="
+            echo "No archive was extracted."
             echo "No production files were changed."
             echo "No database commands were run."
 
-      - name: Keep production publishing disabled
+      - name: Keep publishing disabled
         shell: bash
         run: |
-          echo "Validation completed."
-          echo "Automatic production publishing remains disabled."
+          set -euo pipefail
+
+          if [ "$ENABLE_PRODUCTION_PUBLISHING" != "false" ]; then
+            echo "::error::Unexpected publishing configuration."
+            exit 1
+          fi
+
+          echo "All validation steps completed."
+          echo "Automatic production publishing is DISABLED."
+          echo "This workflow does not publish live files."
