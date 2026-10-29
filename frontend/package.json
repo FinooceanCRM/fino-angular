@@ -16,7 +16,7 @@
     "open:ios": "cap open ios"
   },
   "dependencies": {
-    "@angular/animations": "^20.0.0",
+    "@angular/animations": "^22.2.3",
     "@angular/cdk": "^20.0.0",
     "@angular/common": "^20.0.0",
     "@angular/compiler": "^20.0.0",
