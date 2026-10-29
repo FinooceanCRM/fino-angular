@@ -189,7 +189,7 @@ jobs:
             fi
 
             if printf '%s\n' "$CONTENTS" |
-              grep -Ei '\.(sql|sqlite|sqlite3|dump)$'; then
+              grep -Eiq '\.(sql|sqlite|sqlite3|dump)$'; then
               echo "ERROR: Database backup file detected."
               exit 1
             fi
@@ -249,6 +249,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
+    # Configure required reviewers on the "production" environment in
+    # GitHub Settings > Environments so every publish needs manual approval.
+    environment:
+      name: production
+      url: https://www.finoocean.com/
+
     steps:
       - name: Verify publishing credentials
         shell: bash
@@ -267,6 +273,7 @@ jobs:
         uses: appleboy/ssh-action@v1
         env:
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
         with:
           host: business30.web-hosting.com
           username: finovobw
@@ -274,7 +281,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
-          envs: SOURCE_SHA
+          envs: SOURCE_SHA,RUN_MIGRATIONS
           timeout: 30s
           command_timeout: 600s
           script: |
@@ -437,9 +444,58 @@ jobs:
 
             echo "Recovery archives verified."
 
+            PHP_BIN="$(command -v php || true)"
+            test -n "$PHP_BIN" || {
+              echo "ERROR: php not found on server."
+              exit 1
+            }
+
+            rollback() {
+              echo "!!! ROLLING BACK to pre-release recovery archives !!!"
+              tar -xzf "$BACKUP/frontend-before.tar.gz" -C "$HOME"
+              tar -xzf "$BACKUP/backend-before.tar.gz" -C "$HOME"
+              (cd "$LIVE_BACKEND" && "$PHP_BIN" artisan optimize:clear) || true
+              echo "Code restored. Database was NOT rolled back."
+              echo "Database dump (if taken): $BACKUP/database-before.sql.gz"
+            }
+
+            echo "=== 6b. Database backup (before any change) ==="
+
+            # Credentials are read on the server and never printed.
+            env_value() {
+              grep -E "^$1=" "$LIVE_BACKEND/.env" | head -n 1 |
+                cut -d '=' -f 2- | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
+            }
+
+            if command -v mysqldump >/dev/null; then
+              DB_HOST="$(env_value DB_HOST)"
+              DB_PORT="$(env_value DB_PORT)"
+              DB_NAME="$(env_value DB_DATABASE)"
+              DB_USER="$(env_value DB_USERNAME)"
+              MYSQL_PWD="$(env_value DB_PASSWORD)"
+              export MYSQL_PWD
+
+              umask 077
+              mysqldump --single-transaction --no-tablespaces \
+                -h "${DB_HOST:-127.0.0.1}" -P "${DB_PORT:-3306}" \
+                -u "$DB_USER" "$DB_NAME" | gzip > "$BACKUP/database-before.sql.gz"
+
+              test -s "$BACKUP/database-before.sql.gz" || {
+                echo "ERROR: Database backup is empty. Aborting before changes."
+                exit 1
+              }
+              unset MYSQL_PWD
+              echo "Database dump saved in $BACKUP (same server; copy off-server too)."
+            else
+              echo "ERROR: mysqldump unavailable; refusing to publish without a DB backup."
+              exit 1
+            fi
+
             echo "=== 7. Publish Angular frontend ==="
 
-            rsync -a \
+            # --delay-updates stages files first and moves them in at the end,
+            # shrinking the window where old and new files are mixed.
+            rsync -a --delay-updates \
               --exclude='/.htaccess' \
               --exclude='/api/***' \
               --exclude='/media/***' \
@@ -450,7 +506,7 @@ jobs:
 
             echo "=== 8. Publish Laravel application ==="
 
-            rsync -a \
+            rsync -a --delay-updates \
               --exclude='/.env' \
               --exclude='/.env.*' \
               --exclude='/storage/***' \
@@ -460,6 +516,35 @@ jobs:
               --exclude='/public/php.ini' \
               --exclude='/public/.user.ini' \
               "$BACKEND_SOURCE/" "$LIVE_BACKEND/"
+
+            # Remove stale code left from earlier releases. Limited to
+            # code-only directories; storage, .env and public are never pruned.
+            for DIR in app config database routes resources vendor; do
+              if [ -d "$BACKEND_SOURCE/$DIR" ]; then
+                rsync -a --delete-after "$BACKEND_SOURCE/$DIR/" "$LIVE_BACKEND/$DIR/"
+              fi
+            done
+
+            echo "=== 8b. Migrations and caches ==="
+
+            cd "$LIVE_BACKEND"
+
+            if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
+              if ! "$PHP_BIN" artisan migrate --force; then
+                echo "ERROR: Migration failed."
+                rollback
+                exit 1
+              fi
+              echo "Migrations applied."
+            else
+              echo "RUN_MIGRATIONS is not 'true'; migrations skipped."
+              "$PHP_BIN" artisan migrate:status --pending 2>/dev/null || true
+            fi
+
+            "$PHP_BIN" artisan optimize:clear
+            "$PHP_BIN" artisan config:cache
+            "$PHP_BIN" artisan route:cache
+            "$PHP_BIN" artisan view:cache
 
             echo "=== 9. Verify protected paths ==="
 
@@ -476,15 +561,23 @@ jobs:
             test -f "$LIVE_BACKEND/public/php.ini"
             test -f "$LIVE_BACKEND/public/.user.ini"
 
-            echo "=== 10. Verify frontend HTTP response ==="
+            echo "=== 10. Health checks (frontend and API) ==="
+
+            HEALTHY=true
+
+            curl -fsS --max-time 30 https://www.finoocean.com/ -o /dev/null || HEALTHY=false
 
             curl -fsS --max-time 30 \
-              https://www.finoocean.com/ -o /dev/null
+              https://www.finoocean.com/api/v1/health -o /dev/null || HEALTHY=false
 
-            echo "PASS: Frontend returned a successful HTTP response."
+            if [ "$HEALTHY" != "true" ]; then
+              echo "ERROR: Health check failed."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: Frontend and API health endpoints responded."
             echo "Publishing step completed for commit: $SOURCE_SHA"
-            echo "Recovery archives: $BACKUP"
-            echo "No database migrations were run."
-            echo "Existing files not present in the release were not deleted."
+            echo "Recovery archives and DB dump: $BACKUP"
 
             rm -rf "$STAGE"

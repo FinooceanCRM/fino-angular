@@ -99,8 +99,10 @@ jobs:
 
           echo "Validating Angular release..."
 
-          if ! find release/frontend -type f -name index.html -print -quit | grep -q .; then
-            echo "::error::Angular index.html was not found."
+          # Must match the path the deploy workflows extract from.
+          if [ ! -s release/frontend/finoocean/browser/index.html ]; then
+            echo "::error::release/frontend/finoocean/browser/index.html not found."
+            find release/frontend -maxdepth 3 -name index.html
             exit 1
           fi
 
