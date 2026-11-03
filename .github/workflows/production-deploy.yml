@@ -420,10 +420,45 @@ jobs:
 
             FRONTEND_SOURCE="$STAGE/$FRONTEND_REL"
             BACKEND_SOURCE="$STAGE/$BACKEND_REL"
+            API_SOURCE="$STAGE/api"
 
             test -s "$FRONTEND_SOURCE/index.html"
             test -s "$BACKEND_SOURCE/artisan"
             test -s "$BACKEND_SOURCE/vendor/autoload.php"
+
+            mkdir -p "$API_SOURCE"
+            cat > "$API_SOURCE/index.php" <<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            $backendFrontController = dirname(__DIR__, 2) . '/fino-deploy/backend/public/index.php';
+
+            if (!is_file($backendFrontController)) {
+                http_response_code(503);
+                header('Content-Type: application/json; charset=utf-8');
+                echo '{"success":false,"message":"API is temporarily unavailable."}';
+                exit;
+            }
+
+            require $backendFrontController;
+            PHP
+
+            cat > "$API_SOURCE/.htaccess" <<'HTACCESS'
+            Options -Indexes
+            DirectoryIndex index.php
+
+            <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule ^ index.php [QSA,L]
+            </IfModule>
+
+            <FilesMatch "(\\.bak|^error_log$|^health-check\\.txt$)">
+              Require all denied
+            </FilesMatch>
+            HTACCESS
 
             echo "=== 6. Prepare recovery copies of deployable code ==="
 
@@ -439,6 +474,10 @@ jobs:
               --exclude='./public_html/.htaccess' \
               public_html
 
+            tar -czf "$BACKUP/api-before.tar.gz" \
+              -C "$HOME" \
+              public_html/api
+
             tar -czf "$BACKUP/backend-before.tar.gz" \
               -C "$HOME" \
               --exclude='./fino-deploy/backend/.env' \
@@ -451,6 +490,7 @@ jobs:
               fino-deploy/backend
 
             tar -tzf "$BACKUP/frontend-before.tar.gz" >/dev/null
+            tar -tzf "$BACKUP/api-before.tar.gz" >/dev/null
             tar -tzf "$BACKUP/backend-before.tar.gz" >/dev/null
 
             echo "Recovery archives verified."
@@ -465,6 +505,8 @@ jobs:
               echo "!!! ROLLING BACK to pre-release recovery archives !!!"
               tar -xzf "$BACKUP/frontend-before.tar.gz" -C "$HOME"
               tar -xzf "$BACKUP/backend-before.tar.gz" -C "$HOME"
+              rm -f "$LIVE_FRONTEND/api/index.php" "$LIVE_FRONTEND/api/.htaccess"
+              tar -xzf "$BACKUP/api-before.tar.gz" -C "$HOME"
               (cd "$LIVE_BACKEND" && "$PHP_BIN" artisan optimize:clear) || true
               echo "Code restored. Database was NOT rolled back."
               echo "Database dump (if taken): $BACKUP/database-before.sql.gz"
@@ -514,6 +556,10 @@ jobs:
               --exclude='/nc_assets/***' \
               --exclude='/.well-known/***' \
               "$FRONTEND_SOURCE/" "$LIVE_FRONTEND/"
+
+            echo "=== 7b. Publish Laravel API front controller ==="
+
+            rsync -a --delay-updates "$API_SOURCE/" "$LIVE_FRONTEND/api/"
 
             echo "=== 8. Publish Laravel application ==="
 
@@ -592,15 +638,68 @@ jobs:
 
             echo "PASS: Frontend responded."
 
-            # The API URL has not been confirmed from a GitHub runner (a 403 was
-            # seen on first run), so this is a warning, not a rollback trigger.
-            # After confirming the URL, make it fatal like the frontend check.
-            API_CODE="$(curl -s -o /dev/null -w '%{http_code}' --max-time 30 \
-              -A 'finoocean-deploy-check' https://www.finoocean.com/api/v1/health || true)"
-            echo "API health HTTP status: ${API_CODE:-none}"
-            case "$API_CODE" in
-              2??) echo "PASS: API health endpoint responded." ;;
-              *) echo "WARNING: API health endpoint did not return 2xx; verify manually." ;;
-            esac
+            API_HEALTH_FILE="$STAGE/api-health.json"
+            if ! curl -fsS --max-time 30 \
+              -A 'finoocean-deploy-check' \
+              https://www.finoocean.com/api/v1/health \
+              -o "$API_HEALTH_FILE" ||
+              ! grep -Fq '"success":true' "$API_HEALTH_FILE" ||
+              ! grep -Fq '"api_version":"v1"' "$API_HEALTH_FILE"; then
+              echo "ERROR: Laravel API health check failed; rolling back."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: Laravel API health endpoint returned the expected JSON."
+
+            LOGIN_RESPONSE_FILE="$STAGE/api-login-validation.json"
+            LOGIN_CODE="$(curl -sS --max-time 30 \
+              -A 'finoocean-deploy-check' \
+              -H 'Content-Type: application/json' \
+              --data '{}' \
+              -o "$LOGIN_RESPONSE_FILE" \
+              -w '%{http_code}' \
+              https://www.finoocean.com/api/v1/auth/login)"
+            if [ "$LOGIN_CODE" != "422" ] ||
+              ! grep -Fq '"success":false' "$LOGIN_RESPONSE_FILE" ||
+              ! grep -Fq '"errors":' "$LOGIN_RESPONSE_FILE"; then
+              echo "ERROR: Login route did not return Laravel validation JSON; rolling back."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: Login route reached Laravel validation without submitting credentials."
+
+            if curl -fsS --max-time 30 https://www.finoocean.com/api/ \
+              -o "$STAGE/api-directory.html" &&
+              grep -Fq 'Index of /api' "$STAGE/api-directory.html"; then
+              echo "ERROR: API directory listing is still enabled; rolling back."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: API directory listing is disabled."
+
+            for PROTECTED_API_FILE in \
+              index.php.bak \
+              index.php.bak-bridge-debug \
+              index.php.bak-health-20261030 \
+              error_log \
+              health-check.txt
+            do
+              PROTECTED_API_CODE="$(curl -sS --max-time 30 \
+                -o /dev/null \
+                -w '%{http_code}' \
+                "https://www.finoocean.com/api/$PROTECTED_API_FILE")"
+              case "$PROTECTED_API_CODE" in
+                2??)
+                  echo "ERROR: Protected API file is publicly accessible: $PROTECTED_API_FILE"
+                  rollback
+                  exit 1
+                  ;;
+              esac
+            done
+
+            echo "PASS: Legacy API backup and log files are not publicly accessible."
             echo "Publishing step completed for commit: $SOURCE_SHA"
             echo "Recovery archives and DB dump: $BACKUP"
