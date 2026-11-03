@@ -410,6 +410,38 @@ jobs:
               exit 1
             }
 
+            normalize_frontend_permissions() {
+              find "$LIVE_FRONTEND" \
+                \( \
+                  -path "$LIVE_FRONTEND/api" -o \
+                  -path "$LIVE_FRONTEND/media" -o \
+                  -path "$LIVE_FRONTEND/cgi-bin" -o \
+                  -path "$LIVE_FRONTEND/nc_assets" -o \
+                  -path "$LIVE_FRONTEND/.well-known" -o \
+                  -path "$LIVE_FRONTEND/.git" \
+                \) -prune -o \
+                -type d -exec chmod 755 {} +
+
+              find "$LIVE_FRONTEND" \
+                \( \
+                  -path "$LIVE_FRONTEND/api" -o \
+                  -path "$LIVE_FRONTEND/media" -o \
+                  -path "$LIVE_FRONTEND/cgi-bin" -o \
+                  -path "$LIVE_FRONTEND/nc_assets" -o \
+                  -path "$LIVE_FRONTEND/.well-known" -o \
+                  -path "$LIVE_FRONTEND/.git" \
+                \) -prune -o \
+                -type f \( \
+                  -name '*.html' -o -name '*.js' -o -name '*.css' -o \
+                  -name '*.json' -o -name '*.ico' -o -name '*.png' -o \
+                  -name '*.jpg' -o -name '*.jpeg' -o -name '*.gif' -o \
+                  -name '*.svg' -o -name '*.webp' -o -name '*.woff' -o \
+                  -name '*.woff2' -o -name '*.ttf' -o -name '*.eot' -o \
+                  -name '*.txt' -o -name '*.xml' -o -name '*.webmanifest' -o \
+                  -name '*.map' -o -name '*.shtml' \
+                \) -exec chmod 644 {} +
+            }
+
             mkdir -p "$RELEASES/backups"
             mkdir -p "$STAGE"
             trap 'rm -rf -- "$STAGE"' EXIT
@@ -514,6 +546,7 @@ jobs:
               rm -f "$LIVE_FRONTEND/api/index.php" "$LIVE_FRONTEND/api/.htaccess"
               tar -xzf "$BACKUP/api-before.tar.gz" -C "$HOME"
               cp -p "$BACKUP/root-htaccess-before" "$LIVE_FRONTEND/.htaccess"
+              normalize_frontend_permissions
               (cd "$LIVE_BACKEND" && "$PHP_BIN" artisan optimize:clear) || true
               echo "Code restored. Database was NOT rolled back."
               echo "Database dump (if taken): $BACKUP/database-before.sql.gz"
@@ -565,6 +598,7 @@ jobs:
               --exclude='/nc_assets/***' \
               --exclude='/.well-known/***' \
               "$FRONTEND_SOURCE/" "$LIVE_FRONTEND/"
+            normalize_frontend_permissions
 
             echo "=== 7b. Publish Laravel API front controller ==="
 
@@ -588,8 +622,6 @@ jobs:
               rollback
               exit 1
             fi
-
-            chmod 755 "$LIVE_FRONTEND"
 
             rsync -a --delay-updates "$API_SOURCE/" "$LIVE_FRONTEND/api/"
             chmod 755 "$LIVE_FRONTEND/api"
