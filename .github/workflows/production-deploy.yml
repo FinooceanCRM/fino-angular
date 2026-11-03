@@ -607,18 +607,41 @@ jobs:
               sed -i '1i Options -Indexes' "$ROOT_HTACCESS"
             fi
 
+            if ! grep -Fq 'health-check\.php' "$ROOT_HTACCESS"; then
+              printf '%s\n' \
+                '' \
+                '<FilesMatch "(\.bak|\.backup|\.live-backup|^error_log$|^health-check\.php$|\.zip$)">' \
+                '  Require all denied' \
+                '</FilesMatch>' \
+                >> "$ROOT_HTACCESS"
+            fi
+
             API_RULE_LINE="$(grep -nE '^[[:space:]]*RewriteRule[[:space:]]+\^api' \
               "$ROOT_HTACCESS" | head -n 1 | cut -d: -f1)"
 
-            if ! grep -Fxq 'Options -Indexes' "$ROOT_HTACCESS" || [ -z "$API_RULE_LINE" ]; then
+            if ! grep -Fxq 'Options -Indexes' "$ROOT_HTACCESS" ||
+              ! grep -Fq 'health-check\.php' "$ROOT_HTACCESS" ||
+              [ -z "$API_RULE_LINE" ]; then
               echo "ERROR: Could not configure the frontend rewrite to pass API paths through."
               rollback
               exit 1
             fi
 
+            if ! grep -Fq 'RewriteRule ^health-check\.php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
+              sed -i "${API_RULE_LINE}i\\  RewriteRule ^health-check\\.php$ - [F,L,NC]" \
+                "$ROOT_HTACCESS"
+            fi
+
+            API_RULE_LINE="$(grep -nE '^[[:space:]]*RewriteRule[[:space:]]+\^api' \
+              "$ROOT_HTACCESS" | head -n 1 | cut -d: -f1)"
             sed -i "${API_RULE_LINE}c\\  RewriteRule ^api/ - [L,NC]" "$ROOT_HTACCESS"
             if ! grep -Eq '^[[:space:]]*RewriteRule[[:space:]]+\^api/' "$ROOT_HTACCESS"; then
               echo "ERROR: Could not configure the frontend rewrite to pass API paths through."
+              rollback
+              exit 1
+            fi
+            if ! grep -Fq 'RewriteRule ^health-check\.php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
+              echo "ERROR: Could not block the obsolete health-check endpoint."
               rollback
               exit 1
             fi
@@ -677,6 +700,8 @@ jobs:
             test "$(stat -c '%a' "$LIVE_FRONTEND")" = "755"
             test -x "$LIVE_FRONTEND/api"
             grep -Fxq 'Options -Indexes' "$LIVE_FRONTEND/.htaccess"
+            grep -Fq 'health-check\.php' "$LIVE_FRONTEND/.htaccess"
+            grep -Fq 'RewriteRule ^health-check\.php$ - [F,L,NC]' "$LIVE_FRONTEND/.htaccess"
             grep -Eq '^[[:space:]]*RewriteRule[[:space:]]+\^api/' "$LIVE_FRONTEND/.htaccess"
 
             test -f "$LIVE_BACKEND/.env"
