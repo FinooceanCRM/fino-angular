@@ -440,6 +440,17 @@ jobs:
                   -name '*.txt' -o -name '*.xml' -o -name '*.webmanifest' -o \
                   -name '*.map' -o -name '*.shtml' \
                 \) -exec chmod 644 {} +
+
+              if [ -f "$LIVE_FRONTEND/.htaccess" ]; then
+                chmod 644 "$LIVE_FRONTEND/.htaccess"
+              fi
+            }
+
+            normalize_api_bridge_permissions() {
+              chmod 755 "$LIVE_FRONTEND/api"
+              chmod 644 \
+                "$LIVE_FRONTEND/api/index.php" \
+                "$LIVE_FRONTEND/api/.htaccess"
             }
 
             mkdir -p "$RELEASES/backups"
@@ -547,6 +558,7 @@ jobs:
               tar -xzf "$BACKUP/api-before.tar.gz" -C "$HOME"
               cp -p "$BACKUP/root-htaccess-before" "$LIVE_FRONTEND/.htaccess"
               normalize_frontend_permissions
+              normalize_api_bridge_permissions
               (cd "$LIVE_BACKEND" && "$PHP_BIN" artisan optimize:clear) || true
               echo "Code restored. Database was NOT rolled back."
               echo "Database dump (if taken): $BACKUP/database-before.sql.gz"
@@ -627,8 +639,8 @@ jobs:
               exit 1
             fi
 
-            if ! grep -Fq 'RewriteRule ^health-check\.php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
-              sed -i "${API_RULE_LINE}i\\  RewriteRule ^health-check\\.php$ - [F,L,NC]" \
+            if ! grep -Fq 'RewriteRule ^health-check[.]php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
+              sed -i "${API_RULE_LINE}i\\  RewriteRule ^health-check[.]php$ - [F,L,NC]" \
                 "$ROOT_HTACCESS"
             fi
 
@@ -640,15 +652,14 @@ jobs:
               rollback
               exit 1
             fi
-            if ! grep -Fq 'RewriteRule ^health-check\.php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
+            if ! grep -Fq 'RewriteRule ^health-check[.]php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
               echo "ERROR: Could not block the obsolete health-check endpoint."
               rollback
               exit 1
             fi
 
             rsync -a --delay-updates "$API_SOURCE/" "$LIVE_FRONTEND/api/"
-            chmod 755 "$LIVE_FRONTEND/api"
-            chmod 644 "$LIVE_FRONTEND/api/index.php" "$LIVE_FRONTEND/api/.htaccess"
+            normalize_api_bridge_permissions
 
             echo "=== 8. Publish Laravel application ==="
 
@@ -698,10 +709,14 @@ jobs:
             test -d "$LIVE_FRONTEND/api"
             test -d "$LIVE_FRONTEND/media"
             test "$(stat -c '%a' "$LIVE_FRONTEND")" = "755"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/.htaccess")" = "644"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/api")" = "755"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/api/index.php")" = "644"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/api/.htaccess")" = "644"
             test -x "$LIVE_FRONTEND/api"
             grep -Fxq 'Options -Indexes' "$LIVE_FRONTEND/.htaccess"
             grep -Fq 'health-check\.php' "$LIVE_FRONTEND/.htaccess"
-            grep -Fq 'RewriteRule ^health-check\.php$ - [F,L,NC]' "$LIVE_FRONTEND/.htaccess"
+            grep -Fq 'RewriteRule ^health-check[.]php$ - [F,L,NC]' "$LIVE_FRONTEND/.htaccess"
             grep -Eq '^[[:space:]]*RewriteRule[[:space:]]+\^api/' "$LIVE_FRONTEND/.htaccess"
 
             test -f "$LIVE_BACKEND/.env"
