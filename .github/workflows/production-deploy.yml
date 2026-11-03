@@ -274,6 +274,7 @@ jobs:
         env:
           SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
           RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
+          DEPLOYMENT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
         with:
           host: business30.web-hosting.com
           username: finovobw
@@ -281,7 +282,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
           fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
-          envs: SOURCE_SHA,RUN_MIGRATIONS
+          envs: SOURCE_SHA,RUN_MIGRATIONS,DEPLOYMENT_ID
           timeout: 30s
           command_timeout: 600s
           script: |
@@ -292,8 +293,6 @@ jobs:
             CHECKSUM="$FILE.sha256"
 
             RELEASES="$HOME/finoocean-releases"
-            STAGE="$RELEASES/staging-$SOURCE_SHA"
-            BACKUP="$RELEASES/backups/$SOURCE_SHA"
 
             LIVE_FRONTEND="$HOME/public_html"
             LIVE_BACKEND="$HOME/fino-deploy/backend"
@@ -308,6 +307,17 @@ jobs:
             esac
 
             test "${#SOURCE_SHA}" -eq 40
+
+            case "$DEPLOYMENT_ID" in
+              *[!0-9-]*|""|*-|-*|*--*)
+                echo "ERROR: Invalid deployment attempt ID."
+                exit 1
+                ;;
+            esac
+
+            STAGE="$RELEASES/staging-$SOURCE_SHA-$DEPLOYMENT_ID"
+            BACKUP="$RELEASES/backups/$SOURCE_SHA-$DEPLOYMENT_ID"
+
             test -s "$FILE"
             test -s "$CHECKSUM"
 
@@ -402,6 +412,7 @@ jobs:
 
             mkdir -p "$RELEASES/backups"
             mkdir -p "$STAGE"
+            trap 'rm -rf -- "$STAGE"' EXIT
 
             echo "=== 5. Extract to isolated staging ==="
 
@@ -564,11 +575,17 @@ jobs:
             echo "=== 10. Health checks (frontend and API) ==="
 
             HEALTHY=true
+            HEALTH_FILE="$STAGE/frontend-health.html"
 
-            curl -fsS --max-time 30 https://www.finoocean.com/ -o /dev/null || HEALTHY=false
+            if ! curl -fsS --max-time 30 https://www.finoocean.com/ -o "$HEALTH_FILE"; then
+              HEALTHY=false
+            elif ! grep -Fq '<app-root' "$HEALTH_FILE"; then
+              echo "ERROR: Frontend response does not contain the Angular app root."
+              HEALTHY=false
+            fi
 
             if [ "$HEALTHY" != "true" ]; then
-              echo "ERROR: Frontend health check failed."
+              echo "ERROR: Frontend health check failed; rolling back."
               rollback
               exit 1
             fi
@@ -587,5 +604,3 @@ jobs:
             esac
             echo "Publishing step completed for commit: $SOURCE_SHA"
             echo "Recovery archives and DB dump: $BACKUP"
-
-            rm -rf "$STAGE"
