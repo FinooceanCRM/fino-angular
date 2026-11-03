@@ -441,6 +441,10 @@ jobs:
                 exit;
             }
 
+            $_SERVER['SCRIPT_NAME'] = '/index.php';
+            $_SERVER['PHP_SELF'] = '/index.php';
+            $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/index.php';
+
             require $backendFrontController;
             PHP
 
@@ -478,6 +482,8 @@ jobs:
               -C "$HOME" \
               public_html/api
 
+            cp -p "$LIVE_FRONTEND/.htaccess" "$BACKUP/root-htaccess-before"
+
             tar -czf "$BACKUP/backend-before.tar.gz" \
               -C "$HOME" \
               --exclude='./fino-deploy/backend/.env' \
@@ -507,6 +513,7 @@ jobs:
               tar -xzf "$BACKUP/backend-before.tar.gz" -C "$HOME"
               rm -f "$LIVE_FRONTEND/api/index.php" "$LIVE_FRONTEND/api/.htaccess"
               tar -xzf "$BACKUP/api-before.tar.gz" -C "$HOME"
+              cp -p "$BACKUP/root-htaccess-before" "$LIVE_FRONTEND/.htaccess"
               (cd "$LIVE_BACKEND" && "$PHP_BIN" artisan optimize:clear) || true
               echo "Code restored. Database was NOT rolled back."
               echo "Database dump (if taken): $BACKUP/database-before.sql.gz"
@@ -546,6 +553,8 @@ jobs:
 
             echo "=== 7. Publish Angular frontend ==="
 
+            chmod -R u=rwX,go=rX "$FRONTEND_SOURCE"
+
             # --delay-updates stages files first and moves them in at the end,
             # shrinking the window where old and new files are mixed.
             rsync -a --delay-updates \
@@ -559,7 +568,32 @@ jobs:
 
             echo "=== 7b. Publish Laravel API front controller ==="
 
+            ROOT_HTACCESS="$LIVE_FRONTEND/.htaccess"
+            if ! grep -Fxq 'Options -Indexes' "$ROOT_HTACCESS"; then
+              sed -i '1i Options -Indexes' "$ROOT_HTACCESS"
+            fi
+
+            API_RULE_LINE="$(grep -nE '^[[:space:]]*RewriteRule[[:space:]]+\^api' \
+              "$ROOT_HTACCESS" | head -n 1 | cut -d: -f1)"
+
+            if ! grep -Fxq 'Options -Indexes' "$ROOT_HTACCESS" || [ -z "$API_RULE_LINE" ]; then
+              echo "ERROR: Could not configure the frontend rewrite to pass API paths through."
+              rollback
+              exit 1
+            fi
+
+            sed -i "${API_RULE_LINE}c\\  RewriteRule ^api/ - [L,NC]" "$ROOT_HTACCESS"
+            if ! grep -Eq '^[[:space:]]*RewriteRule[[:space:]]+\^api/' "$ROOT_HTACCESS"; then
+              echo "ERROR: Could not configure the frontend rewrite to pass API paths through."
+              rollback
+              exit 1
+            fi
+
+            chmod 755 "$LIVE_FRONTEND"
+
             rsync -a --delay-updates "$API_SOURCE/" "$LIVE_FRONTEND/api/"
+            chmod 755 "$LIVE_FRONTEND/api"
+            chmod 644 "$LIVE_FRONTEND/api/index.php" "$LIVE_FRONTEND/api/.htaccess"
 
             echo "=== 8. Publish Laravel application ==="
 
@@ -608,6 +642,10 @@ jobs:
             test -f "$LIVE_FRONTEND/.htaccess"
             test -d "$LIVE_FRONTEND/api"
             test -d "$LIVE_FRONTEND/media"
+            test "$(stat -c '%a' "$LIVE_FRONTEND")" = "755"
+            test -x "$LIVE_FRONTEND/api"
+            grep -Fxq 'Options -Indexes' "$LIVE_FRONTEND/.htaccess"
+            grep -Eq '^[[:space:]]*RewriteRule[[:space:]]+\^api/' "$LIVE_FRONTEND/.htaccess"
 
             test -f "$LIVE_BACKEND/.env"
             test -d "$LIVE_BACKEND/storage"
