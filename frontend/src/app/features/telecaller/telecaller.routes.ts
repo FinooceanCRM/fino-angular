@@ -142,6 +142,16 @@ export const telecallerRoutes: Routes = [
       ),
   },
   {
+    path: 'verification',
+    title: 'Verification desk — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['telecaller'] },
+    loadComponent: () =>
+      import('./verification/telecaller-verification.component').then(
+        (m) => m.TelecallerVerificationComponent,
+      ),
+  },
+  {
     path: 'follow-ups',
     title: 'Follow-ups — FINOOCEAN',
     canActivate: [authGuard, roleGuard],

@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatStepperModule } from '@angular/material/stepper';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { Lead } from '@core/models/lead.model';
 import { PdDetails, PdExistingLoan, PdFamilyMember, PdPartnerDirector } from '@core/models/pd.model';
@@ -27,6 +27,7 @@ import { PdPartnerDirectorsComponent } from './sections/partner-directors/partne
 import { PdProfessionalComponent } from './sections/professional/professional.component';
 import { PdPropertyComponent } from './sections/property/property.component';
 import { PdSalariedIncomeBankingComponent } from './sections/salaried-income-banking/salaried-income-banking.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 /**
  * Full PD (pre-disbursement verification) data-entry form — recreates the
@@ -42,11 +43,10 @@ import { PdSalariedIncomeBankingComponent } from './sections/salaried-income-ban
 @Component({
   selector: 'app-pd-form',
   standalone: true,
-  imports: [
+  imports: [BackButtonComponent, 
     CurrencyPipe,
     DatePipe,
     ReactiveFormsModule,
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,

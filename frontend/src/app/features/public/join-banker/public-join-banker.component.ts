@@ -54,7 +54,7 @@ const PRODUCTS: ReadonlyArray<{ key: string; label: string }> = [
     MatProgressBarModule,
   ],
   templateUrl: './public-join-banker.component.html',
-  styleUrl: './public-join-banker.component.scss',
+  styleUrl: '../partner-join.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicJoinBankerComponent {
@@ -112,6 +112,33 @@ export class PublicJoinBankerComponent {
   });
 
   protected readonly showPassword = signal(false);
+
+  /** The form is split in two so each part fits one screen: 1 = your details, 2 = bank & manager. */
+  protected readonly part = signal<1 | 2>(1);
+
+  private static readonly PART_ONE = [
+    'first_name', 'last_name', 'phone', 'email', 'city', 'state', 'pincode',
+    'country', 'pan_number', 'password', 'password_confirmation',
+  ] as const;
+
+  protected next(): void {
+    const controls = PublicJoinBankerComponent.PART_ONE.map((name) => this.form.controls[name]);
+    controls.forEach((c) => c.markAsTouched());
+    if (controls.some((c) => c.invalid)) {
+      return;
+    }
+    if (this.form.controls.password.value !== this.form.controls.password_confirmation.value) {
+      this.error.set('Passwords do not match.');
+      return;
+    }
+    this.error.set(null);
+    this.part.set(2);
+  }
+
+  protected back(): void {
+    this.error.set(null);
+    this.part.set(1);
+  }
 
   protected submit(): void {
     if (this.form.invalid || this.submitting()) {

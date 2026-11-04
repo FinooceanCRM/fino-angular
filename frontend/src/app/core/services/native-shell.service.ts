@@ -6,6 +6,7 @@ import { Keyboard, KeyboardResize } from '@capacitor/keyboard';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { StatusBar, Style } from '@capacitor/status-bar';
 
+import { NavigationHistoryService } from './navigation-history.service';
 import { PlatformService } from './platform.service';
 
 /**
@@ -19,6 +20,7 @@ export class NativeShellService {
   private readonly platform = inject(PlatformService);
   private readonly router = inject(Router);
   private readonly location = inject(Location);
+  private readonly history = inject(NavigationHistoryService);
 
   async init(): Promise<void> {
     if (!this.platform.isNative) {
@@ -40,10 +42,12 @@ export class NativeShellService {
       Keyboard.setResizeMode({ mode: KeyboardResize.Native }).catch(() => undefined);
     }
 
-    // Hardware back: navigate within the app history; if there is nowhere
+    // Hardware back: go up the page hierarchy like the in-page Back button; if there is nowhere
     // to go back to, let the OS background the app.
     App.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack || this.canGoBackInApp()) {
+      if (this.history.canGoBack()) {
+        this.history.back();
+      } else if (canGoBack || this.canGoBackInApp()) {
         this.location.back();
       } else {
         App.exitApp();

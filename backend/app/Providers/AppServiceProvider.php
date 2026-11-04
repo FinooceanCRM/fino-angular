@@ -60,8 +60,11 @@ use App\Policies\VendorCertificationPolicy;
 use App\Policies\VendorPolicy;
 use App\Services\CaptchaVerificationService;
 use App\Services\Contracts\CaptchaVerifierInterface;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -73,6 +76,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->configureRateLimiting();
+
         Model::preventLazyLoading(! app()->isProduction());
         Model::unguard(false);
 
@@ -104,5 +109,32 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Accountant::class, AccountantPolicy::class);
         Gate::policy(Vendor::class, VendorPolicy::class);
         Gate::policy(VendorCertification::class, VendorCertificationPolicy::class);
+    }
+
+    /**
+     * Throttles for sign-in and the public (unauthenticated) endpoints. They
+     * are OFF in the local environment so developers are never locked out
+     * while testing, and enforced everywhere else.
+     */
+    private function configureRateLimiting(): void
+    {
+        $perMinute = static fn (int $max) => static fn (Request $request) => app()->environment('local')
+            ? Limit::none()
+            : Limit::perMinute($max)->by($request->ip());
+
+        RateLimiter::for('sign-in', $perMinute(10));
+        RateLimiter::for('customer-register', $perMinute(5));
+        RateLimiter::for('public-eligibility', $perMinute(30));
+        RateLimiter::for('public-contact', $perMinute(5));
+        RateLimiter::for('portal-write', $perMinute(10));
+        RateLimiter::for('portal-upload', $perMinute(20));
+        // Funnel counters are cheap but easy to spam; the lead form is the one bots want, so it is the strictest.
+        RateLimiter::for('public-offer-events', $perMinute(120));
+        RateLimiter::for('public-offer-lead', static fn (Request $request) => app()->environment('local')
+            ? Limit::none()
+            : Limit::perHour(8)->by($request->ip()));
+        RateLimiter::for('public-inquiry', static fn (Request $request) => app()->environment('local')
+            ? Limit::none()
+            : Limit::perHour(10)->by($request->ip()));
     }
 }

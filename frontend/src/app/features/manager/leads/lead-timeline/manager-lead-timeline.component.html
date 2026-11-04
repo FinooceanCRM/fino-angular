@@ -6,10 +6,7 @@
     [statusLabel]="data.status_label"
     [statusColour]="data.status_colour"
   >
-    <a mat-stroked-button [routerLink]="[basePath(), data.id]">
-      <mat-icon>arrow_back</mat-icon>
-      Back to lead
-    </a>
+    <app-back-button variant="material" />
   </app-entity-header>
 
   <mat-card class="lead-timeline__card">

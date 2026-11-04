@@ -8,12 +8,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { AssignableUser, Lead, LeadAssignmentHistoryEntry } from '@core/models/lead.model';
 import { LeadService } from '@core/services/lead.service';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { EntityHeaderComponent } from '@shared/components/entity-header.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 const ROLE_LABEL: Record<string, string> = {
   relationship_manager: 'Relationship Manager',
@@ -26,10 +27,9 @@ const ROLE_LABEL: Record<string, string> = {
 @Component({
   selector: 'app-manager-lead-assignment',
   standalone: true,
-  imports: [
+  imports: [BackButtonComponent, 
     DatePipe,
     ReactiveFormsModule,
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatFormFieldModule,

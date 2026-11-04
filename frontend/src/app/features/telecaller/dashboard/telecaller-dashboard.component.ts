@@ -9,6 +9,7 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { RouterLink } from '@angular/router';
 
 import { TelecallerDashboard } from '@core/models/telecaller.model';
+import { VerificationSummary } from '@core/models/telecaller-verification.model';
 import { TelecallerService } from '@core/services/telecaller.service';
 import { DashboardHeroComponent } from '@shared/components/dashboard-hero.component';
 import { NotificationsPanelComponent } from '@shared/components/notifications-panel.component';
@@ -45,6 +46,11 @@ export class TelecallerDashboardComponent implements OnInit {
   protected readonly data = signal<TelecallerDashboard | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  /** Everything a person has to check: inquiries plus documents, KYC, bank accounts and messages. */
+  protected verificationTotal(v: VerificationSummary): number {
+    return v.new_inquiries + v.documents + v.kyc + v.bank_accounts + v.messages;
+  }
 
   ngOnInit(): void {
     this.loading.set(true);

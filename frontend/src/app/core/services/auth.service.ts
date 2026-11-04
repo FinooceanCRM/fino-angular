@@ -11,6 +11,7 @@ import {
   ChangePasswordPayload,
   LoginPayload,
   LoginResponse,
+  RegisterCustomerPayload,
   UpdatePreferencesPayload,
   UserRole,
 } from '@core/models/user.model';
@@ -59,7 +60,36 @@ export class AuthService {
           this.session.persist(response.token, response.user);
           this.userState.set(response.user);
           this.loadingState.set(false);
-          void this.push.register();
+          if (response.user.role !== 'customer') {
+            void this.push.register();
+          }
+        },
+        error: () => this.loadingState.set(false),
+      }),
+    );
+  }
+
+  /**
+   * Customer-portal sign-in. A separate API door from {@link login}: it only
+   * authenticates `customer` accounts, so it can never open a CRM workspace.
+   */
+  loginCustomer(payload: LoginPayload): Observable<LoginResponse> {
+    return this.startCustomerSession(this.api.post<LoginResponse>('customer/auth/login', payload));
+  }
+
+  registerCustomer(payload: RegisterCustomerPayload): Observable<LoginResponse> {
+    return this.startCustomerSession(this.api.post<LoginResponse>('customer/auth/register', payload));
+  }
+
+  private startCustomerSession(request: Observable<LoginResponse>): Observable<LoginResponse> {
+    this.loadingState.set(true);
+
+    return request.pipe(
+      tap({
+        next: (response) => {
+          this.session.persist(response.token, response.user);
+          this.userState.set(response.user);
+          this.loadingState.set(false);
         },
         error: () => this.loadingState.set(false),
       }),
@@ -77,7 +107,9 @@ export class AuthService {
       tap((user) => {
         this.session.persistUser(user);
         this.userState.set(user);
-        void this.push.register();
+        if (user.role !== 'customer') {
+          void this.push.register();
+        }
       }),
       catchError(() => {
         this.clear();
@@ -88,8 +120,11 @@ export class AuthService {
 
   logout(): Observable<unknown> {
     // Detach this device from push before the token is invalidated, so the
-    // DELETE call still carries a valid bearer token.
-    void this.push.unregister();
+    // DELETE call still carries a valid bearer token. Customers never
+    // register a device (their token cannot reach the staff endpoint).
+    if (this.role() !== 'customer') {
+      void this.push.unregister();
+    }
 
     return this.api.post('auth/logout').pipe(
       tap({

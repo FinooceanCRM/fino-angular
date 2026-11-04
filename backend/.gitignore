@@ -15,3 +15,7 @@
 .env
 .env.backup
 .phpunit.result.cache
+
+# Uploaded customer / lead documents and photos (personal data) - never commit
+/storage/app/private/*
+!/storage/app/private/.gitignore

@@ -34,6 +34,12 @@ enum UserRole: string
      * requests, nothing else.
      */
     case Vendor = 'vendor';
+    /**
+     * Public-website customer. Self-registers through the customer portal,
+     * stands completely outside the CRM: never reaches a staff route (see
+     * EnsureUserIsStaff) and only ever sees their own applications.
+     */
+    case Customer = 'customer';
 
     public function label(): string
     {
@@ -48,6 +54,7 @@ enum UserRole: string
             self::Affiliate => 'Affiliate',
             self::Accounts => 'Accounts',
             self::Vendor => 'Vendor',
+            self::Customer => 'Customer',
         };
     }
 
@@ -69,6 +76,7 @@ enum UserRole: string
             self::Affiliate => [],
             self::Accounts => [],
             self::Vendor => [],
+            self::Customer => [],
         };
     }
 
@@ -78,5 +86,15 @@ enum UserRole: string
     public static function values(): array
     {
         return array_map(static fn (self $role): string => $role->value, self::cases());
+    }
+
+    /**
+     * Roles a staff user-management form may assign (never the public Customer role).
+     *
+     * @return array<int, string>
+     */
+    public static function staffValues(): array
+    {
+        return array_values(array_filter(self::values(), static fn (string $v): bool => $v !== self::Customer->value));
     }
 }

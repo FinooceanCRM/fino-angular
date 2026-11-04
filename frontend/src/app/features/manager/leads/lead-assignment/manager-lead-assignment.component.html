@@ -6,10 +6,7 @@
     [statusLabel]="data.status_label"
     [statusColour]="data.status_colour"
   >
-    <a mat-stroked-button [routerLink]="['/manager/leads', data.id]">
-      <mat-icon>arrow_back</mat-icon>
-      Back to lead
-    </a>
+    <app-back-button variant="material" fallback="/manager/leads" />
   </app-entity-header>
 
   <div class="lead-assignment__columns">

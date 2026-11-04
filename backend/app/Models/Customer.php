@@ -22,7 +22,14 @@ class Customer extends Model
         'status',
         'notes',
         'created_by',
+        'user_id',
     ];
+
+    /** Portal login account for a self-registered customer (null for CRM-created records). */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
 
     public function creator(): BelongsTo
     {

@@ -1,3 +1,4 @@
+import { VerificationSummary } from './telecaller-verification.model';
 import { AuthenticatedUser } from './user.model';
 
 /** Telecaller-specific profile data (users table holds the identity). */
@@ -89,4 +90,6 @@ export interface TelecallerDashboard {
   };
   pending_follow_ups: TelecallerPendingFollowUp[];
   follow_up_reminders: TelecallerFollowUpReminders;
+  /** Customer submissions waiting for a person to check them. */
+  verification: VerificationSummary;
 }

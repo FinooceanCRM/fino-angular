@@ -90,6 +90,10 @@ export function roleNavItems(auth: AuthService): NavItem[] {
   if (auth.hasRole('super_admin')) {
     return [
       { label: 'Super Admin dashboard', link: '/super-admin/dashboard', icon: 'dashboard' },
+      // Website/customer-portal inquiry queue + manager routing rules.
+      { label: 'Customer Inquiries', link: '/inquiries', icon: 'contact_phone' },
+      // Offers shown to guest visitors (timed popup + landing page), popup settings and lead analytics.
+      { label: 'Lead Offers', link: '/super-admin/offers', icon: 'redeem' },
       // Bankers' "Request Full Details" access requests land here for
       // approval — same real, API-backed workflow as the Manager's
       // "Access approvals" tab (see manager.routes.ts `approvals`).
@@ -141,6 +145,9 @@ export function roleNavItems(auth: AuthService): NavItem[] {
   if (auth.hasRole('telecaller')) {
     return [
       { label: 'Telecaller dashboard', link: '/telecaller/dashboard', icon: 'dashboard' },
+      // Website + customer-portal leads awaiting a call. Telecaller/Super
+      // Admin only — the API refuses every other role.
+      { label: 'Customer Inquiries', link: '/inquiries', icon: 'contact_phone' },
       { label: 'My Submitted Leads', link: '/telecaller/leads', icon: 'assignment_ind' },
       { label: 'PD Queue', link: '/telecaller/leads/pd-queue', icon: 'call' },
       { label: 'Follow-ups', link: '/telecaller/follow-ups', icon: 'event_repeat' },

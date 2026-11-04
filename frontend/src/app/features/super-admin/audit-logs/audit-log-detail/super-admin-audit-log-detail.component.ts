@@ -11,6 +11,7 @@ import { AUDIT_EVENT_CATEGORY_ICON, AUDIT_EVENT_CATEGORY_LABEL, AuditLogEntry } 
 import { AuditLogService } from '@core/services/audit-log.service';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 interface RelatedLink {
   label: string;
@@ -29,7 +30,7 @@ interface RelatedLink {
 @Component({
   selector: 'app-super-admin-audit-log-detail',
   standalone: true,
-  imports: [DatePipe, RouterLink, MatButtonModule, MatCardModule, MatIconModule, MatProgressBarModule, EmptyStateComponent, PageHeaderComponent],
+  imports: [BackButtonComponent, DatePipe, RouterLink, MatButtonModule, MatCardModule, MatIconModule, MatProgressBarModule, EmptyStateComponent, PageHeaderComponent],
   templateUrl: './super-admin-audit-log-detail.component.html',
   styleUrl: './super-admin-audit-log-detail.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

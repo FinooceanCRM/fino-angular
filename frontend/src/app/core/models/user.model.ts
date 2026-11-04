@@ -8,7 +8,8 @@ export type UserRole =
   | 'telecaller'
   | 'affiliate'
   | 'accounts'
-  | 'vendor';
+  | 'vendor'
+  | 'customer';
 
 export const ROLE_LABELS: Record<UserRole, string> = {
   super_admin: 'Super Admin',
@@ -21,6 +22,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   affiliate: 'Affiliate',
   accounts: 'Accounts',
   vendor: 'Vendor',
+  customer: 'Customer',
 };
 
 /** Reporting hierarchy. Connector is intentionally outside of it. */
@@ -58,6 +60,15 @@ export interface AuthenticatedUser {
   notify_on_assignment: boolean;
   notify_on_approval: boolean;
   created_at: string | null;
+}
+
+export interface RegisterCustomerPayload {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  password_confirmation: string;
+  terms: boolean;
 }
 
 export interface ChangePasswordPayload {

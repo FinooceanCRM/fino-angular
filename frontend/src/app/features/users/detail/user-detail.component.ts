@@ -15,11 +15,12 @@ import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.compon
 import { LoadingComponent } from '@shared/components/loading.component';
 import { PageHeaderComponent } from '@shared/components/page-header.component';
 import { StatusPillComponent } from '@shared/components/status-pill.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 @Component({
   selector: 'app-user-detail',
   standalone: true,
-  imports: [
+  imports: [BackButtonComponent, 
     DatePipe,
     RouterLink,
     MatButtonModule,
@@ -106,10 +107,7 @@ import { StatusPillComponent } from '@shared/components/status-pill.component';
         </div>
       </mat-card>
 
-      <a class="profile-card__back" routerLink="/users">
-        <mat-icon>arrow_back</mat-icon>
-        Back to Users
-      </a>
+      <app-back-button variant="material" class="profile-card__back" fallback="/users" />
     }
   `,
   styles: [

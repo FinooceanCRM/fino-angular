@@ -24,6 +24,8 @@ export const ROLE_PERMISSIONS: Record<UserRole, AppPermission[]> = {
   // loan request) are gated by the DB permission matrix + `role:vendor`
   // API middleware, not by this coarse frontend map.
   vendor: [],
+  // Public-website customers live in /account only; no internal permissions.
+  customer: [],
 };
 
 export function permissionsForRole(role: UserRole | null): AppPermission[] {
@@ -59,4 +61,5 @@ export const ASSIGNABLE_ROLES: Record<UserRole, UserRole[]> = {
   // never created from the internal Users screen, like every other
   // independent role.
   vendor: [],
+  customer: [],
 };

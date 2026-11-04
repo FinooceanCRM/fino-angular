@@ -10,10 +10,7 @@
     [statusLabel]="statusLabel()"
     [statusColour]="statusColour()"
   >
-    <a mat-stroked-button routerLink="/customers">
-      <mat-icon>arrow_back</mat-icon>
-      Back to customers
-    </a>
+    <app-back-button variant="material" fallback="/customers" />
     <button mat-flat-button color="primary" type="button" class="tide-cta-pill" (click)="edit()">
       <mat-icon>edit</mat-icon>
       Edit

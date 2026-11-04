@@ -18,6 +18,7 @@
       [stats]="[
         { value: dashboard.pd_queue.pending, label: 'PD queue' },
         { value: dashboard.follow_up_reminders.today, label: 'Follow-ups today' },
+        { value: verificationTotal(dashboard.verification), label: 'To verify' },
       ]"
     />
 
@@ -26,6 +27,14 @@
         <mat-card-title>Quick actions</mat-card-title>
       </mat-card-header>
       <mat-card-actions class="telecaller-dashboard__actions">
+        <a mat-flat-button routerLink="/inquiries">
+          <mat-icon>inbox</mat-icon>
+          Customer inquiries ({{ dashboard.verification.new_inquiries }})
+        </a>
+        <a mat-flat-button routerLink="/telecaller/verification">
+          <mat-icon>fact_check</mat-icon>
+          Verification desk ({{ verificationTotal(dashboard.verification) - dashboard.verification.new_inquiries }})
+        </a>
         <a mat-stroked-button routerLink="/telecaller/leads">
           <mat-icon>assignment</mat-icon>
           My submitted leads
@@ -72,6 +81,35 @@
         accent="warn"
       />
     </div>
+
+    <mat-card class="telecaller-dashboard__reminder">
+      <mat-card-header>
+        <mat-icon mat-card-avatar>fact_check</mat-icon>
+        <mat-card-title>Waiting for you to check</mat-card-title>
+      </mat-card-header>
+      <mat-card-content class="telecaller-dashboard__reminder-counts">
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--today" routerLink="/inquiries">
+          <strong>{{ dashboard.verification.new_inquiries }}</strong>
+          <span>New inquiries</span>
+        </a>
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--overdue" routerLink="/telecaller/verification" [queryParams]="{ tab: 'documents' }">
+          <strong>{{ dashboard.verification.documents }}</strong>
+          <span>Documents</span>
+        </a>
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--overdue" routerLink="/telecaller/verification" [queryParams]="{ tab: 'kyc' }">
+          <strong>{{ dashboard.verification.kyc }}</strong>
+          <span>KYC files</span>
+        </a>
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--upcoming" routerLink="/telecaller/verification" [queryParams]="{ tab: 'bank-accounts' }">
+          <strong>{{ dashboard.verification.bank_accounts }}</strong>
+          <span>Bank accounts</span>
+        </a>
+        <a class="telecaller-dashboard__reminder-item telecaller-dashboard__reminder-item--upcoming" routerLink="/telecaller/verification" [queryParams]="{ tab: 'messages' }">
+          <strong>{{ dashboard.verification.messages }}</strong>
+          <span>Messages</span>
+        </a>
+      </mat-card-content>
+    </mat-card>
 
     <mat-card class="telecaller-dashboard__reminder">
       <mat-card-header>

@@ -1,12 +1,9 @@
-<div class="login">
-  <section class="login__hero tide-wave-banner">
+<div class="login login--fit">
+  <section class="login__hero">
     <div class="login__hero-content">
-      <div class="login__brand">
-        <span class="login__brand-icon">
-          <mat-icon>anchor</mat-icon>
-        </span>
-        <span class="login__brand-name">{{ appName }}</span>
-      </div>
+      <a class="login__back" routerLink="/"><span class="material-icons" aria-hidden="true">arrow_back</span>Back to website</a>
+      <img class="login__logo" src="/images/logo/logo-light.png" alt="FINOOCEAN" width="881" height="283" />
+      <span class="login__eyebrow">Partner · Vendor</span>
 
       <h1 class="login__headline">Join {{ appName }} as a vendor.</h1>
 
@@ -33,13 +30,13 @@
   </section>
 
   <section class="login__panel">
-    <div class="login__card">
+    <div class="login__card" [class.login__card--wide]="step() === 'form'">
       @if (submitting() || verifying()) {
         <mat-progress-bar mode="indeterminate" class="login__progress" />
       }
 
       @if (step() === 'done') {
-        <h2 class="login__title tide-display">You're verified</h2>
+        <h2 class="login__title">You're verified</h2>
         @if (error(); as message) {
           <p class="login__subtitle" role="alert">{{ message }}</p>
           <p class="login__subtitle">
@@ -50,11 +47,11 @@
             Your vendor account is active. Redirecting to your Vendor dashboard…
           </p>
         }
-        <a mat-flat-button color="primary" class="login__submit tide-cta-pill" routerLink="/auth/login">
+        <a mat-flat-button color="primary" class="login__submit" routerLink="/login">
           Sign in manually
         </a>
       } @else if (step() === 'otp') {
-        <h2 class="login__title tide-display">Enter your code</h2>
+        <h2 class="login__title">Enter your code</h2>
         <p class="login__subtitle">
           We sent a 6-digit code by SMS to your phone. Enter it below to
           activate your vendor account.
@@ -67,7 +64,7 @@
         }
 
         <form class="login__form" [formGroup]="otpForm" (ngSubmit)="verifyOtp()">
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Verification code</mat-label>
             <mat-icon matPrefix>sms</mat-icon>
             <input
@@ -87,7 +84,7 @@
             mat-flat-button
             color="primary"
             type="submit"
-            class="login__submit tide-cta-pill"
+            class="login__submit"
             [disabled]="otpForm.invalid || verifying()"
           >
             {{ verifying() ? 'Verifying…' : 'Verify' }}
@@ -108,14 +105,14 @@
           }
         </form>
       } @else {
-        <h2 class="login__title tide-display">Create your vendor account</h2>
+        <h2 class="login__title">Create your vendor account</h2>
         <p class="login__subtitle">
           Already registered?
-          <a class="login__inline-link" routerLink="/auth/login">Sign in</a>.
+          <a class="login__inline-link" routerLink="/login">Sign in</a>.
         </p>
 
-        <form class="login__form" [formGroup]="form" (ngSubmit)="submit()">
-          <mat-form-field appearance="outline">
+        <form class="login__form login__form--grid" [formGroup]="form" (ngSubmit)="submit()">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Full name</mat-label>
             <mat-icon matPrefix>person_outline</mat-icon>
             <input matInput type="text" formControlName="name" autocomplete="name" />
@@ -124,7 +121,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Business name</mat-label>
             <mat-icon matPrefix>storefront</mat-icon>
             <input matInput type="text" formControlName="business_name" autocomplete="organization" />
@@ -133,7 +130,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Email</mat-label>
             <mat-icon matPrefix>mail_outline</mat-icon>
             <input
@@ -148,7 +145,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Mobile number</mat-label>
             <mat-icon matPrefix>smartphone</mat-icon>
             <input
@@ -165,17 +162,17 @@
           </mat-form-field>
 
           <div class="login__row">
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label>City</mat-label>
               <input matInput type="text" formControlName="city" autocomplete="address-level2" />
             </mat-form-field>
-            <mat-form-field appearance="outline">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
               <mat-label>State</mat-label>
               <input matInput type="text" formControlName="state" autocomplete="address-level1" />
             </mat-form-field>
           </div>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Password</mat-label>
             <mat-icon matPrefix>lock_outline</mat-icon>
             <input
@@ -198,7 +195,7 @@
             }
           </mat-form-field>
 
-          <mat-form-field appearance="outline">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic">
             <mat-label>Confirm password</mat-label>
             <mat-icon matPrefix>lock_outline</mat-icon>
             <input
@@ -219,7 +216,7 @@
             mat-flat-button
             color="primary"
             type="submit"
-            class="login__submit tide-cta-pill"
+            class="login__submit"
             [disabled]="submitting()"
           >
             {{ submitting() ? 'Creating account…' : 'Create account' }}

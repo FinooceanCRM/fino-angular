@@ -32,6 +32,7 @@ import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.co
 
 import { CustomerDocumentPreviewDialogComponent } from '../document-preview-dialog/customer-document-preview-dialog.component';
 import { CustomerFormDialogComponent, CustomerFormDialogData } from '../customer-form-dialog/customer-form-dialog.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 const STATUS_LABEL: Record<CustomerStatus, string> = { active: 'Active', prospect: 'Prospect', inactive: 'Inactive' };
 const STATUS_COLOUR: Record<CustomerStatus, string> = { active: 'success', prospect: 'primary', inactive: 'default' };
@@ -49,7 +50,7 @@ const DOC_STATUS_COLOUR: Record<'pending' | 'verified' | 'rejected', string> = {
 @Component({
   selector: 'app-customer-profile',
   standalone: true,
-  imports: [
+  imports: [BackButtonComponent, 
     DatePipe,
     FormsModule,
     RouterLink,

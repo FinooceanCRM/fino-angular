@@ -21,6 +21,14 @@ export const superAdminRoutes: Routes = [
       ),
   },
   {
+    path: 'offers',
+    title: 'Lead offers — FINOOCEAN',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['super_admin'] },
+    loadComponent: () =>
+      import('./offers/super-admin-offers.component').then((m) => m.SuperAdminOffersComponent),
+  },
+  {
     path: 'users',
     title: 'Super Admin users — FINOOCEAN',
     canActivate: [authGuard, roleGuard],

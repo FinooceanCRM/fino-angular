@@ -9,6 +9,18 @@ import { PdExistingLoan, PdFamilyMember, PdPartnerDirector } from '@core/models/
  * resuming a partially-completed PD), so both build identically-shaped rows.
  */
 
+/**
+ * The loan opening date used to be a free-text DD/MM/YYYY box. It is a date picker now (value `YYYY-MM-DD`),
+ * so dates saved the old way are converted when the row is built; anything else is left as it was.
+ */
+export function toIsoDate(value: string | null | undefined): string | null {
+  if (!value) return null;
+  const m = /^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})$/.exec(value.trim());
+  if (!m) return value;
+  const [, d, mo, y] = m;
+  return `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
+}
+
 export function buildExistingLoanRow(fb: FormBuilder, seed?: Partial<PdExistingLoan>): FormGroup {
   return fb.group({
     Sr__No_: [seed?.Sr__No_ ?? null],
@@ -18,7 +30,7 @@ export function buildExistingLoanRow(fb: FormBuilder, seed?: Partial<PdExistingL
     Loan_Amount: [seed?.Loan_Amount ?? null],
     No__Of_EMI_Paid: [seed?.No__Of_EMI_Paid ?? null],
     UNPAID__Overdue_Amount: [seed?.UNPAID__Overdue_Amount ?? null],
-    Loan_Opening_Date: [seed?.Loan_Opening_Date ?? null],
+    Loan_Opening_Date: [toIsoDate(seed?.Loan_Opening_Date)],
     Total_No__of_Bounces: [seed?.Total_No__of_Bounces ?? null],
     Status: [seed?.Status ?? null],
     Loan_Tenure: [seed?.Loan_Tenure ?? null],

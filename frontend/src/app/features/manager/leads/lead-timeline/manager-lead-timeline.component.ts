@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input, signal } f
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { Lead, LeadStatusHistoryEntry } from '@core/models/lead.model';
 import { LeadService } from '@core/services/lead.service';
@@ -11,13 +11,13 @@ import { EntityHeaderComponent } from '@shared/components/entity-header.componen
 import { TimelineComponent, TimelineEntry } from '@shared/components/timeline.component';
 
 import { STATUS_STEP_ICON } from '../../data/models/lead-catalogue.model';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 /** Lead Timeline — the full status-change history for one lead, from the real `leads/:id` endpoint. */
 @Component({
   selector: 'app-manager-lead-timeline',
   standalone: true,
-  imports: [
-    RouterLink,
+  imports: [BackButtonComponent, 
     MatButtonModule,
     MatCardModule,
     MatIconModule,

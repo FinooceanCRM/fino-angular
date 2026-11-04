@@ -1,15 +1,44 @@
-<div class="page">
-  <header class="brand">
-    <span class="brand__name">FINOOCEAN</span>
-  </header>
+<div class="login login--fit">
+  <section class="login__hero">
+    <div class="login__hero-content">
+      <a class="login__back" routerLink="/"><span class="material-icons" aria-hidden="true">arrow_back</span>Back to website</a>
+      <img class="login__logo" src="/images/logo/logo-light.png" alt="FINOOCEAN" width="881" height="283" />
+      <span class="login__eyebrow">Partner · Connector</span>
 
-  <main class="card">
+      <h1 class="login__headline">Become a Finoocean connector.</h1>
+
+      <p class="login__tagline">
+        Refer customers who need a loan, follow every referral from one dashboard
+        and earn commissions on the loans that get disbursed.
+      </p>
+
+      <ul class="login__features">
+        <li>
+          <span class="login__feature-icon"><span class="material-icons">group_add</span></span>
+          <span>Refer customers and track each lead in your dashboard</span>
+        </li>
+        <li>
+          <span class="login__feature-icon"><span class="material-icons">payments</span></span>
+          <span>See your commissions and payouts in one place</span>
+        </li>
+        <li>
+          <span class="login__feature-icon"><span class="material-icons">shield</span></span>
+          <span>Phone-verified sign-up — your account, your data</span>
+        </li>
+      </ul>
+
+      <p class="login__alt">Already registered? <a routerLink="/login">Sign in</a></p>
+    </div>
+  </section>
+
+  <section class="login__panel">
+<div class="login__card" [class.login__card--wide]="step() === 'form'">
     @if (step() === 'done') {
       <div class="confirmation">
         <h1>You're verified</h1>
         @if (error(); as message) {
           <p class="form-error" role="alert">{{ message }}</p>
-          <p>Your connector account is active. Please sign in from the login page.</p>
+          <p>Your connector account is active. <a class="login__inline-link" routerLink="/login">Sign in</a> to open your dashboard.</p>
         } @else {
           <p>Your connector account is active. Redirecting to your dashboard…</p>
         }
@@ -69,109 +98,110 @@
         <p class="form-error" role="alert">{{ message }}</p>
       }
 
-      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-        <h2 class="section-title">Account</h2>
+      <form class="cform" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="cform__grid">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" type="text" formControlName="name" autocomplete="name" />
+            @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+              <span class="field-error">Your name is required.</span>
+            }
+          </div>
 
-        <div class="field">
-          <label for="name">Full name</label>
-          <input id="name" type="text" formControlName="name" autocomplete="name" />
-          @if (form.controls.name.touched && form.controls.name.hasError('required')) {
-            <span class="field-error">Your name is required.</span>
-          }
-        </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" type="email" formControlName="email" autocomplete="email" />
+            @if (form.controls.email.touched && form.controls.email.hasError('required')) {
+              <span class="field-error">Email is required.</span>
+            }
+            @if (form.controls.email.touched && form.controls.email.hasError('email')) {
+              <span class="field-error">Enter a valid email address.</span>
+            }
+          </div>
 
-        <div class="field">
-          <label for="email">Email</label>
-          <input id="email" type="email" formControlName="email" autocomplete="email" />
-          @if (form.controls.email.touched && form.controls.email.hasError('required')) {
-            <span class="field-error">Email is required.</span>
-          }
-          @if (form.controls.email.touched && form.controls.email.hasError('email')) {
-            <span class="field-error">Enter a valid email address.</span>
-          }
-        </div>
+          <div class="field">
+            <label for="phone">Phone number</label>
+            <input id="phone" type="tel" formControlName="phone" autocomplete="tel" placeholder="10-digit mobile number" />
+            @if (form.controls.phone.touched && form.controls.phone.hasError('required')) {
+              <span class="field-error">A phone number is required.</span>
+            } @else if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
+              <span class="field-error">Enter a valid phone number (10 to 15 digits).</span>
+            } @else {
+              <span class="field-hint">We'll send a verification code here.</span>
+            }
+          </div>
 
-        <div class="field">
-          <label for="phone">Phone number</label>
-          <input id="phone" type="tel" formControlName="phone" autocomplete="tel" placeholder="10-digit mobile number" />
-          <span class="field-hint">We'll send a verification code to this number.</span>
-          @if (form.controls.phone.touched && form.controls.phone.hasError('required')) {
-            <span class="field-error">A phone number is required.</span>
-          }
-          @if (form.controls.phone.touched && form.controls.phone.hasError('pattern')) {
-            <span class="field-error">Enter a valid phone number (10 to 15 digits).</span>
-          }
-        </div>
+          <div class="field">
+            <label for="alternate_phone">Alternate phone <em>(optional)</em></label>
+            <input id="alternate_phone" type="tel" formControlName="alternate_phone" autocomplete="tel" />
+          </div>
 
-        <div class="field">
-          <label for="password">Password</label>
-          <input id="password" type="password" formControlName="password" autocomplete="new-password" />
-          @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
-            <span class="field-error">Password must be at least 8 characters.</span>
-          }
-        </div>
+          <div class="field">
+            <label for="password">Password</label>
+            <input id="password" type="password" formControlName="password" autocomplete="new-password" />
+            @if (form.controls.password.touched && form.controls.password.hasError('minlength')) {
+              <span class="field-error">At least 8 characters.</span>
+            }
+          </div>
 
-        <div class="field">
-          <label for="password_confirmation">Confirm password</label>
-          <input
-            id="password_confirmation"
-            type="password"
-            formControlName="password_confirmation"
-            autocomplete="new-password"
-          />
+          <div class="field">
+            <label for="password_confirmation">Confirm password</label>
+            <input id="password_confirmation" type="password" formControlName="password_confirmation" autocomplete="new-password" />
+          </div>
         </div>
 
         <h2 class="section-title">Business details (optional)</h2>
 
-        <div class="field">
-          <label for="company_name">Company name</label>
-          <input id="company_name" type="text" formControlName="company_name" />
+        <div class="cform__grid">
+          <div class="field">
+            <label for="company_name">Company name</label>
+            <input id="company_name" type="text" formControlName="company_name" />
+          </div>
+
+          <div class="field">
+            <label for="contact_person">Contact person</label>
+            <input id="contact_person" type="text" formControlName="contact_person" />
+          </div>
+
+          <div class="field cform__wide">
+            <label for="address_line1">Address</label>
+            <input id="address_line1" type="text" formControlName="address_line1" />
+          </div>
         </div>
 
-        <div class="field">
-          <label for="contact_person">Contact person</label>
-          <input id="contact_person" type="text" formControlName="contact_person" />
+        <div class="cform__grid cform__grid--3">
+          <div class="field">
+            <label for="city">City</label>
+            <input id="city" type="text" formControlName="city" autocomplete="address-level2" />
+          </div>
+
+          <div class="field">
+            <label for="state">State</label>
+            <input id="state" type="text" formControlName="state" autocomplete="address-level1" />
+          </div>
+
+          <div class="field">
+            <label for="pincode">Pincode</label>
+            <input id="pincode" type="text" formControlName="pincode" />
+            @if (form.controls.pincode.touched && form.controls.pincode.hasError('pattern')) {
+              <span class="field-error">4 to 10 digits.</span>
+            }
+          </div>
         </div>
 
-        <div class="field">
-          <label for="alternate_phone">Alternate phone</label>
-          <input id="alternate_phone" type="tel" formControlName="alternate_phone" autocomplete="tel" />
-        </div>
+        <div class="cform__grid">
+          <div class="field">
+            <label for="pan_number">PAN number</label>
+            <input id="pan_number" type="text" formControlName="pan_number" />
+            @if (form.controls.pan_number.touched && form.controls.pan_number.hasError('pattern')) {
+              <span class="field-error">10 alphanumeric characters.</span>
+            }
+          </div>
 
-        <div class="field">
-          <label for="address_line1">Address</label>
-          <input id="address_line1" type="text" formControlName="address_line1" />
-        </div>
-
-        <div class="field">
-          <label for="city">City</label>
-          <input id="city" type="text" formControlName="city" autocomplete="address-level2" />
-        </div>
-
-        <div class="field">
-          <label for="state">State</label>
-          <input id="state" type="text" formControlName="state" autocomplete="address-level1" />
-        </div>
-
-        <div class="field">
-          <label for="pincode">Pincode</label>
-          <input id="pincode" type="text" formControlName="pincode" />
-          @if (form.controls.pincode.touched && form.controls.pincode.hasError('pattern')) {
-            <span class="field-error">Enter 4 to 10 digits.</span>
-          }
-        </div>
-
-        <div class="field">
-          <label for="pan_number">PAN number</label>
-          <input id="pan_number" type="text" formControlName="pan_number" />
-          @if (form.controls.pan_number.touched && form.controls.pan_number.hasError('pattern')) {
-            <span class="field-error">PAN must be 10 alphanumeric characters.</span>
-          }
-        </div>
-
-        <div class="field">
-          <label for="gst_number">GST number</label>
-          <input id="gst_number" type="text" formControlName="gst_number" />
+          <div class="field">
+            <label for="gst_number">GST number</label>
+            <input id="gst_number" type="text" formControlName="gst_number" />
+          </div>
         </div>
 
         <button type="submit" class="submit-btn" [disabled]="submitting()">
@@ -179,5 +209,6 @@
         </button>
       </form>
     }
-  </main>
+    </div>
+  </section>
 </div>

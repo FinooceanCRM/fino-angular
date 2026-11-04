@@ -25,6 +25,7 @@ const ROLE_DESCRIPTION: Record<UserRole, string> = {
   affiliate: 'Self-service referral partner; tracks referral leads and commission payouts.',
   accounts: 'Finance/reconciliation staff; reviews disbursements, commission liability and the payout queue across every connector and affiliate.',
   vendor: 'Self-service street vendor; creates their own Vendor Certification and submits loan requests. No access to any internal workspace.',
+  customer: 'Public-website customer; applies for loans and tracks their own applications in the customer portal. No access to any CRM workspace.',
 };
 
 interface RoleRow {

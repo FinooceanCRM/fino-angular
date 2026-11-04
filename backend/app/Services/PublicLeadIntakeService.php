@@ -63,6 +63,7 @@ class PublicLeadIntakeService extends BaseService
                 'loan_amount' => $data['loan_amount'],
                 'city' => $data['city'],
                 'status' => LeadStatus::New->value,
+                'source' => 'public_referral',
                 'created_by' => $referredBy !== null && $referredBy->roleEnum() !== UserRole::Connector ? $referredBy->id : null,
                 'connector_id' => $referredBy?->roleEnum() === UserRole::Connector ? $referredBy->id : null,
                 'affiliate_id' => $affiliateId,

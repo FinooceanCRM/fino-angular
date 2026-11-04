@@ -23,6 +23,7 @@ class TelecallerService extends BaseService
         private readonly TelecallerRepositoryInterface $telecallers,
         private readonly LoanLeadRepositoryInterface $leads,
         private readonly TelecallerFollowUpService $followUps,
+        private readonly TelecallerVerificationService $verification,
     ) {
     }
 
@@ -114,6 +115,8 @@ class TelecallerService extends BaseService
             'pd_queue' => $this->pdQueueStats($user),
             'pending_follow_ups' => $this->pendingFollowUps($user),
             'follow_up_reminders' => $this->followUps->reminderCounts($user),
+            // Customer inquiries, documents, KYC, bank accounts and messages waiting for a person to check.
+            'verification' => $this->verification->summary($user),
         ];
     }
 

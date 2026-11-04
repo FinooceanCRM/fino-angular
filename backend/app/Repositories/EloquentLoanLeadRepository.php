@@ -135,6 +135,9 @@ class EloquentLoanLeadRepository implements LoanLeadRepositoryInterface
             UserRole::Vendor => $query->where(function (Builder $q) use ($actor): void {
                 $q->where('vendor_id', $actor->id)->orWhere('created_by', $actor->id);
             }),
+            // Customers never read through the CRM lead query — they have
+            // their own isolated portal queries (CustomerPortalService).
+            UserRole::Customer => $query->whereRaw('1 = 0'),
         };
     }
 

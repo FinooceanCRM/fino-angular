@@ -46,6 +46,15 @@ class LoanLead extends Model
         'pd_details',
         'notes',
         'details',
+        'source',
+        'customer_id',
+        'offer_id',
+        'visitor_id',
+        'inquiry_status',
+        'inquiry_key',
+        'last_contacted_at',
+        'next_follow_up_at',
+        'resubmission_count',
     ];
 
     protected function casts(): array
@@ -60,7 +69,25 @@ class LoanLead extends Model
             'pd_completed_at' => 'datetime',
             'pd_details' => 'array',
             'details' => 'array',
+            'last_contacted_at' => 'datetime',
+            'next_follow_up_at' => 'datetime',
+            'resubmission_count' => 'integer',
         ];
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function offer(): BelongsTo
+    {
+        return $this->belongsTo(LeadOffer::class)->withTrashed();
+    }
+
+    public function inquiryActivities(): HasMany
+    {
+        return $this->hasMany(InquiryActivity::class);
     }
 
     public function statusEnum(): LeadStatus

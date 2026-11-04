@@ -24,6 +24,15 @@ use App\Http\Controllers\Api\V1\LedgerController;
 use App\Http\Controllers\Api\V1\ManagerController;
 use App\Http\Controllers\Api\V1\NotificationController;
 use App\Http\Controllers\Api\V1\PermissionController;
+use App\Http\Controllers\Api\V1\InquiryController;
+use App\Http\Controllers\Api\V1\Portal\CustomerAuthController;
+use App\Http\Controllers\Api\V1\Portal\CustomerPortalController;
+use App\Http\Controllers\Api\V1\Portal\CustomerProfileController;
+use App\Http\Controllers\Api\V1\Public\PublicCatalogController;
+use App\Http\Controllers\Api\V1\Public\PublicEngagementController;
+use App\Http\Controllers\Api\V1\Public\PublicInquiryController;
+use App\Http\Controllers\Api\V1\Public\PublicOfferController;
+use App\Http\Controllers\Api\V1\SuperAdminOfferController;
 use App\Http\Controllers\Api\V1\Public\AffiliateRegistrationController;
 use App\Http\Controllers\Api\V1\Public\BankerRegistrationController;
 use App\Http\Controllers\Api\V1\Public\ConnectorRegistrationController;
@@ -39,6 +48,7 @@ use App\Http\Controllers\Api\V1\SuperAdminController;
 use App\Http\Controllers\Api\V1\TaskController;
 use App\Http\Controllers\Api\V1\TelecallerController;
 use App\Http\Controllers\Api\V1\TelecallerFollowUpController;
+use App\Http\Controllers\Api\V1\TelecallerVerificationController;
 use App\Http\Controllers\Api\V1\UserController;
 use App\Http\Controllers\Api\V1\VendorCertificationController;
 use App\Http\Controllers\Api\V1\VendorController;
@@ -54,7 +64,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
     Route::get('health', [HealthController::class, 'index'])->name('health');
 
     Route::post('auth/login', [AuthController::class, 'login'])
-        ->middleware('throttle:10,1')
+        ->middleware('throttle:sign-in')
         ->name('auth.login');
 
     // Self-service affiliate signup (Phase 2). Public: no auth, no admin
@@ -114,10 +124,51 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         ->middleware('throttle:20,60')
         ->name('public.leads.store');
 
+    // Public website: product catalogue, preliminary eligibility estimate and
+    // inquiry submission (anonymous, or linked to a customer's own account
+    // when they send their bearer token). Rate-limited: unauthenticated.
+    Route::prefix('public')->name('public.')->group(function (): void {
+        Route::get('loan-products', [PublicCatalogController::class, 'products'])->name('products.index');
+        Route::get('loan-products/{slug}', [PublicCatalogController::class, 'product'])->name('products.show');
+        Route::post('eligibility', [PublicCatalogController::class, 'eligibility'])
+            ->middleware('throttle:public-eligibility')->name('eligibility');
+        Route::post('contact', [PublicEngagementController::class, 'contact'])
+            ->middleware('throttle:public-contact')->name('contact');
+        Route::post('newsletter', [PublicEngagementController::class, 'subscribe'])
+            ->middleware('throttle:public-contact')->name('newsletter');
+        // Offer popup / landing page / lead form for guest visitors (see OfferService).
+        Route::get('offers/popup', [PublicOfferController::class, 'popup'])->name('offers.popup');
+        Route::post('offers/events', [PublicOfferController::class, 'event'])
+            ->middleware('throttle:public-offer-events')->name('offers.events');
+        Route::post('offers/callback', [PublicOfferController::class, 'callback'])
+            ->middleware('throttle:public-offer-lead')->name('offers.callback');
+        Route::get('offers/{slug}', [PublicOfferController::class, 'show'])->name('offers.show');
+        Route::get('offers/{slug}/image', [PublicOfferController::class, 'image'])->name('offers.image');
+        Route::post('offers/{slug}/leads', [PublicOfferController::class, 'lead'])
+            ->middleware('throttle:public-offer-lead')->name('offers.lead');
+        Route::post('inquiries', [PublicInquiryController::class, 'store'])
+            ->middleware('throttle:public-inquiry')->name('inquiries.store');
+    });
+
+    // Customer portal sign-up / sign-in. A separate door from /auth/login:
+    // it authenticates `customer` accounts only (and the staff login refuses
+    // them), so a customer login can never open a CRM workspace.
+    Route::prefix('customer/auth')->name('customer.auth.')->group(function (): void {
+        Route::post('register', [CustomerAuthController::class, 'register'])
+            ->middleware('throttle:customer-register')->name('register');
+        Route::post('login', [CustomerAuthController::class, 'login'])
+            ->middleware('throttle:sign-in')->name('login');
+    });
+
     Route::middleware(['auth:sanctum', 'auth.active'])->group(function (): void {
         Route::get('auth/me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('auth/logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::post('auth/password', [AuthController::class, 'updatePassword'])->name('auth.password.update');
+        // Everything below is CRM-only. Customers (public-website accounts)
+        // hold a valid Sanctum token too, so `staff` must fence them out of
+        // every route that follows; they only get /auth/me, logout and
+        // password above plus their own /customer/* group further down.
+        Route::middleware('staff')->group(function (): void {
         Route::put('auth/preferences', [AuthController::class, 'updatePreferences'])->name('auth.preferences.update');
         Route::get('me/lead-referral-link', [AuthController::class, 'leadReferralLink'])->name('me.lead-referral-link');
 
@@ -592,5 +643,129 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
             Route::delete('{user}', [UserController::class, 'destroy'])
                 ->middleware('permission:users.delete')->name('destroy');
         });
+
+        // Offer lead generation: offers, popup settings and analytics (super admin only).
+        Route::prefix('super-admin/offers')->name('super-admin.offers.')
+            ->middleware('role:super_admin')
+            ->group(function (): void {
+                Route::get('meta', [SuperAdminOfferController::class, 'meta'])->name('meta');
+                Route::get('settings', [SuperAdminOfferController::class, 'settings'])->name('settings.show');
+                Route::put('settings', [SuperAdminOfferController::class, 'updateSettings'])->name('settings.update');
+                Route::get('analytics', [SuperAdminOfferController::class, 'analytics'])->name('analytics');
+                Route::get('/', [SuperAdminOfferController::class, 'index'])->name('index');
+                Route::post('/', [SuperAdminOfferController::class, 'store'])->name('store');
+                Route::get('{offer}', [SuperAdminOfferController::class, 'show'])->whereNumber('offer')->name('show');
+                Route::put('{offer}', [SuperAdminOfferController::class, 'update'])->whereNumber('offer')->name('update');
+                Route::delete('{offer}', [SuperAdminOfferController::class, 'destroy'])->whereNumber('offer')->name('destroy');
+                Route::post('{offer}/image', [SuperAdminOfferController::class, 'uploadImage'])->whereNumber('offer')->name('image.store');
+                Route::delete('{offer}/image', [SuperAdminOfferController::class, 'removeImage'])->whereNumber('offer')->name('image.destroy');
+            });
+
+        // Telecaller verification desk: customer documents, KYC files, bank accounts and website messages that a
+        // person still has to check. Telecaller and Super Admin only (repeated inside the service).
+        Route::prefix('telecallers/verification')->name('telecallers.verification.')
+            ->middleware('role:telecaller,super_admin')
+            ->group(function (): void {
+                Route::get('summary', [TelecallerVerificationController::class, 'summary'])->name('summary');
+                Route::get('documents', [TelecallerVerificationController::class, 'documents'])->name('documents.index');
+                Route::get('documents/{id}/download', [TelecallerVerificationController::class, 'downloadDocument'])->whereNumber('id')->name('documents.download');
+                Route::post('documents/{id}/verify', [TelecallerVerificationController::class, 'verifyDocument'])->whereNumber('id')->name('documents.verify');
+                Route::post('documents/{id}/reject', [TelecallerVerificationController::class, 'rejectDocument'])->whereNumber('id')->name('documents.reject');
+                Route::get('kyc', [TelecallerVerificationController::class, 'kyc'])->name('kyc.index');
+                Route::get('kyc/{id}/download', [TelecallerVerificationController::class, 'downloadKyc'])->whereNumber('id')->name('kyc.download');
+                Route::post('kyc/{id}/verify', [TelecallerVerificationController::class, 'verifyKyc'])->whereNumber('id')->name('kyc.verify');
+                Route::post('kyc/{id}/reject', [TelecallerVerificationController::class, 'rejectKyc'])->whereNumber('id')->name('kyc.reject');
+                Route::get('bank-accounts', [TelecallerVerificationController::class, 'banks'])->name('banks.index');
+                Route::post('bank-accounts/{id}/verify', [TelecallerVerificationController::class, 'verifyBank'])->whereNumber('id')->name('banks.verify');
+                Route::get('messages', [TelecallerVerificationController::class, 'messages'])->name('messages.index');
+                Route::post('messages/{id}/handled', [TelecallerVerificationController::class, 'handleMessage'])->whereNumber('id')->name('messages.handled');
+            });
+
+        // Customer Inquiries queue — website + customer-portal leads that
+        // are not yet with a Manager. Telecaller and Super Admin ONLY; every
+        // other role (Manager, Banker, RM, ...) gets a 403 here, and the same
+        // check is repeated in InquiryQueueService.
+        Route::prefix('inquiries')->name('inquiries.')
+            ->middleware('role:telecaller,super_admin')
+            ->group(function (): void {
+                Route::get('/', [InquiryController::class, 'index'])->name('index');
+                Route::get('meta', [InquiryController::class, 'meta'])->name('meta');
+                Route::get('stats', [InquiryController::class, 'stats'])->name('stats');
+                Route::get('routing-rules', [InquiryController::class, 'routingRules'])->name('routing-rules.index');
+                Route::put('routing-rules/{department}', [InquiryController::class, 'setRoutingRule'])
+                    ->middleware('role:super_admin')->name('routing-rules.update');
+                Route::get('{inquiry}', [InquiryController::class, 'show'])->whereNumber('inquiry')->name('show');
+                Route::post('{inquiry}/claim', [InquiryController::class, 'claim'])->whereNumber('inquiry')->name('claim');
+                Route::put('{inquiry}/status', [InquiryController::class, 'updateStatus'])->whereNumber('inquiry')->name('status');
+                Route::post('{inquiry}/activities', [InquiryController::class, 'addActivity'])->whereNumber('inquiry')->name('activities.store');
+                Route::get('{inquiry}/managers', [InquiryController::class, 'managers'])->whereNumber('inquiry')->name('managers');
+                Route::post('{inquiry}/assign', [InquiryController::class, 'assign'])->whereNumber('inquiry')->name('assign');
+            });
+        });
+
+        // Customer portal. `role:customer` only — staff tokens get 403. Every
+        // handler resolves data through the caller's own customer record.
+        Route::prefix('customer')->name('customer.')
+            ->middleware('role:customer')
+            ->group(function (): void {
+                Route::put('profile', [CustomerAuthController::class, 'updateProfile'])->name('profile.update');
+                // Profile section: personal details, KYC, bank, UPI, communication, security, closing the account.
+                Route::get('profile', [CustomerProfileController::class, 'show'])->name('profile.show');
+                Route::get('profile/prefill', [CustomerProfileController::class, 'prefill'])->name('profile.prefill');
+                Route::patch('profile/details', [CustomerProfileController::class, 'updateDetails'])->name('profile.details');
+                Route::put('profile/addresses', [CustomerProfileController::class, 'updateAddresses'])->name('profile.addresses');
+                Route::post('profile/photo', [CustomerProfileController::class, 'uploadPhoto'])
+                    ->middleware('throttle:portal-upload')->name('profile.photo.store');
+                Route::get('profile/photo', [CustomerProfileController::class, 'photo'])->name('profile.photo.show');
+                Route::delete('profile/photo', [CustomerProfileController::class, 'removePhoto'])->name('profile.photo.destroy');
+                Route::get('kyc', [CustomerProfileController::class, 'kyc'])->name('kyc.index');
+                Route::post('kyc/{type}', [CustomerProfileController::class, 'uploadKyc'])
+                    ->middleware('throttle:portal-upload')->name('kyc.store');
+                Route::get('kyc/documents/{document}/download', [CustomerProfileController::class, 'downloadKyc'])
+                    ->whereNumber('document')->name('kyc.download');
+                Route::get('bank-accounts', [CustomerProfileController::class, 'banks'])->name('banks.index');
+                Route::post('bank-accounts', [CustomerProfileController::class, 'addBank'])
+                    ->middleware('throttle:portal-write')->name('banks.store');
+                Route::post('bank-accounts/{id}/primary', [CustomerProfileController::class, 'primaryBank'])
+                    ->whereNumber('id')->name('banks.primary');
+                Route::delete('bank-accounts/{id}', [CustomerProfileController::class, 'deleteBank'])
+                    ->whereNumber('id')->name('banks.destroy');
+                Route::get('upi-ids', [CustomerProfileController::class, 'upi'])->name('upi.index');
+                Route::post('upi-ids', [CustomerProfileController::class, 'addUpi'])
+                    ->middleware('throttle:portal-write')->name('upi.store');
+                Route::post('upi-ids/{id}/primary', [CustomerProfileController::class, 'primaryUpi'])
+                    ->whereNumber('id')->name('upi.primary');
+                Route::delete('upi-ids/{id}', [CustomerProfileController::class, 'deleteUpi'])
+                    ->whereNumber('id')->name('upi.destroy');
+                Route::get('communication', [CustomerProfileController::class, 'communication'])->name('communication.show');
+                Route::put('communication', [CustomerProfileController::class, 'updateCommunication'])->name('communication.update');
+                Route::get('security/sessions', [CustomerProfileController::class, 'sessions'])->name('security.sessions');
+                Route::delete('security/sessions/others', [CustomerProfileController::class, 'signOutOthers'])->name('security.sessions.others');
+                Route::get('data-export', [CustomerProfileController::class, 'export'])->name('data.export');
+                Route::post('account/deletion-request', [CustomerProfileController::class, 'requestDeletion'])
+                    ->middleware('throttle:portal-write')->name('account.deletion.store');
+                Route::delete('account/deletion-request', [CustomerProfileController::class, 'cancelDeletion'])->name('account.deletion.destroy');
+                Route::post('account/deactivate', [CustomerProfileController::class, 'deactivate'])
+                    ->middleware('throttle:portal-write')->name('account.deactivate');
+                Route::get('dashboard', [CustomerPortalController::class, 'dashboard'])->name('dashboard');
+                Route::get('applications', [CustomerPortalController::class, 'applications'])->name('applications.index');
+                Route::post('applications', [CustomerPortalController::class, 'apply'])
+                    ->middleware('throttle:portal-write')->name('applications.store');
+                Route::get('applications/{lead}', [CustomerPortalController::class, 'application'])
+                    ->whereNumber('lead')->name('applications.show');
+                Route::post('applications/{lead}/documents', [CustomerPortalController::class, 'uploadDocument'])
+                    ->whereNumber('lead')->middleware('throttle:portal-upload')->name('applications.documents.store');
+                Route::post('otp/send', [CustomerPortalController::class, 'sendOtp'])
+                    ->middleware('throttle:portal-write')->name('otp.send');
+                Route::post('otp/verify', [CustomerPortalController::class, 'verifyOtp'])
+                    ->middleware('throttle:portal-write')->name('otp.verify');
+                Route::get('documents', [CustomerPortalController::class, 'documents'])->name('documents.index');
+                Route::get('documents/{document}/download', [CustomerPortalController::class, 'downloadDocument'])
+                    ->whereNumber('document')->name('documents.download');
+                Route::get('notifications', [CustomerPortalController::class, 'notifications'])->name('notifications.index');
+                Route::post('notifications/read-all', [CustomerPortalController::class, 'markAllNotificationsRead'])->name('notifications.read-all');
+                Route::post('notifications/{notification}/read', [CustomerPortalController::class, 'markNotificationRead'])
+                    ->whereNumber('notification')->name('notifications.read');
+            });
     });
 });

@@ -6,7 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
@@ -18,14 +18,14 @@ import { UserFormModalComponent, UserFormModalResult } from '@features/super-adm
 import { ManagerTeamDataProvider } from '../../team/data/manager-team-data.provider';
 import { ManagerTeamActivityComponent } from '../../team/team-activity/manager-team-activity.component';
 import { ManagerTeamPerformanceCardsComponent } from '../../team/team-performance-cards/manager-team-performance-cards.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 /** Relationship Manager "View page" — profile, their employee roster, individual performance and activity. */
 @Component({
   selector: 'app-manager-relationship-manager-detail',
   standalone: true,
-  imports: [
+  imports: [BackButtonComponent, 
     DatePipe,
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,

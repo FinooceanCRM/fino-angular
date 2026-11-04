@@ -29,6 +29,7 @@ import { LeadDataProvider } from '../../data/providers/lead-data.provider';
 import { NoteDataProvider } from '../../data/providers/note-data.provider';
 import { UserDataProvider } from '../../data/providers/user-data.provider';
 import { DocumentPreviewModalComponent } from './document-preview-modal/document-preview-modal.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 const STEP_ICON: Record<string, string> = {
   new: 'add_circle',
@@ -63,7 +64,7 @@ const CURRENT_ACTOR = { name: 'Arjun Mehta', role: 'Super Admin' };
 @Component({
   selector: 'app-super-admin-lead-detail',
   standalone: true,
-  imports: [
+  imports: [BackButtonComponent, 
     CurrencyPipe,
     DatePipe,
     ReactiveFormsModule,

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '@core/services/auth.service';
 import { PublicConnectorRegistrationService } from '@core/services/public-connector-registration.service';
@@ -21,9 +21,9 @@ type Step = 'form' | 'otp' | 'done';
 @Component({
   selector: 'app-public-join-connector',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './public-join-connector.component.html',
-  styleUrl: './public-join-connector.component.scss',
+  styleUrl: '../partner-join.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicJoinConnectorComponent {

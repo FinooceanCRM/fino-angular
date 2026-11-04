@@ -1,8 +1,5 @@
 @if (lead(); as data) {
-  <a class="lead-detail__back" routerLink="/super-admin/leads">
-    <mat-icon>arrow_back</mat-icon>
-    Back to leads
-  </a>
+  <app-back-button variant="material" class="lead-detail__back" fallback="/super-admin/leads" />
 
   <app-entity-header
     [title]="data.applicant_name"

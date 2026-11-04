@@ -7,11 +7,13 @@ use App\Enums\LeadStatus;
 use App\Enums\LoanType;
 use App\Enums\UserRole;
 use App\Exceptions\DomainException;
+use App\Models\Customer;
 use App\Models\LeadAssignment;
 use App\Models\LeadStatusHistory;
 use App\Models\LoanLead;
 use App\Models\User;
 use App\Repositories\Contracts\LoanLeadRepositoryInterface;
+use App\Support\CustomerFacingStatus;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Str;
 
@@ -257,6 +259,8 @@ class LeadService extends BaseService
                 ['lead_id' => $lead->id, 'status' => $target->value],
             );
 
+            $this->notifyCustomerOfStatus($lead, $target);
+
             // Commission accrues on the disbursed transition only (never on
             // update() or any other write path) — see AffiliateCommissionService.
             // Disbursed can only ever move on to Closed (LeadStatus::allowedNextStatuses()),
@@ -493,6 +497,31 @@ class LeadService extends BaseService
         if ($assignee->department !== null && $assignee->department->value !== $lead->department?->value) {
             throw new DomainException("This lead's department does not match the assignee's department.", 422);
         }
+    }
+
+    /**
+     * Tells a portal customer about progress on their own application, using
+     * only the customer-facing wording — never the internal status or remarks.
+     */
+    private function notifyCustomerOfStatus(LoanLead $lead, LeadStatus $target): void
+    {
+        if ($lead->customer_id === null) {
+            return;
+        }
+
+        $userId = Customer::query()->whereKey($lead->customer_id)->value('user_id');
+        if ($userId === null) {
+            return;
+        }
+
+        $view = CustomerFacingStatus::for($target);
+        $this->notifications->notify(
+            (int) $userId,
+            $view['action_required'] ? 'customer.documents_required' : 'customer.status_changed',
+            'Application update: '.$view['label'],
+            sprintf('%s — %s', $lead->reference, $view['message']),
+            ['lead_id' => $lead->id],
+        );
     }
 
     private function recordStatus(LoanLead $lead, ?string $from, string $to, int $changedBy, ?string $remarks): void

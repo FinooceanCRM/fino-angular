@@ -1,0 +1,676 @@
+// Shared look for the three partner sign-up pages (connector, vendor, banker):
+// a sticky brand panel on the left and a clean form card on the right. The
+// panel stays in view while the long form scrolls, so it is never "blank".
+// Colours follow the public website palette (see website.config / layout).
+
+:host {
+  --pj-navy: #082a55;
+  --pj-navy-2: #0d3a75;
+  --pj-blue: #1c6df0;
+  --pj-blue-dark: #1558c8;
+  --pj-soft: #eef4ff;
+  --pj-ink: #10213a;
+  --pj-muted: #5b6b82;
+  --pj-line: #e3eaf4;
+  --pj-line-strong: #c5d3ea;
+  --pj-red: #d33a2c;
+
+  display: block;
+  min-height: 100vh;
+  background: #f4f7fc;
+  color: var(--pj-ink);
+  font-family: Poppins, system-ui, sans-serif;
+}
+
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  min-height: 100vh;
+}
+
+// ── brand panel ───────────────────────────────────────────────────────────────
+
+.login__hero {
+  color: #fff;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(77, 196, 255, 0.2), transparent 50%),
+    linear-gradient(160deg, #061a3d, #0a2f66 60%, #0d4a9a);
+}
+
+.login__hero-content {
+  position: sticky;
+  top: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 22px;
+  min-height: 100vh;
+  max-width: 540px;
+  margin-left: auto;
+  padding: 48px clamp(24px, 4vw, 64px);
+}
+
+.login__back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #cfe0ff;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-decoration: none;
+
+  .material-icons {
+    font-size: 18px;
+  }
+
+  &:hover {
+    color: #fff;
+  }
+}
+
+.login__logo {
+  width: 190px;
+  height: auto;
+}
+
+.login__eyebrow {
+  align-self: flex-start;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #bcd6ff;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.login__headline {
+  margin: 0;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.login__tagline {
+  margin: 0;
+  color: #cfe0ff;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.login__features {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 0.93rem;
+    line-height: 1.4;
+  }
+}
+
+.login__feature-icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #4dc4ff;
+
+  .material-icons,
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.login__alt {
+  margin: 4px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  color: #cfe0ff;
+  font-size: 0.9rem;
+
+  a {
+    color: #fff;
+    font-weight: 600;
+    text-decoration: underline;
+  }
+}
+
+// ── form panel ────────────────────────────────────────────────────────────────
+
+.login__panel {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 24px 56px;
+}
+
+.login__card {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  box-sizing: border-box;
+  padding: 34px 32px 30px;
+  border: 1px solid var(--pj-line);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 8px 30px rgba(16, 33, 58, 0.07);
+}
+
+.login__progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  border-radius: 18px 18px 0 0;
+  overflow: hidden;
+}
+
+.login__title,
+.login__card h1 {
+  margin: 0 0 4px;
+  color: var(--pj-navy);
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.login__subtitle,
+.subtitle {
+  margin: 0 0 22px;
+  color: var(--pj-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.login__inline-link {
+  color: var(--pj-blue);
+  font-weight: 600;
+}
+
+.login__section-title,
+.section-title {
+  margin: 26px 0 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--pj-line);
+  color: var(--pj-navy);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.login__section-title:first-of-type,
+.section-title:first-of-type {
+  margin-top: 0;
+}
+
+.login__section-hint {
+  margin: 0 0 10px;
+  color: var(--pj-muted);
+  font-size: 0.8rem;
+}
+
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.login__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 14px;
+}
+
+.login__checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 14px;
+  margin-bottom: 8px;
+}
+
+.login__submit,
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 50px;
+  margin-top: 14px;
+  padding: 0 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--pj-blue);
+  color: #fff;
+  font: 600 1rem Poppins, system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+
+  &:not(:disabled):hover {
+    background: var(--pj-blue-dark);
+    box-shadow: 0 6px 16px rgba(28, 109, 240, 0.28);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+}
+
+.login__resend,
+.link-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  border: 0;
+  background: none;
+  color: var(--pj-blue);
+  font: 600 0.88rem Poppins, system-ui, sans-serif;
+  text-align: center;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+
+  &:not(:disabled):hover {
+    text-decoration: underline;
+  }
+}
+
+.login__error,
+.form-error {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border: 1px solid #f3c6c1;
+  border-radius: 10px;
+  background: #fdf1ef;
+  color: var(--pj-red);
+  font-size: 0.86rem;
+  text-align: left;
+}
+
+.login__dev-hint,
+.dev-hint {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px dashed #f0c36d;
+  border-radius: 10px;
+  background: #fff8e6;
+  color: #7a4b00;
+  font-size: 0.82rem;
+}
+
+// ── plain (non-Material) fields, used by the connector form ──────────────────
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 16px;
+}
+
+label {
+  color: var(--pj-ink);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+input,
+select {
+  box-sizing: border-box;
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1.5px solid var(--pj-line-strong);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--pj-ink);
+  font: 400 0.95rem Poppins, system-ui, sans-serif;
+
+  &:focus {
+    outline: 0;
+    border-color: var(--pj-blue);
+    box-shadow: 0 0 0 3px rgba(28, 109, 240, 0.15);
+  }
+}
+
+.field-hint {
+  color: var(--pj-muted);
+  font-size: 0.78rem;
+}
+
+.field-error {
+  color: var(--pj-red);
+  font-size: 0.78rem;
+}
+
+.confirmation {
+  padding: 12px 0;
+  text-align: center;
+
+  p {
+    color: var(--pj-muted);
+    font-size: 0.95rem;
+  }
+}
+
+// ── responsive ────────────────────────────────────────────────────────────────
+
+@media (max-width: 900px) {
+  .login {
+    grid-template-columns: 1fr;
+  }
+
+  .login__hero-content {
+    position: static;
+    min-height: 0;
+    max-width: none;
+    gap: 16px;
+    padding: 24px 20px 28px;
+  }
+
+  .login__logo {
+    width: 150px;
+  }
+
+  .login__features {
+    gap: 10px;
+  }
+
+  .login__panel {
+    padding: 20px 14px 40px;
+    margin-top: -16px;
+  }
+
+  .login__card {
+    padding: 26px 20px 24px;
+  }
+}
+
+@media (max-width: 520px) {
+  .login__row,
+  .login__checks {
+    grid-template-columns: 1fr;
+  }
+
+  .login__features li {
+    font-size: 0.85rem;
+  }
+}
+
+// ── connector: whole sign-up form on one screen ──────────────────────────────
+
+.login__card--wide {
+  max-width: 760px;
+}
+
+.cform {
+  .cform__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 16px;
+  }
+
+  .cform__grid--3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .cform__wide {
+    grid-column: 1 / -1;
+  }
+
+  .field {
+    gap: 3px;
+    margin-bottom: 10px;
+    min-width: 0;
+  }
+
+  label {
+    font-size: 0.78rem;
+
+    em {
+      color: var(--pj-muted);
+      font-style: normal;
+      font-weight: 400;
+    }
+  }
+
+  input {
+    height: 40px;
+    font-size: 0.9rem;
+  }
+
+  .section-title {
+    margin: 4px 0 10px;
+    padding-bottom: 6px;
+  }
+
+  .field-hint,
+  .field-error {
+    font-size: 0.72rem;
+    line-height: 1.2;
+  }
+
+  .submit-btn {
+    min-height: 46px;
+    margin-top: 4px;
+  }
+}
+
+// Large screens: the connector page fits the viewport, so the page itself never scrolls.
+// Scoped to .login--fit so the longer vendor and banker forms keep scrolling normally.
+@media (min-width: 901px) {
+  .login--fit {
+    height: 100vh;
+    min-height: 0;
+    overflow: hidden;
+
+    .login__hero-content {
+      height: 100vh;
+      min-height: 0;
+    }
+
+    .login__panel {
+      padding: 16px 24px;
+      overflow-y: auto;
+    }
+
+    // margin:auto centres the card when there is spare height, without clipping the top when there is not.
+    .login__card {
+      margin: auto;
+    }
+
+    .login__card--wide {
+      padding: 22px 28px 20px;
+
+      h1 {
+        font-size: 1.35rem;
+      }
+
+      .subtitle {
+        margin-bottom: 14px;
+      }
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .cform .cform__grid,
+  .cform .cform__grid--3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── vendor / banker: Material forms on a compact grid ────────────────────────
+
+.login__form--grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+
+  mat-form-field {
+    --mat-form-field-container-height: 46px;
+    --mat-form-field-container-vertical-padding: 12px;
+    --mat-form-field-outlined-label-text-populated-size: 12px;
+    min-width: 0;
+  }
+
+  .login__full {
+    grid-column: 1 / -1;
+  }
+
+  .login__row {
+    display: contents;
+  }
+
+  .login__row3 {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 14px;
+
+    mat-form-field {
+      min-width: 0;
+    }
+  }
+
+  .login__submit {
+    margin-top: 2px;
+    min-height: 46px;
+  }
+
+  .login__section-title {
+    margin: 4px 0 0;
+    padding-bottom: 4px;
+  }
+
+  .login__checks {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin: -4px 0 0;
+  }
+
+  .login__error {
+    margin: 0;
+  }
+}
+
+.login__actions {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+
+  .login__submit,
+  .login__back-btn {
+    margin-top: 2px;
+    min-height: 46px;
+  }
+
+  .login__back-btn {
+    border-radius: 12px;
+    font: 600 0.95rem Poppins, system-ui, sans-serif;
+  }
+}
+
+.login__steps {
+  display: flex;
+  gap: 10px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid var(--pj-line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--pj-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  i {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--pj-line);
+    color: var(--pj-muted);
+    font-size: 0.72rem;
+    font-style: normal;
+  }
+
+  li.on {
+    border-color: var(--pj-blue);
+    background: var(--pj-soft);
+    color: var(--pj-navy);
+
+    i {
+      background: var(--pj-blue);
+      color: #fff;
+    }
+  }
+
+  li.done i {
+    background: #16a34a;
+    color: #fff;
+  }
+}
+
+@media (min-width: 901px) {
+  .login--fit .login__card--wide {
+    .login__title {
+      font-size: 1.35rem;
+    }
+
+    .login__subtitle {
+      margin-bottom: 12px;
+    }
+
+    .login__steps {
+      margin-bottom: 12px;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .login__form--grid {
+    grid-template-columns: 1fr;
+
+    .login__row3 {
+      grid-template-columns: 1fr;
+    }
+
+    .login__checks {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+}

@@ -68,6 +68,20 @@ export const routes: Routes = [
       ),
   },
   {
+    // Customer portal — its own layout, customer-only guard. Never rendered
+    // inside the CRM shell below, and never reachable by staff roles.
+    path: 'account',
+    loadChildren: () => import('@features/account/account.routes').then((m) => m.accountRoutes),
+  },
+  {
+    // Public marketing website (home, services, calculator, eligibility,
+    // apply, customer login/register ...). Mounted at '' BEFORE the CRM
+    // shell: URLs it does not define (/dashboard, /leads, /super-admin ...)
+    // fail to match here and fall through to the shell untouched.
+    path: '',
+    loadChildren: () => import('@features/website/website.routes').then((m) => m.websiteRoutes),
+  },
+  {
     // Everything else renders inside the authenticated app shell
     // (topbar/sidebar/breadcrumb) — see AppShellComponent.
     path: '',
@@ -156,6 +170,13 @@ export const routes: Routes = [
         path: 'banker',
         loadChildren: () =>
           import('@features/banker/banker.routes').then((m) => m.bankerRoutes),
+      },
+      {
+        // Customer Inquiries queue (website + portal leads). Telecaller and
+        // Super Admin only — roleGuard here, role middleware on the API.
+        path: 'inquiries',
+        loadChildren: () =>
+          import('@features/inquiries/inquiries.routes').then((m) => m.inquiriesRoutes),
       },
       {
         // Telecaller module. Independent of the reporting hierarchy, like Connector and Banker.

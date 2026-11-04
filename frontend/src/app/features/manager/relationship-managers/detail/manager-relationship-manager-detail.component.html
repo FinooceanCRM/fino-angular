@@ -6,10 +6,7 @@
     [statusLabel]="row.is_active ? 'Active' : 'Inactive'"
     [statusColour]="row.is_active ? 'success' : 'default'"
   >
-    <a mat-stroked-button routerLink="/manager/relationship-managers">
-      <mat-icon>arrow_back</mat-icon>
-      Back to directory
-    </a>
+    <app-back-button variant="material" fallback="/manager/relationship-managers" />
     <button mat-stroked-button type="button" (click)="editRm()">
       <mat-icon>edit</mat-icon>
       Edit

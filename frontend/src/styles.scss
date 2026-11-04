@@ -721,3 +721,88 @@ h1 {
     --mdc-icon-button-state-layer-size: 44px;
   }
 }
+
+/*
+ * Customer-area date / time fields (`input.in`): always show a calendar (or clock) icon on the right, also when the
+ * field is locked, because browsers hide their own icon on disabled inputs. The native icon stays as an invisible
+ * click target over the whole field; the app also opens the picker on any click (see AppComponent).
+ * The icon is applied with !important because component styles reset `background` on locked fields.
+ */
+:root {
+  --fw-icon-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231c6df0'%3E%3Cpath d='M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zM7 12h5v5H7z'/%3E%3C/svg%3E");
+  --fw-icon-clock: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%231c6df0'%3E%3Cpath d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16 8 8 0 0 1 0 16zm.5-13H11v6l5.2 3.1.8-1.2-4.5-2.7V7z'/%3E%3C/svg%3E");
+}
+input.in[type='date'],
+input.in[type='datetime-local'],
+input.in[type='month'],
+input.in[type='time'] {
+  position: relative;
+  padding-right: 42px;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 20px 20px !important;
+}
+input.in[type='date'],
+input.in[type='datetime-local'],
+input.in[type='month'] { background-image: var(--fw-icon-calendar) !important; }
+input.in[type='time'] { background-image: var(--fw-icon-clock) !important; }
+input.in[type='date']::-webkit-calendar-picker-indicator,
+input.in[type='datetime-local']::-webkit-calendar-picker-indicator,
+input.in[type='month']::-webkit-calendar-picker-indicator,
+input.in[type='time']::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+input.in[type='date']:disabled::-webkit-calendar-picker-indicator,
+input.in[type='time']:disabled::-webkit-calendar-picker-indicator { cursor: not-allowed; }
+
+/* ─────────────── Phone layout: swipeable card rows ───────────────
+   Put `m-hscroll` (and the AppHScroll directive, for the page dots) on any grid of cards. On a phone it becomes one
+   horizontally swipeable, snapping row that bleeds to the screen edges; on wider screens it is left alone.
+   Per row: --m-card-w = card width (default 72%), --m-bleed = side padding of the page container (default 20px). */
+.m-dots { display: none; }
+@media (max-width: 720px) {
+  .m-hscroll {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    grid-template-columns: none !important;
+    gap: 12px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--m-bleed, 20px);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    margin-inline: calc(var(--m-bleed, 20px) * -1) !important;
+    padding: 4px var(--m-bleed, 20px) 12px !important;
+    box-sizing: border-box;
+    /* A scroller must not make its parents as wide as all its cards. */
+    contain: inline-size;
+    min-width: 0;
+  }
+  .m-hscroll::-webkit-scrollbar { display: none; }
+  .m-hscroll > * {
+    flex: 0 0 var(--m-card-w, 72%) !important;
+    max-width: var(--m-card-max, var(--m-card-w, 72%));
+    min-width: 0;
+    scroll-snap-align: start;
+    box-sizing: border-box;
+  }
+  .m-dots { display: flex; justify-content: center; align-items: center; gap: 6px; margin: 0 0 14px; }
+  .m-dots[hidden] { display: none; }
+  .m-dots i { width: 7px; height: 7px; border-radius: 99px; background: #c7d3e6; cursor: pointer; transition: width 0.2s, background 0.2s; }
+  .m-dots i.on { width: 20px; background: var(--fw-blue, #1c6df0); }
+}
+@media (prefers-reduced-motion: reduce) { .m-hscroll { scroll-behavior: auto; } }
+
+/* Smallest phones (≤360px): never let a stray wide element make the whole page scroll sideways. */
+@media (max-width: 360px) {
+  html, body { overflow-x: clip; }
+}

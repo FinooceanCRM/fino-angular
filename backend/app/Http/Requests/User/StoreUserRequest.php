@@ -23,7 +23,7 @@ class StoreUserRequest extends BaseFormRequest
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'email', 'max:180', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:8', 'max:100'],
-            'role' => ['required', Rule::in(UserRole::values())],
+            'role' => ['required', Rule::in(UserRole::staffValues())],
             'manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'relationship_manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'employee_id' => ['prohibited'],

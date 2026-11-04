@@ -37,7 +37,7 @@ type Step = 'form' | 'otp' | 'done';
     MatProgressBarModule,
   ],
   templateUrl: './public-join-vendor.component.html',
-  styleUrl: './public-join-vendor.component.scss',
+  styleUrl: '../partner-join.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PublicJoinVendorComponent {

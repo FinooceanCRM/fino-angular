@@ -30,7 +30,7 @@ class UpdateUserRequest extends BaseFormRequest
             'name' => ['sometimes', 'string', 'max:120'],
             'email' => ['sometimes', 'email', 'max:180', Rule::unique('users', 'email')->ignore($userId)],
             'password' => ['nullable', 'string', 'min:8', 'max:100'],
-            'role' => ['sometimes', Rule::in(UserRole::values())],
+            'role' => ['sometimes', Rule::in(UserRole::staffValues())],
             'manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'relationship_manager_id' => ['nullable', 'integer', 'exists:users,id'],
             'employee_id' => ['prohibited'],

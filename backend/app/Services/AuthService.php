@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\UserRole;
 use App\Exceptions\DomainException;
 use App\Models\User;
 use App\Repositories\Contracts\UserRepositoryInterface;
@@ -23,6 +24,8 @@ class AuthService extends BaseService
     {
         $user = $this->users->findByEmail($email);
 
+        // One sign-in for staff and customers. A customer token is useless
+        // against the CRM: the staff middleware refuses it on every CRM route.
         if (! $user || ! Hash::check($password, $user->password)) {
             throw new DomainException('These credentials do not match our records.', 422, [
                 'email' => ['These credentials do not match our records.'],

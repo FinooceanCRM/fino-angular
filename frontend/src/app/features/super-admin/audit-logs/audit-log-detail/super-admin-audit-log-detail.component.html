@@ -5,10 +5,7 @@
 @if (entry(); as entry) {
   <app-page-header title="Audit Log Details" [subtitle]="'Entry #' + entry.id" />
 
-  <a mat-button routerLink="/super-admin/audit-logs" class="audit-detail__back">
-    <mat-icon>arrow_back</mat-icon>
-    Back to Audit Logs
-  </a>
+  <app-back-button variant="material" class="audit-detail__back" fallback="/super-admin/audit-logs" />
 
   <mat-card class="audit-detail__card">
     <mat-card-content>

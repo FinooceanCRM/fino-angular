@@ -23,12 +23,18 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
     catchError((error: unknown) => {
       const status = (error as { status?: number })?.status;
 
+      // Customer-portal calls must never bounce a visitor into the staff
+      // login or the CRM "unauthorized" page.
+      const inPortal = router.url.startsWith('/account');
+
       if (status === 401) {
         auth.clear();
-        void router.navigate(['/auth/login']);
+        void router.navigate([inPortal ? '/login' : '/auth/login']);
       }
 
-      if (status === 403) {
+      // 403 on a login attempt just means "wrong door"; the form shows the message.
+      const isLoginCall = request.url.includes('/auth/login') || request.url.includes('/auth/register');
+      if (status === 403 && !isLoginCall && !inPortal) {
         void router.navigate(['/unauthorized']);
       }
 

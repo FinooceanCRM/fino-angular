@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog.component';
 import { EmptyStateComponent } from '@shared/components/empty-state.component';
@@ -20,14 +20,14 @@ import {
 } from '../../team/team-assign-dialog/manager-team-assign-dialog.component';
 import { ManagerTeamActivityComponent } from '../../team/team-activity/manager-team-activity.component';
 import { ManagerTeamPerformanceCardsComponent } from '../../team/team-performance-cards/manager-team-performance-cards.component';
+import { BackButtonComponent } from '@shared/components/back-button.component';
 
 /** Employee "View page" — profile, hierarchy position, individual performance and activity. */
 @Component({
   selector: 'app-manager-employee-detail',
   standalone: true,
-  imports: [
+  imports: [BackButtonComponent, 
     DatePipe,
-    RouterLink,
     MatButtonModule,
     MatCardModule,
     MatIconModule,
