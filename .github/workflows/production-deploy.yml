@@ -1,0 +1,815 @@
+
+name: FINOOCEAN - Automatic Production Deployment
+
+on:
+  workflow_run:
+    workflows:
+      - "FINOOCEAN - Upload Release to Namecheap"
+    types:
+      - completed
+    branches:
+      - main
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: finoocean-production-deployment
+  cancel-in-progress: false
+
+jobs:
+  validate-deployment:
+    name: Validate Release Before Production
+    if: >-
+      ${{
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+      ENABLE_PRODUCTION_PUBLISHING: "false"
+
+    steps:
+      - name: Validate source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if ! [[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::Invalid source commit SHA."
+            exit 1
+          fi
+
+          echo "Source commit: $SOURCE_SHA"
+
+      - name: Verify SSH secrets
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+
+          test -n "$SSH_PRIVATE_KEY" || {
+            echo "::error::SSH_PRIVATE_KEY is missing."
+            exit 1
+          }
+
+          test -n "$SSH_KEY_PASSPHRASE" || {
+            echo "::error::SSH_KEY_PASSPHRASE is missing."
+            exit 1
+          }
+
+          echo "Required SSH secrets are present."
+
+      - name: Validate uploaded release on Namecheap
+        uses: appleboy/ssh-action@v1
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: SOURCE_SHA
+          timeout: 30s
+          command_timeout: 60s
+          script: |
+            set -eu
+
+            DIR="$HOME/finoocean-releases/incoming"
+            FILE="$DIR/finoocean-release-${SOURCE_SHA}.zip"
+            CHECKSUM_FILE="$FILE.sha256"
+            LIVE_BACKEND="$HOME/fino-deploy/backend"
+            LIVE_FRONTEND="$HOME/public_html"
+
+            echo "=== 1. Verify exact release ==="
+
+            test -s "$FILE" || {
+              echo "ERROR: Release archive not found."
+              exit 1
+            }
+
+            test -s "$CHECKSUM_FILE" || {
+              echo "ERROR: Checksum sidecar not found."
+              exit 1
+            }
+
+            echo "Commit: $SOURCE_SHA"
+            ls -lh "$FILE" "$CHECKSUM_FILE"
+
+            echo "=== 2. Verify checksum sidecar ==="
+
+            EXPECTED_SHA256="$(awk 'NR == 1 {print $1}' "$CHECKSUM_FILE")"
+            EXPECTED_FILENAME="$(awk 'NR == 1 {print $2}' "$CHECKSUM_FILE")"
+            EXPECTED_NAME="finoocean-release-${SOURCE_SHA}.zip"
+
+            case "$EXPECTED_SHA256" in
+              *[!0-9a-f]*|"")
+                echo "ERROR: Invalid SHA-256 format."
+                exit 1
+                ;;
+            esac
+
+            test "${#EXPECTED_SHA256}" -eq 64 || {
+              echo "ERROR: SHA-256 must contain 64 characters."
+              exit 1
+            }
+
+            test "$EXPECTED_FILENAME" = "$EXPECTED_NAME" || {
+              echo "ERROR: Checksum filename does not match release."
+              exit 1
+            }
+
+            ACTUAL_SHA256="$(sha256sum "$FILE" | awk '{print $1}')"
+
+            test "$ACTUAL_SHA256" = "$EXPECTED_SHA256" || {
+              echo "ERROR: Archive checksum mismatch."
+              exit 1
+            }
+
+            echo "PASS: Checksum verified."
+
+            echo "=== 3. Verify ZIP integrity ==="
+            unzip -tq "$FILE"
+            echo "PASS: ZIP integrity verified."
+
+            echo "=== 4. Inspect archive paths ==="
+
+            CONTENTS="$(unzip -Z1 "$FILE")"
+
+            while IFS= read -r ENTRY; do
+              case "$ENTRY" in
+                /*|../*|*/../*|*/..|..|*\\*)
+                  echo "ERROR: Unsafe archive path detected."
+                  exit 1
+                  ;;
+              esac
+            done <<EOF
+            $CONTENTS
+            EOF
+
+            echo "PASS: No obvious traversal paths detected."
+
+            echo "=== 5. Validate required files ==="
+
+            for REQUIRED in \
+              "release/backend/artisan" \
+              "release/backend/composer.json" \
+              "release/backend/vendor/autoload.php" \
+              "release/backend/public/index.php" \
+              "release/frontend/finoocean/browser/index.html"
+            do
+              printf '%s\n' "$CONTENTS" | grep -Fxq "$REQUIRED" || {
+                echo "ERROR: Missing required file: $REQUIRED"
+                exit 1
+              }
+
+              echo "FOUND: $REQUIRED"
+            done
+
+            echo "=== 6. Reject sensitive files ==="
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)'; then
+              echo "ERROR: Environment file detected."
+              exit 1
+            fi
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/backend/storage/app/private(/|$)|^release/backend/storage/app/vendor-db-backup(/|$)'; then
+              echo "ERROR: Private uploads or backup directory detected."
+              exit 1
+            fi
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eiq '\.(sql|sqlite|sqlite3|dump)$'; then
+              echo "ERROR: Database backup file detected."
+              exit 1
+            fi
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/backend/storage/[^/]+|^release/backend/storage/.+'; then
+              echo "ERROR: Runtime storage content detected."
+              exit 1
+            fi
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '^release/backend/public/storage(/|$)'; then
+              echo "ERROR: public/storage must not be shipped."
+              exit 1
+            fi
+
+            echo "PASS: Sensitive and runtime paths rejected."
+
+            echo "=== 7. Validate live production paths ==="
+
+            test -d "$LIVE_FRONTEND"
+            test -f "$LIVE_FRONTEND/.htaccess"
+            test -d "$LIVE_FRONTEND/api"
+            test -d "$LIVE_FRONTEND/media"
+
+            test -f "$LIVE_BACKEND/artisan"
+            test -f "$LIVE_BACKEND/.env"
+            test -d "$LIVE_BACKEND/storage"
+            test -d "$LIVE_BACKEND/bootstrap/cache"
+            test -L "$LIVE_BACKEND/public/storage"
+            test -f "$LIVE_BACKEND/public/.htaccess"
+            test -f "$LIVE_BACKEND/public/php.ini"
+            test -f "$LIVE_BACKEND/public/.user.ini"
+
+            echo "PASS: Required live paths and protected configuration exist."
+            echo "PASS: Release validation completed."
+            echo "No files were extracted or changed."
+            echo "No database commands were run."
+
+      - name: Keep publishing disabled
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$ENABLE_PRODUCTION_PUBLISHING" = "false"
+          echo "Production publishing is disabled in the validation job."
+
+  publish-production:
+    name: Publish Validated Release to Namecheap
+    needs: validate-deployment
+    if: >-
+      ${{
+        needs.validate-deployment.result == 'success' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_branch == 'main' &&
+        vars.ENABLE_PRODUCTION_PUBLISHING == 'true'
+      }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # Configure required reviewers on the "production" environment in
+    # GitHub Settings > Environments so every publish needs manual approval.
+    environment:
+      name: production
+      url: https://www.finoocean.com/
+
+    steps:
+      - name: Verify publishing credentials
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KEY_PASSPHRASE: ${{ secrets.SSH_KEY_PASSPHRASE }}
+        run: |
+          set -euo pipefail
+
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KEY_PASSPHRASE"
+
+          echo "SSH credentials are configured."
+
+      - name: Stage and validate release for publishing
+        uses: appleboy/ssh-action@v1
+        env:
+          SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_MIGRATIONS: ${{ vars.RUN_MIGRATIONS }}
+          DEPLOYMENT_ID: ${{ github.run_id }}-${{ github.run_attempt }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: SOURCE_SHA,RUN_MIGRATIONS,DEPLOYMENT_ID
+          timeout: 30s
+          command_timeout: 600s
+          script: |
+            set -eu
+
+            DIR="$HOME/finoocean-releases/incoming"
+            FILE="$DIR/finoocean-release-${SOURCE_SHA}.zip"
+            CHECKSUM="$FILE.sha256"
+
+            RELEASES="$HOME/finoocean-releases"
+
+            LIVE_FRONTEND="$HOME/public_html"
+            LIVE_BACKEND="$HOME/fino-deploy/backend"
+
+            echo "=== 1. Verify release identity ==="
+
+            case "$SOURCE_SHA" in
+              *[!0-9a-f]*|"")
+                echo "ERROR: Invalid source SHA."
+                exit 1
+                ;;
+            esac
+
+            test "${#SOURCE_SHA}" -eq 40
+
+            case "$DEPLOYMENT_ID" in
+              *[!0-9-]*|""|*-|-*|*--*)
+                echo "ERROR: Invalid deployment attempt ID."
+                exit 1
+                ;;
+            esac
+
+            STAGE="$RELEASES/staging-$SOURCE_SHA-$DEPLOYMENT_ID"
+            BACKUP="$RELEASES/backups/$SOURCE_SHA-$DEPLOYMENT_ID"
+
+            test -s "$FILE"
+            test -s "$CHECKSUM"
+
+            EXPECTED_SHA256="$(awk 'NR == 1 {print $1}' "$CHECKSUM")"
+            EXPECTED_FILENAME="$(awk 'NR == 1 {print $2}' "$CHECKSUM")"
+            EXPECTED_NAME="finoocean-release-${SOURCE_SHA}.zip"
+
+            case "$EXPECTED_SHA256" in
+              *[!0-9a-f]*|"")
+                echo "ERROR: Invalid checksum."
+                exit 1
+                ;;
+            esac
+
+            test "${#EXPECTED_SHA256}" -eq 64
+            test "$EXPECTED_FILENAME" = "$EXPECTED_NAME"
+
+            ACTUAL_SHA256="$(sha256sum "$FILE" | awk '{print $1}')"
+            test "$ACTUAL_SHA256" = "$EXPECTED_SHA256"
+            unzip -tq "$FILE"
+
+            CONTENTS="$(unzip -Z1 "$FILE")"
+
+            while IFS= read -r ENTRY; do
+              case "$ENTRY" in
+                /*|../*|*/../*|*/..|..|*\\*)
+                  echo "ERROR: Unsafe archive path."
+                  exit 1
+                  ;;
+              esac
+            done <<EOF
+            $CONTENTS
+            EOF
+
+            echo "=== 2. Validate release structure ==="
+
+            FRONTEND_REL="release/frontend/finoocean/browser"
+            BACKEND_REL="release/backend"
+
+            for REQUIRED in \
+              "$FRONTEND_REL/index.html" \
+              "$BACKEND_REL/artisan" \
+              "$BACKEND_REL/composer.json" \
+              "$BACKEND_REL/vendor/autoload.php" \
+              "$BACKEND_REL/public/index.php"
+            do
+              printf '%s\n' "$CONTENTS" | grep -Fxq "$REQUIRED" || {
+                echo "ERROR: Missing $REQUIRED"
+                exit 1
+              }
+            done
+
+            if printf '%s\n' "$CONTENTS" |
+              grep -Eq '(^|/)\.env($|\.)|^release/backend/storage/.+|^release/backend/public/storage(/|$)|\.(sql|sqlite|sqlite3|dump)$'; then
+              echo "ERROR: Release contains a protected or forbidden path."
+              exit 1
+            fi
+
+            echo "=== 3. Verify production paths ==="
+
+            test -d "$LIVE_FRONTEND"
+            test -f "$LIVE_FRONTEND/.htaccess"
+            test -d "$LIVE_FRONTEND/api"
+            test -d "$LIVE_FRONTEND/media"
+
+            test -f "$LIVE_BACKEND/artisan"
+            test -f "$LIVE_BACKEND/.env"
+            test -d "$LIVE_BACKEND/storage"
+            test -d "$LIVE_BACKEND/bootstrap/cache"
+            test -L "$LIVE_BACKEND/public/storage"
+
+            test -f "$LIVE_BACKEND/public/.htaccess"
+            test -f "$LIVE_BACKEND/public/php.ini"
+            test -f "$LIVE_BACKEND/public/.user.ini"
+
+            echo "=== 4. Verify tools and staging paths ==="
+
+            command -v rsync >/dev/null
+            command -v unzip >/dev/null
+            command -v sha256sum >/dev/null
+            command -v curl >/dev/null
+
+            test ! -e "$STAGE" || {
+              echo "ERROR: Staging path already exists."
+              exit 1
+            }
+
+            test ! -e "$BACKUP" || {
+              echo "ERROR: Recovery directory already exists."
+              exit 1
+            }
+
+            normalize_frontend_permissions() {
+              find "$LIVE_FRONTEND" \
+                \( \
+                  -path "$LIVE_FRONTEND/api" -o \
+                  -path "$LIVE_FRONTEND/media" -o \
+                  -path "$LIVE_FRONTEND/cgi-bin" -o \
+                  -path "$LIVE_FRONTEND/nc_assets" -o \
+                  -path "$LIVE_FRONTEND/.well-known" -o \
+                  -path "$LIVE_FRONTEND/.git" \
+                \) -prune -o \
+                -type d -exec chmod 755 {} +
+
+              find "$LIVE_FRONTEND" \
+                \( \
+                  -path "$LIVE_FRONTEND/api" -o \
+                  -path "$LIVE_FRONTEND/media" -o \
+                  -path "$LIVE_FRONTEND/cgi-bin" -o \
+                  -path "$LIVE_FRONTEND/nc_assets" -o \
+                  -path "$LIVE_FRONTEND/.well-known" -o \
+                  -path "$LIVE_FRONTEND/.git" \
+                \) -prune -o \
+                -type f \( \
+                  -name '*.html' -o -name '*.js' -o -name '*.css' -o \
+                  -name '*.json' -o -name '*.ico' -o -name '*.png' -o \
+                  -name '*.jpg' -o -name '*.jpeg' -o -name '*.gif' -o \
+                  -name '*.svg' -o -name '*.webp' -o -name '*.woff' -o \
+                  -name '*.woff2' -o -name '*.ttf' -o -name '*.eot' -o \
+                  -name '*.txt' -o -name '*.xml' -o -name '*.webmanifest' -o \
+                  -name '*.map' -o -name '*.shtml' \
+                \) -exec chmod 644 {} +
+
+              if [ -f "$LIVE_FRONTEND/.htaccess" ]; then
+                chmod 644 "$LIVE_FRONTEND/.htaccess"
+              fi
+            }
+
+            normalize_api_bridge_permissions() {
+              chmod 755 "$LIVE_FRONTEND/api"
+              chmod 644 \
+                "$LIVE_FRONTEND/api/index.php" \
+                "$LIVE_FRONTEND/api/.htaccess"
+            }
+
+            mkdir -p "$RELEASES/backups"
+            mkdir -p "$STAGE"
+            trap 'rm -rf -- "$STAGE"' EXIT
+
+            echo "=== 5. Extract to isolated staging ==="
+
+            unzip -q "$FILE" -d "$STAGE"
+
+            FRONTEND_SOURCE="$STAGE/$FRONTEND_REL"
+            BACKEND_SOURCE="$STAGE/$BACKEND_REL"
+            API_SOURCE="$STAGE/api"
+
+            test -s "$FRONTEND_SOURCE/index.html"
+            test -s "$BACKEND_SOURCE/artisan"
+            test -s "$BACKEND_SOURCE/vendor/autoload.php"
+
+            mkdir -p "$API_SOURCE"
+            cat > "$API_SOURCE/index.php" <<'PHP'
+            <?php
+
+            declare(strict_types=1);
+
+            $backendFrontController = dirname(__DIR__, 2) . '/fino-deploy/backend/public/index.php';
+
+            if (!is_file($backendFrontController)) {
+                http_response_code(503);
+                header('Content-Type: application/json; charset=utf-8');
+                echo '{"success":false,"message":"API is temporarily unavailable."}';
+                exit;
+            }
+
+            $_SERVER['SCRIPT_NAME'] = '/index.php';
+            $_SERVER['PHP_SELF'] = '/index.php';
+            $_SERVER['SCRIPT_FILENAME'] = __DIR__ . '/index.php';
+
+            require $backendFrontController;
+            PHP
+
+            cat > "$API_SOURCE/.htaccess" <<'HTACCESS'
+            Options -Indexes
+            DirectoryIndex index.php
+
+            <IfModule mod_rewrite.c>
+              RewriteEngine On
+              RewriteCond %{REQUEST_FILENAME} !-f
+              RewriteCond %{REQUEST_FILENAME} !-d
+              RewriteRule ^ index.php [QSA,L]
+            </IfModule>
+
+            <FilesMatch "(\\.bak|^error_log$|^health-check\\.txt$)">
+              Require all denied
+            </FilesMatch>
+            HTACCESS
+
+            echo "=== 6. Prepare recovery copies of deployable code ==="
+
+            mkdir -p "$BACKUP"
+
+            tar -czf "$BACKUP/frontend-before.tar.gz" \
+              -C "$HOME" \
+              --exclude='./public_html/api' \
+              --exclude='./public_html/media' \
+              --exclude='./public_html/cgi-bin' \
+              --exclude='./public_html/nc_assets' \
+              --exclude='./public_html/.well-known' \
+              --exclude='./public_html/.htaccess' \
+              public_html
+
+            tar -czf "$BACKUP/api-before.tar.gz" \
+              -C "$HOME" \
+              public_html/api
+
+            cp -p "$LIVE_FRONTEND/.htaccess" "$BACKUP/root-htaccess-before"
+
+            tar -czf "$BACKUP/backend-before.tar.gz" \
+              -C "$HOME" \
+              --exclude='./fino-deploy/backend/.env' \
+              --exclude='./fino-deploy/backend/storage' \
+              --exclude='./fino-deploy/backend/bootstrap/cache' \
+              --exclude='./fino-deploy/backend/public/storage' \
+              --exclude='./fino-deploy/backend/public/.htaccess' \
+              --exclude='./fino-deploy/backend/public/php.ini' \
+              --exclude='./fino-deploy/backend/public/.user.ini' \
+              fino-deploy/backend
+
+            tar -tzf "$BACKUP/frontend-before.tar.gz" >/dev/null
+            tar -tzf "$BACKUP/api-before.tar.gz" >/dev/null
+            tar -tzf "$BACKUP/backend-before.tar.gz" >/dev/null
+
+            echo "Recovery archives verified."
+
+            PHP_BIN="$(command -v php || true)"
+            test -n "$PHP_BIN" || {
+              echo "ERROR: php not found on server."
+              exit 1
+            }
+
+            rollback() {
+              echo "!!! ROLLING BACK to pre-release recovery archives !!!"
+              tar -xzf "$BACKUP/frontend-before.tar.gz" -C "$HOME"
+              tar -xzf "$BACKUP/backend-before.tar.gz" -C "$HOME"
+              rm -f "$LIVE_FRONTEND/api/index.php" "$LIVE_FRONTEND/api/.htaccess"
+              tar -xzf "$BACKUP/api-before.tar.gz" -C "$HOME"
+              cp -p "$BACKUP/root-htaccess-before" "$LIVE_FRONTEND/.htaccess"
+              normalize_frontend_permissions
+              normalize_api_bridge_permissions
+              (cd "$LIVE_BACKEND" && "$PHP_BIN" artisan optimize:clear) || true
+              echo "Code restored. Database was NOT rolled back."
+              echo "Database dump (if taken): $BACKUP/database-before.sql.gz"
+            }
+
+            echo "=== 6b. Database backup (before any change) ==="
+
+            # Credentials are read on the server and never printed.
+            env_value() {
+              grep -E "^$1=" "$LIVE_BACKEND/.env" | head -n 1 |
+                cut -d '=' -f 2- | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
+            }
+
+            if command -v mysqldump >/dev/null; then
+              DB_HOST="$(env_value DB_HOST)"
+              DB_PORT="$(env_value DB_PORT)"
+              DB_NAME="$(env_value DB_DATABASE)"
+              DB_USER="$(env_value DB_USERNAME)"
+              MYSQL_PWD="$(env_value DB_PASSWORD)"
+              export MYSQL_PWD
+
+              umask 077
+              mysqldump --single-transaction --no-tablespaces \
+                -h "${DB_HOST:-127.0.0.1}" -P "${DB_PORT:-3306}" \
+                -u "$DB_USER" "$DB_NAME" | gzip > "$BACKUP/database-before.sql.gz"
+
+              test -s "$BACKUP/database-before.sql.gz" || {
+                echo "ERROR: Database backup is empty. Aborting before changes."
+                exit 1
+              }
+              unset MYSQL_PWD
+              echo "Database dump saved in $BACKUP (same server; copy off-server too)."
+            else
+              echo "ERROR: mysqldump unavailable; refusing to publish without a DB backup."
+              exit 1
+            fi
+
+            echo "=== 7. Publish Angular frontend ==="
+
+            chmod -R u=rwX,go=rX "$FRONTEND_SOURCE"
+
+            # --delay-updates stages files first and moves them in at the end,
+            # shrinking the window where old and new files are mixed.
+            rsync -a --delay-updates \
+              --exclude='/.htaccess' \
+              --exclude='/api/***' \
+              --exclude='/media/***' \
+              --exclude='/cgi-bin/***' \
+              --exclude='/nc_assets/***' \
+              --exclude='/.well-known/***' \
+              "$FRONTEND_SOURCE/" "$LIVE_FRONTEND/"
+            normalize_frontend_permissions
+
+            echo "=== 7b. Publish Laravel API front controller ==="
+
+            ROOT_HTACCESS="$LIVE_FRONTEND/.htaccess"
+            if ! grep -Fxq 'Options -Indexes' "$ROOT_HTACCESS"; then
+              sed -i '1i Options -Indexes' "$ROOT_HTACCESS"
+            fi
+
+            if ! grep -Fq 'health-check\.php' "$ROOT_HTACCESS"; then
+              printf '%s\n' \
+                '' \
+                '<FilesMatch "(\.bak|\.backup|\.live-backup|^error_log$|^health-check\.php$|\.zip$)">' \
+                '  Require all denied' \
+                '</FilesMatch>' \
+                >> "$ROOT_HTACCESS"
+            fi
+
+            API_RULE_LINE="$(grep -nE '^[[:space:]]*RewriteRule[[:space:]]+\^api' \
+              "$ROOT_HTACCESS" | head -n 1 | cut -d: -f1)"
+
+            if ! grep -Fxq 'Options -Indexes' "$ROOT_HTACCESS" ||
+              ! grep -Fq 'health-check\.php' "$ROOT_HTACCESS" ||
+              [ -z "$API_RULE_LINE" ]; then
+              echo "ERROR: Could not configure the frontend rewrite to pass API paths through."
+              rollback
+              exit 1
+            fi
+
+            if ! grep -Fq 'RewriteRule ^health-check[.]php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
+              sed -i "${API_RULE_LINE}i\\  RewriteRule ^health-check[.]php$ - [F,L,NC]" \
+                "$ROOT_HTACCESS"
+            fi
+
+            API_RULE_LINE="$(grep -nE '^[[:space:]]*RewriteRule[[:space:]]+\^api' \
+              "$ROOT_HTACCESS" | head -n 1 | cut -d: -f1)"
+            sed -i "${API_RULE_LINE}c\\  RewriteRule ^api/ - [L,NC]" "$ROOT_HTACCESS"
+            if ! grep -Eq '^[[:space:]]*RewriteRule[[:space:]]+\^api/' "$ROOT_HTACCESS"; then
+              echo "ERROR: Could not configure the frontend rewrite to pass API paths through."
+              rollback
+              exit 1
+            fi
+            if ! grep -Fq 'RewriteRule ^health-check[.]php$ - [F,L,NC]' "$ROOT_HTACCESS"; then
+              echo "ERROR: Could not block the obsolete health-check endpoint."
+              rollback
+              exit 1
+            fi
+
+            rsync -a --delay-updates "$API_SOURCE/" "$LIVE_FRONTEND/api/"
+            normalize_api_bridge_permissions
+
+            echo "=== 8. Publish Laravel application ==="
+
+            rsync -a --delay-updates \
+              --exclude='/.env' \
+              --exclude='/.env.*' \
+              --exclude='/storage/***' \
+              --exclude='/bootstrap/cache/***' \
+              --exclude='/public/storage' \
+              --exclude='/public/.htaccess' \
+              --exclude='/public/php.ini' \
+              --exclude='/public/.user.ini' \
+              "$BACKEND_SOURCE/" "$LIVE_BACKEND/"
+
+            # Remove stale code left from earlier releases. Limited to
+            # code-only directories; storage, .env and public are never pruned.
+            for DIR in app config database routes resources vendor; do
+              if [ -d "$BACKEND_SOURCE/$DIR" ]; then
+                rsync -a --delete-after "$BACKEND_SOURCE/$DIR/" "$LIVE_BACKEND/$DIR/"
+              fi
+            done
+
+            echo "=== 8b. Migrations and caches ==="
+
+            cd "$LIVE_BACKEND"
+
+            if [ "${RUN_MIGRATIONS:-false}" = "true" ]; then
+              if ! "$PHP_BIN" artisan migrate --force; then
+                echo "ERROR: Migration failed."
+                rollback
+                exit 1
+              fi
+              echo "Migrations applied."
+            else
+              echo "RUN_MIGRATIONS is not 'true'; migrations skipped."
+              "$PHP_BIN" artisan migrate:status --pending 2>/dev/null || true
+            fi
+
+            "$PHP_BIN" artisan optimize:clear
+            "$PHP_BIN" artisan config:cache
+            "$PHP_BIN" artisan route:cache
+            "$PHP_BIN" artisan view:cache
+
+            echo "=== 9. Verify protected paths ==="
+
+            test -f "$LIVE_FRONTEND/.htaccess"
+            test -d "$LIVE_FRONTEND/api"
+            test -d "$LIVE_FRONTEND/media"
+            test "$(stat -c '%a' "$LIVE_FRONTEND")" = "755"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/.htaccess")" = "644"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/api")" = "755"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/api/index.php")" = "644"
+            test "$(stat -c '%a' "$LIVE_FRONTEND/api/.htaccess")" = "644"
+            test -x "$LIVE_FRONTEND/api"
+            grep -Fxq 'Options -Indexes' "$LIVE_FRONTEND/.htaccess"
+            grep -Fq 'health-check\.php' "$LIVE_FRONTEND/.htaccess"
+            grep -Fq 'RewriteRule ^health-check[.]php$ - [F,L,NC]' "$LIVE_FRONTEND/.htaccess"
+            grep -Eq '^[[:space:]]*RewriteRule[[:space:]]+\^api/' "$LIVE_FRONTEND/.htaccess"
+
+            test -f "$LIVE_BACKEND/.env"
+            test -d "$LIVE_BACKEND/storage"
+            test -d "$LIVE_BACKEND/bootstrap/cache"
+            test -L "$LIVE_BACKEND/public/storage"
+
+            test -f "$LIVE_BACKEND/public/.htaccess"
+            test -f "$LIVE_BACKEND/public/php.ini"
+            test -f "$LIVE_BACKEND/public/.user.ini"
+
+            echo "=== 10. Health checks (frontend and API) ==="
+
+            HEALTHY=true
+            HEALTH_FILE="$STAGE/frontend-health.html"
+
+            if ! curl -fsS --max-time 30 https://www.finoocean.com/ -o "$HEALTH_FILE"; then
+              HEALTHY=false
+            elif ! grep -Fq '<app-root' "$HEALTH_FILE"; then
+              echo "ERROR: Frontend response does not contain the Angular app root."
+              HEALTHY=false
+            fi
+
+            if [ "$HEALTHY" != "true" ]; then
+              echo "ERROR: Frontend health check failed; rolling back."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: Frontend responded."
+
+            API_HEALTH_FILE="$STAGE/api-health.json"
+            if ! curl -fsS --max-time 30 \
+              -A 'finoocean-deploy-check' \
+              https://www.finoocean.com/api/v1/health \
+              -o "$API_HEALTH_FILE" ||
+              ! grep -Fq '"success":true' "$API_HEALTH_FILE" ||
+              ! grep -Fq '"api_version":"v1"' "$API_HEALTH_FILE"; then
+              echo "ERROR: Laravel API health check failed; rolling back."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: Laravel API health endpoint returned the expected JSON."
+
+            LOGIN_RESPONSE_FILE="$STAGE/api-login-validation.json"
+            LOGIN_CODE="$(curl -sS --max-time 30 \
+              -A 'finoocean-deploy-check' \
+              -H 'Content-Type: application/json' \
+              --data '{}' \
+              -o "$LOGIN_RESPONSE_FILE" \
+              -w '%{http_code}' \
+              https://www.finoocean.com/api/v1/auth/login)"
+            if [ "$LOGIN_CODE" != "422" ] ||
+              ! grep -Fq '"success":false' "$LOGIN_RESPONSE_FILE" ||
+              ! grep -Fq '"errors":' "$LOGIN_RESPONSE_FILE"; then
+              echo "ERROR: Login route did not return Laravel validation JSON; rolling back."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: Login route reached Laravel validation without submitting credentials."
+
+            if curl -fsS --max-time 30 https://www.finoocean.com/api/ \
+              -o "$STAGE/api-directory.html" &&
+              grep -Fq 'Index of /api' "$STAGE/api-directory.html"; then
+              echo "ERROR: API directory listing is still enabled; rolling back."
+              rollback
+              exit 1
+            fi
+
+            echo "PASS: API directory listing is disabled."
+
+            for PROTECTED_API_FILE in \
+              index.php.bak \
+              index.php.bak-bridge-debug \
+              index.php.bak-health-20261030 \
+              error_log \
+              health-check.txt
+            do
+              PROTECTED_API_CODE="$(curl -sS --max-time 30 \
+                -o /dev/null \
+                -w '%{http_code}' \
+                "https://www.finoocean.com/api/$PROTECTED_API_FILE")"
+              case "$PROTECTED_API_CODE" in
+                2??)
+                  echo "ERROR: Protected API file is publicly accessible: $PROTECTED_API_FILE"
+                  rollback
+                  exit 1
+                  ;;
+              esac
+            done
+
+            echo "PASS: Legacy API backup and log files are not publicly accessible."
+            echo "Publishing step completed for commit: $SOURCE_SHA"
+            echo "Recovery archives and DB dump: $BACKUP"

@@ -1,0 +1,103 @@
+name: FINOOCEAN - Production Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: "Full 40-character SHA whose pre-release backup should be restored"
+        required: true
+        type: string
+      restore_database:
+        description: "Also restore database-before.sql.gz (destructive). Type RESTORE-DB to confirm, otherwise leave empty."
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: finoocean-production-deployment
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    name: Restore Pre-Release Backup
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: production
+      url: https://www.finoocean.com/
+
+    steps:
+      - name: Validate inputs
+        shell: bash
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_SHA" =~ ^[0-9a-f]{40}$ ]] || {
+            echo "::error::A full lowercase 40-character SHA is required."
+            exit 1
+          }
+
+      - name: Restore backup on Namecheap
+        uses: appleboy/ssh-action@v1
+        env:
+          RELEASE_SHA: ${{ inputs.release_sha }}
+          RESTORE_DB: ${{ inputs.restore_database }}
+        with:
+          host: business30.web-hosting.com
+          username: finovobw
+          port: 21098
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.SSH_KEY_PASSPHRASE }}
+          fingerprint: SHA256:MU+S31vKsYEjlh13tq7xBCGSLLHMYdzAGTZojQSDpMo
+          envs: RELEASE_SHA,RESTORE_DB
+          timeout: 30s
+          command_timeout: 600s
+          script: |
+            set -eu
+
+            BACKUP="$HOME/finoocean-releases/backups/$RELEASE_SHA"
+            LIVE_BACKEND="$HOME/fino-deploy/backend"
+            PHP_BIN="$(command -v php)"
+
+            test -s "$BACKUP/frontend-before.tar.gz"
+            test -s "$BACKUP/backend-before.tar.gz"
+            tar -tzf "$BACKUP/frontend-before.tar.gz" >/dev/null
+            tar -tzf "$BACKUP/backend-before.tar.gz" >/dev/null
+
+            echo "=== Restore code ==="
+            tar -xzf "$BACKUP/frontend-before.tar.gz" -C "$HOME"
+            tar -xzf "$BACKUP/backend-before.tar.gz" -C "$HOME"
+
+            if [ "$RESTORE_DB" = "RESTORE-DB" ]; then
+              echo "=== Restore database ==="
+              test -s "$BACKUP/database-before.sql.gz"
+
+              env_value() {
+                grep -E "^$1=" "$LIVE_BACKEND/.env" | head -n 1 |
+                  cut -d '=' -f 2- | sed -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
+              }
+
+              MYSQL_PWD="$(env_value DB_PASSWORD)"
+              export MYSQL_PWD
+              gunzip -c "$BACKUP/database-before.sql.gz" |
+                mysql -h "$(env_value DB_HOST)" -P "$(env_value DB_PORT)" \
+                  -u "$(env_value DB_USERNAME)" "$(env_value DB_DATABASE)"
+              unset MYSQL_PWD
+            else
+              echo "Database left untouched."
+            fi
+
+            echo "=== Rebuild caches ==="
+            cd "$LIVE_BACKEND"
+            "$PHP_BIN" artisan optimize:clear
+            "$PHP_BIN" artisan config:cache
+            "$PHP_BIN" artisan route:cache
+
+            echo "=== Health check ==="
+            curl -fsS --max-time 30 https://www.finoocean.com/ -o /dev/null
+            curl -fsS --max-time 30 https://www.finoocean.com/api/v1/health -o /dev/null
+
+            echo "ROLLBACK COMPLETE for $RELEASE_SHA"

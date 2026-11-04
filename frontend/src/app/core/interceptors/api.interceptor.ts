@@ -11,6 +11,9 @@ export const apiInterceptor: HttpInterceptorFn = (request, next) => {
     setHeaders: {
       Accept: 'application/json',
       'X-Requested-With': 'XMLHttpRequest',
+      // Keep the Angular service worker out of API calls: on any network
+      // failure it fabricates a "504 Gateway Timeout", hiding the real error.
+      'ngsw-bypass': 'true',
     },
   });
 
